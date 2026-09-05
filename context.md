@@ -238,7 +238,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 
 | Milestone | Weeks | Status | Owner | Next Immediate Step |
 |---|---|---|---|---|
-| **Milestone 1** | 1–2 | `partial` | — | Auth + user model work; **RBAC not enforced**; profile update endpoints missing; CORS hardcoded `*`; JWT secret hardcoded |
+| **Milestone 1** | 1–2 | `complete` | — | Done 2026-09-05: auth+RBAC enforced, env-based secrets/CORS, profile/settings APIs, timezone-aware alarm scheduling; see WP-A→F in continuity log below |
 | **Milestone 2** | 3–4 | `partial` | — | Challenge engine + adaptive difficulty work; **answer leak in payload**; template mismatch bugs; no `/challenges/submit` endpoint; mobile dismiss broken |
 | **Milestone 3** | 5–6 | `partial` | — | Habit scoring 35/25/20/20 works; **analytics has hardcoded placeholders**; no trained ML model file (rule-based fallback only) |
 | **Milestone 4** | 7–8 | `not started` | — | **No tests, no CI/CD, no deployment**; Dockerfile CMD broken; migrations stale; web charts mocked; mobile offline/notifications not implemented |
@@ -366,7 +366,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 
 | Milestone | Weeks | Status | Owner | Next Immediate Step |
 |---|---|---|---|---|
-| **Milestone 1** | 1–2 | `partial` | — | Fix authentication config (env-based JWT secret), complete RBAC enforcement, add user profile update endpoints |
+| **Milestone 1** | 1–2 | `complete` | — | ✅ Delivered 2026-09-05 (WP-A→F): env JWT/CORS, RBAC enforced, profile/settings endpoints, tz-aware alarms, migration regen, seed+smoke scripts, web+mobile M1 wiring, initial git commit `bc31e9f` |
 | **Milestone 2** | 3–4 | `partial` | — | Remove answer leak from payload, fix template mismatch bugs, add `/challenges/submit`, align mobile dismiss contract |
 | **Milestone 3** | 5–6 | `partial` | — | Replace hardcoded analytics values, wire web charts to `/habits/score/history`, remove mock fallbacks |
 | **Milestone 4** | 7–8 | `not started` | — | Add test suite (pytest/vitest/jest-expo), CI/CD pipeline, fix Docker deployment, add notifications/offline sync |
@@ -377,6 +377,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | 2026-09-05 | architect | Deep multi-agent codebase analysis | Completed | See `SRS.md` Section 9–10, `HierarchicalRemediationPlan.md` |
 | 2026-09-05 | architect | Created `Milestone.md`, `.gitignore`, `.gitattributes`, `HierarchicalRemediationPlan.md` | Success | Project root |
 | 2026-09-05 | architect | Updated `SRS.md` (v1.1), `README.md`, `PRD.md`, `context.md` to reflect actual state | Success | Project root |
+| 2026-09-05 | architect | **M1 execution (WP-A→F)**: UI wireframes, migration/env/Docker fixes, `deps.py` RBAC, `init_db.py`+`smoke_m1.py`, profile/settings APIs, timezone-aware alarm scheduling (+`time` in response), web chart wiring, HTTP end-to-end verified (06:45 NY → 10:45 UTC), migration regenerated (`732e5cb49bcf`), alembic added to requirements, **initial commit `bc31e9f`** | Success 2026-09-05 | WP-B: `migrations/env.py`, `backend/Dockerfile`, `.dockerignore`; WP-C: `app/api/deps.py`; WP-D: `app/api/users.py`, profile cards; WP-D20: web dashboard real charts; WP-E: `app/api/alarms.py` rewrite; WP-F: scripts + migration + commit |
 
 ### Implementation Priority Order
 1. **Level 0 — Repository Foundation** — `.gitignore`, `.gitattributes`, cleanup, initial commit
