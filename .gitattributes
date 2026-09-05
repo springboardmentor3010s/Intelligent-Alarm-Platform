@@ -42,6 +42,7 @@ Dockerfile text eol=lf
 *.joblib binary
 *.pickle binary
 *.xlsx  binary
+*.docx  binary
 
 # Text files that should never be diffed
 package-lock.json -diff linguist-generated

@@ -16,11 +16,12 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | SQLAlchemy | 2.0.52 | >=2.0.0 | 2.0 style, sync sessions |
 | | psycopg2-binary | present | 1.1.33 | PostgreSQL driver |
 | | Pydantic | 2.13.4 | >=2.5.0 | v2 models everywhere |
+| | Alembic | 1.19.2 | >=1.13.0 (added M1) | Migrations regenerated & verified |
 | | PyTorch | present | >=2.3.x | ML / adaptive difficulty; **no trained model file** |
 | | scikit-learn | present | >=1.4.x | Unused in code |
 | | XGBoost | 3.4.1 | >=2.0.x | Unused in code |
 | | Uvicorn | 0.52.4 | >=0.27.x | ASGI server |
-| | PyJWT | 2.13.0 | — | JWT signing |
+| | PyJWT | 2.13.0 | — | JWT signing; **secret from env since M1** |
 | | bcrypt | present | — | Password hashing (12 rounds) |
 | **Frontend** | React.js (web) | 18.3.0 | 18.3.0 | Web dashboard |
 | | React (mobile) | 19.2.3 | — | Expo SDK 57 bundles React 19 |
@@ -191,19 +192,24 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 | `/api/v1/auth/register` | POST | User registration | None | `AuthRegisterReq` | `AuthRes` | ✅ Working |
 | `/api/v1/auth/login` | POST | JWT login | None | `AuthLoginReq` | `AuthRes` | ✅ Working |
 | `/api/v1/auth/me` | GET | Current user profile | Bearer | None | `UserProfileRes` | ✅ Working |
+| `/api/v1/users/profile` | GET | Current user profile (users router) | Bearer | — | `UserProfileRes` | ✅ Working (M1) |
+| `/api/v1/users/profile` | PUT | Update profile | Bearer | `UserProfileUpdateReq` | `UserProfileRes` | ✅ Working (M1) |
+| `/api/v1/users/settings` | GET | Get user settings | Bearer | — | `UserSettingsRes` | ✅ Working (M1) |
+| `/api/v1/users/settings` | PUT | Update settings (tx | Bearer | `UserSettingsUpdateReq` | `UserSettingsRes` | ✅ Working (M1) |
+| `/api/v1/users/{key}` | PUT | Update scalar user field | Bearer | `UserFieldUpdateReq` | `UserProfileRes` | ✅ Working (M1) |
 | `/api/v1/alarms` | GET | List user's alarms | Bearer | — | `List[AlarmRes]` | ✅ Working |
-| `/api/v1/alarms` | POST | Create alarm | Bearer | `AlarmCreateReq` | `AlarmRes` | ⚠️ `challenge_id`/type/difficulty/recurrence ignored |
+| `/api/v1/alarms` | POST | Create alarm | Bearer | `AlarmCreateReq` | `AlarmRes` | ✅ Working (M1: time/type/challenge/difficulty/recurrence wired) |
 | `/api/v1/alarms/{id}` | PUT | Update alarm | Bearer | `AlarmCreateReq` | `AlarmRes` | ✅ Working |
 | `/api/v1/alarms/{id}` | DELETE | Delete alarm | Bearer | — | `{"deleted": true}` | ✅ Working |
-| `/api/v1/alarms/{id}/dismiss` | POST | Dismiss alarm with challenge | Bearer | `AlarmDismissReq` | `DismissRes` | 🔴 Broken end-to-end (no attempt creation path; mobile payload mismatch) |
+| `/api/v1/alarms/{id}/dismiss` | POST | Dismiss alarm with challenge | Bearer | `AlarmDismissReq` | `DismissRes` | 🔴 Still broken end-to-end (no `/challenges/submit`; mobile payload mismatch) — M2 |
 | `/api/v1/alarms/{id}/snooze` | POST | Snooze alarm (+5 min, cap 5) | Bearer | — | `AlarmRes` | ✅ Working |
 | `/api/v1/challenges` | GET | List available challenges | Bearer | — | `List[ChallengeListRes]` | ✅ Working |
-| `/api/v1/challenges/next` | GET | Get next adaptive challenge | Bearer | — | `ChallengeRes` | ⚠️ Answer leaked in payload |
+| `/api/v1/challenges/next` | GET | Get next adaptive challenge | Bearer | — | `ChallengeRes` | ⚠️ Answer still leaked in payload — M2 |
 | `/api/v1/habits/score` | GET | Get habit score | Bearer | — | `HabitScoreRes` | ✅ Working (response_model=dict) |
 | `/api/v1/habits/score/history` | GET | Get habit score history | Bearer | `days` query | `List[HabitScoreRes]` | ✅ Working |
-| `/api/v1/analytics/me` | GET | User's analytics summary | Bearer | — | `AnalyticsRes` | ⚠️ Hardcoded placeholder values |
+| `/api/v1/analytics/me` | GET | User's analytics summary | Bearer | — | `AnalyticsRes` | ⚠️ Hardcoded placeholder values — M3 |
 | `/api/v1/analytics/ml-status` | GET | ML inference diagnostics | Bearer | — | `dict` | ✅ Working |
-| `/api/v1/challenges/submit` | POST | Submit challenge answer | Bearer | `ChallengeSubmitReq` | `ChallengeSubmitRes` | ❌ **MISSING — required for dismiss flow** |
+| `/api/v1/challenges/submit` | POST | Submit challenge answer | Bearer | `ChallengeSubmitReq` | `ChallengeSubmitRes` | ❌ **MISSING — required for dismiss flow (M2)** |
 
 ### Mobile Sync Endpoints
 | Path | Method | Description | Status |
@@ -214,8 +220,8 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 ### Web Dashboard Endpoints
 | Path | Method | Description | Status |
 |---|---|---|---|
-| `/api/v1/dashboard/users` | GET | List all users (Admin) | ⚠️ Admin auth is no-op |
-| `/api/v1/dashboard/analytics` | GET | Platform-wide analytics (Admin) | ⚠️ Admin auth is no-op; uptime=99.9 placeholder |
+| `/api/v1/dashboard/users` | GET | List all users (Admin) | ✅ Working — RBAC enforced (staff+); admin UI page still missing (M4) |
+| `/api/v1/dashboard/analytics` | GET | Platform-wide analytics (Admin) | ✅ Working — admin-only enforced; uptime=99.9 placeholder (M3) |
 | `/api/v1/dashboard/reports/habits` | GET | Habit report (CSV/JSON) | ✅ Working |
 | `/api/v1/dashboard/reports/wake-up` | GET | Wake-up report (CSV/JSON) | ✅ Working |
 | `/api/v1/dashboard/reports/challenges` | GET | Challenge report (CSV/JSON) | ✅ Working |
@@ -223,9 +229,7 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 ### Missing Endpoints (called by mobile, don't exist)
 | Path | Method | Called From | Issue |
 |---|---|---|---|
-| `/api/v1/users/profile` | PUT | `mobile/src/screens/ProfileScreen.jsx:25` | 404 — no users router |
-| `/api/v1/users/{key}` | PUT | `mobile/src/screens/SettingsScreen.jsx:28` | 404 — no users router |
-| `/api/v1/habits/score` | PUT | `mobile/src/hooks/useHabitScore.jsx:33` | 405 — backend only has GET |
+| `/api/v1/habits/score` | PUT | `mobile/src/hooks/useHabitScore.jsx:33` | 405 — backend only has GET (server accepts no PUT; habit scoring is server-computed — M3 to reconcile)
 
 ### Error Response Standard
 All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX", "timestamp": "ISO8601" }` — ⚠️ **currently only `detail` is returned; error_code/timestamp not implemented.**
@@ -282,13 +286,13 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 |---|---|---|
 | FR-AUTH-001: Registration with bcrypt | ✅ Complete | `auth.py` uses `bcrypt.hashpw` with proper hashing |
 | FR-AUTH-002: JWT login HS256 | ✅ Complete | Real JWT tokens via PyJWT with HS256 signing |
-| FR-AUTH-003: RBAC User/Coach/Admin | 🔴 Not enforced | `Role`/`user_roles` tables exist; `_require_admin()` in `dashboard.py:22-26` returns `True` for everyone |
+| FR-AUTH-003: RBAC User/Coach/Admin | ✅ Enforced (M1) | `require_roles()` in `app/api/deps.py`; staff/admin roles checked; 403 smoke-verified |
 | FR-AUTH-004: JWT validation on endpoints | ✅ Complete | `get_current_user` dependency on all protected routes |
 | NF-SEC-001: bcrypt min 12-round | ✅ Complete | `auth.py` service uses `bcrypt.hashpw` |
-| NF-SEC-002: JWT secret from env | 🔴 Not compliant | `services/auth.py:17` hardcodes `SECRET_KEY`; never reads env |
+| NF-SEC-002: JWT secret from env | ✅ Compliant (M1) | `services/auth.py` reads `SECRET_KEY` from env (dev fallback remains) |
 | NF-SEC-003: JWT validation all endpoints | ✅ Complete | OAuth2PasswordBearer + get_current_user |
 | NF-SEC-004: Pydantic v2 input validation | ✅ Complete | All endpoints use Pydantic v2 schemas |
-| NF-SEC-005: CORS via env | 🔴 Not compliant | `main.py:20-27` hardcodes `["*"]`; no env read |
+| NF-SEC-005: CORS via env | ✅ Compliant (M1) | `CORS_ORIGINS` env parsed in `core/config.py`; credentials only with explicit origins |
 
 ### User Profile & Habit Management
 | Requirement | Status | Notes |
@@ -306,7 +310,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | FR-AS-003: Smart adaptive alarms | ✅ Complete | Challenge selection based on user performance history |
 | FR-AS-004: Compute next_trigger | ✅ Complete | Auto-computed for Daily/Weekday; One-Time stays disabled |
 | FR-AS-005: Snooze tracking | ✅ Complete | Snooze endpoint with cap at 5; tracked in habit scoring |
-| **Alarm dismiss (end-to-end)** | 🔴 Broken | Mobile sends wrong payload; no `ChallengeAttempt` creation path exists; `create_alarm` ignores `challenge_id`/type/difficulty/recurrence |
+| **Alarm dismiss (end-to-end)** | 🔴 Broken | Mobile still sends wrong payload; no `/challenges/submit` path creates attempts → `dismiss` can't verify (M2). Alarm creation fields (time/type/challenge/difficulty/recurrence) are now fully wired (M1). |
 
 ### Cognitive Challenge Engine
 | Requirement | Status | Notes |
@@ -338,12 +342,12 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 ### Dashboard & Analytics
 | Requirement | Status | Notes |
 |---|---|---|
-| FR-DD-001: User Dashboard | ⚠️ Partial | Web charts use hardcoded mock data (`chartUtils.js`); silent fake fallback on errors |
+| FR-DD-001: User Dashboard | ⚠️ Partial | Dashboard page wired to real `/habits/score/history`; Home page still uses hardcoded mock data (`chartUtils.js`) — M3 |
 | FR-DD-002: Wellness Coach Dashboard | ❌ Not implemented | No coach cohort filtering/UI exists |
-| FR-DD-003: Admin Dashboard | ⚠️ Partial | Backend endpoints exist but admin RBAC is a no-op; **no admin UI page** |
-| FR-REP-001: PDF habit reports | ⚠️ Partial | CSV/JSON export via `/dashboard/reports/habits`; **PDF not implemented** |
-| FR-REP-002: Wake-up reports PDF/CSV | ⚠️ Partial | CSV/JSON export via `/dashboard/reports/wake-up`; **PDF not implemented** |
-| FR-REP-005: All reports PDF + Excel | ⚠️ Partial | CSV + JSON exports; PDF/Excel not yet implemented |
+| FR-DD-003: Admin Dashboard | ⚠️ Partial | Backend endpoints exist + RBAC enforced (M1); **no admin UI page** yet (M4) |
+| FR-REP-001: PDF habit reports | ⚠️ Partial | CSV/JSON export via `/dashboard/reports/habits`; **PDF not implemented** (M4) |
+| FR-REP-002: Wake-up reports PDF/CSV | ⚠️ Partial | CSV/JSON export via `/dashboard/reports/wake-up`; **PDF not implemented** (M4) |
+| FR-REP-005: All reports PDF + Excel | ⚠️ Partial | CSV + JSON exports; PDF/Excel not yet implemented (M4) |
 
 ### Offline-First Sync Protocol
 | Requirement | Status | Notes |
@@ -378,6 +382,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | 2026-09-05 | architect | Created `Milestone.md`, `.gitignore`, `.gitattributes`, `HierarchicalRemediationPlan.md` | Success | Project root |
 | 2026-09-05 | architect | Updated `SRS.md` (v1.1), `README.md`, `PRD.md`, `context.md` to reflect actual state | Success | Project root |
 | 2026-09-05 | architect | **M1 execution (WP-A→F)**: UI wireframes, migration/env/Docker fixes, `deps.py` RBAC, `init_db.py`+`smoke_m1.py`, profile/settings APIs, timezone-aware alarm scheduling (+`time` in response), web chart wiring, HTTP end-to-end verified (06:45 NY → 10:45 UTC), migration regenerated (`732e5cb49bcf`), alembic added to requirements, **initial commit `bc31e9f`** | Success 2026-09-05 | WP-B: `migrations/env.py`, `backend/Dockerfile`, `.dockerignore`; WP-C: `app/api/deps.py`; WP-D: `app/api/users.py`, profile cards; WP-D20: web dashboard real charts; WP-E: `app/api/alarms.py` rewrite; WP-F: scripts + migration + commit |
+| 2026-09-05 | architect | Docs refresh post-M1 (README/SRS-v1.2/PRD/context/Milestone/HRP), stale artifact cleanup (`test_run.bat` removed), `.env.example` DATABASE_URL note, `.gitattributes` +`*.docx`, first remote push | Docs updated; push pending | `SRS.md`, `PRD.md`, `README.md`, `context.md`, `Milestone.md`, `HierarchicalRemediationPlan.md`, `.gitattributes`, `backend/.env.example` |
 
 ### Implementation Priority Order
 1. **Level 0 — Repository Foundation** — `.gitignore`, `.gitattributes`, cleanup, initial commit

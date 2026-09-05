@@ -68,7 +68,7 @@ This document covers:
 |---|---|---|---|
 | FR-AUTH-001 | The system shall support user registration with email and password hash storage. | High | Passwords must be hashed using bcrypt (or equivalent) with minimum 12-round cost. |
 | FR-AUTH-002 | The system shall support user login via JWT authentication. | High | JWT signed with HS256 algorithm. Access token expiry configurable (default 60 mins). Refresh token expiry configurable (default 30 days). |
-| FR-AUTH-003 | The system shall implement role-based access control with three roles: User, Wellness Coach, Administrator. | High | ⚠️ **NOT ENFORCED in current implementation.** `Role` and `user_roles` tables exist, but `_require_admin()` in `backend/app/api/dashboard.py:22-26` is a no-op returning `True` — any authenticated user can access admin endpoints. |
+| FR-AUTH-003 | The system shall implement role-based access control with three roles: User, Wellness Coach, Administrator. | High | ✅ **ENFORCED as of M1 (2026-09-05).** `Role`/`user_roles` tables exist; RBAC enforced via `require_roles()` in `backend/app/api/deps.py`. `/dashboard/users` requires staff, `/dashboard/analytics` requires admin (verified 403 in smoke test). Roles are auto-assigned on registration; seeds include a demo `Administrator` user. |
 | FR-AUTH-004 | The system shall validate JWT `Authorization: Bearer <token>` header on protected endpoints. | High | Missing/invalid token returns `401 Unauthorized` with error code `ERR_AUTH_001`. |
 | FR-AUTH-005 | The system shall support OAuth2 login (Google) as alternative to local registration. | Medium | Optional; OAuth2 user profile linked to existing or newly created local user. |
 
@@ -136,7 +136,7 @@ This document covers:
 |---|---|---|---|
 | FR-DD-001 | The system shall provide a User Dashboard displaying: habit scores, alarm history, wake-up statistics, challenge performance. | High | React.js component consuming `/api/v1/habits/score` and `/api/v1/analytics/me`. |
 | FR-DD-002 | The system shall provide a Wellness Coach Dashboard displaying: user behavior insights, habit adherence analytics, sleep trend reports, progress monitoring. | High | ⚠️ **NOT IMPLEMENTED.** Admin-lite access and coach user cohort filtering do not exist. |
-| FR-DD-003 | The system shall provide an Admin Dashboard displaying: user management, platform analytics, recommendation monitoring, system reports. | High | ⚠️ **PARTIAL.** Backend endpoints exist (`/dashboard/users`, `/dashboard/analytics`) but RBAC enforcement is a no-op and no Admin UI page exists in the web dashboard. |
+| FR-DD-003 | The system shall provide an Admin Dashboard displaying: user management, platform analytics, recommendation monitoring, system reports. | High | ⚠️ **PARTIAL.** Backend endpoints exist and RBAC is now enforced (M1). Remaining: no Admin UI page in the web dashboard (M4). |
 | FR-DD-004 | Dashboards shall support responsive design for mobile, tablet, and desktop form factors. | Medium | Tailwind CSS utility-first responsive utilities. |
 
 ### 2.9 Notification & Reminder System
@@ -191,10 +191,10 @@ This document covers:
 | Requirement ID | Requirement Text | Priority | Notes |
 |---|---|---|---|
 | NF-SEC-001 | All passwords must be hashed using bcrypt with minimum 12-round cost. | Critical | Never store plaintext passwords. |
-| NF-SEC-002 | JWT tokens must be signed with HS256 algorithm using a server-side secret key. | Critical | ⚠️ **NOT COMPLIANT in current implementation.** `SECRET_KEY` is hardcoded as a class constant in `backend/app/services/auth.py:17` and never read from environment. Fix to read from `os.getenv("SECRET_KEY")`. |
+| NF-SEC-002 | JWT tokens must be signed with HS256 algorithm using a server-side secret key. | Critical | ✅ **COMPLIANT as of M1 (2026-09-05).** `SECRET_KEY` is read from `os.getenv("SECRET_KEY")` with a clearly-marked development fallback (`backend/app/services/auth.py:15-17`). Requires an env secret in production. |
 | NF-SEC-003 | All API endpoints must validate JWT authentication on protected routes. | Critical | `401 Unauthorized` for missing/invalid tokens. |
 | NF-SEC-004 | Input validation must be enforced via Pydantic v2 models on all request bodies. | Critical | Prevents injection attacks; rejects malformed payloads. |
-| NF-SEC-005 | CORS must be configured via `CORS_ORIGINS` environment variable; `["*"]` prohibited in production. | High | ⚠️ **NOT COMPLIANT in current implementation.** `backend/app/main.py:20-27` uses hardcoded `allow_origins=["*"]` with `allow_credentials=True` (invalid combo per CORS spec). TODO comment exists. |
+| NF-SEC-005 | CORS must be configured via `CORS_ORIGINS` environment variable; `["*"]` prohibited in production. | High | ✅ **COMPLIANT as of M1 (2026-09-05).** `CORS_ORIGINS` env var is parsed in `backend/app/core/config.py`; `allow_credentials=True` is only set when a non-wildcard origin list is configured (`backend/app/main.py:18-26`). |
 | NF-SEC-006 | SQL injection must be prevented via SQLAlchemy parameterized queries (ORM). | Critical | No raw SQL string concatenation in data access layer. |
 | NF-SEC-007 | Sensitive telemetry data (sleep patterns, habit scores) must be encrypted at rest in PostgreSQL. | High | Use `pgcrypto` or application-level encryption for PII. |
 | NF-SEC-008 | Session revocation must be supported: invalidate JWTs on password change or admin revocation. | Medium | Optional: use JWT blacklist in Redis with `exp` check. |
@@ -474,7 +474,7 @@ class SyncRecordRes(BaseModel):
 | Challenge Report | GET | `/api/v1/dashboard/reports/challenges` | Bearer (is_superuser) | `format=json/csv` | File / JSON |
 | Update User Profile | PUT | `/api/v1/users/profile` | Bearer | `UserProfileUpdateReq` | `UserProfileRes` |
 
-> ⚠️ **NOTE:** `PUT /api/v1/users/profile` is **NOT YET IMPLEMENTED** — the mobile app calls it but the backend has no users router. PDF/Excel report export (FR-REP-005) is also not yet implemented — only CSV/JSON.
+> ✅ **NOTE:** `PUT /api/v1/users/profile` (plus `GET /api/v1/users/profile`, `GET/PUT /api/v1/users/settings`, `PUT /api/v1/users/{key}`) is **IMPLEMENTED as of M1** in `backend/app/api/users.py`. Remaining gap for FR-REP-005: PDF/Excel report export — only CSV/JSON exists.
 
 ##### 4.1.7.1 AdminUserRes (Pydantic v2)
 ```python
@@ -836,89 +836,98 @@ FUNCTION sync_pending_records(records):
 |---|---|---|---|
 | 1.0 | 2026-08-23 | architect | Initial SRS draft based on PDF analysis and project scaffolding |
 | 1.1 | 2026-09-05 | architect | Reflected actual implementation state from deep codebase analysis; added missing endpoints, known issues, and implementation status matrix |
+| 1.2 | 2026-09-05 | architect | Marked M1-resolved items (RBAC enforced, env JWT/CORS, `PUT /users/profile` implemented, migration regenerated, Dockerfile CMD fixed); updated known-issues and implementation status matrices to verified post-M1 state |
 
 ---
 
 ## 9. Known Issues & Security Vulnerabilities
 
-> Results of a comprehensive codebase analysis performed on 2026-09-05. Priority: 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low
+> Audit performed 2026-09-05 (pre-M1); status refreshed 2026-09-05 after M1. Priority: 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low
 
-| # | Severity | Issue | Location | Impact |
+### 9.1 Resolved by Milestone 1 (2026-09-05)
+
+| # | Severity | Issue | Location | Resolution |
 |---|---|---|---|---|
-| 1 | 🔴 | Hardcoded JWT `SECRET_KEY` never read from env | `backend/app/services/auth.py:17` | Anyone with repo access can forge JWTs for any user |
-| 2 | 🔴 | Admin authorization bypass — `_require_admin()` always returns `True` | `backend/app/api/dashboard.py:22-26` | Any authenticated user can view all users + platform analytics |
-| 3 | 🔴 | Challenge answer leaked in `puzzle_payload` response | `backend/app/services/challenge_service.py:93,104` | Challenges are trivially bypassable at the client |
-| 4 | 🔴 | No `ChallengeAttempt` creation endpoint | n/a (missing) | Mobile wake-up dismiss flow cannot succeed — dismiss requires a pre-existing attempt |
-| 5 | 🔴 | Mobile dismiss payload mismatch | `mobile/src/screens/AlarmScreen.jsx:46-52` | Sends `{challenge_result}` vs required `AlarmDismissReq` schema → guaranteed 422 |
-| 6 | 🟠 | `load_dotenv(override=True)` overrides Docker-injected `DATABASE_URL` | `backend/app/database.py:11` | API container connects to SQLite instead of PostgreSQL |
-| 7 | 🟠 | Dockerfile CMD references nonexistent `app:app` | `backend/Dockerfile:12` | Container cannot start; correct target is `app.main:app` |
-| 8 | 🟠 | CORS `allow_origins=["*"]` with `allow_credentials=True` | `backend/app/main.py:20-27` | Invalid/insecure per CORS spec |
-| 9 | 🟠 | Stale Alembic migration out of sync with Models.py | `migrations/versions/24836e32229e_initial_migration.py` | Missing `full_name`, `timezone`, `difficulty_preference`, `generated_at`, `alarm_roles` table |
-| 10 | 🟠 | `migrations/env.py` imports `app.models` (lowercase) | `migrations/env.py:28` | Works on Windows case-insensitive FS; fails on Linux/Docker |
-| 11 | 🟠 | No DB table initialization on fresh deploy | n/a | No `create_all()` and no migration execution in Docker entrypoint |
-| 12 | 🟠 | Challenge template random-mismatch (Logic/Word/Pattern) | `backend/app/services/challenge_service.py:31,45,56` | Question and answer often don't match the displayed puzzle |
-| 13 | 🟡 | Web dashboard renders hardcoded mock chart data | `web/src/utils/chartUtils.js` | Real `/habits/score/history` endpoint never called |
-| 14 | 🟡 | Web silently substitutes fake scores (70) on API failure | `web/src/pages/Home.jsx:22-28`, `Dashboard.jsx:23-29`, `Reports.jsx:20-26` | Masks real outages behind fabricated "healthy" UI |
-| 15 | 🟡 | Mobile calls nonexistent endpoints: `PUT /users/profile`, `PUT /users/{key}`, `PUT /habits/score` | `mobile/src/screens/ProfileScreen.jsx:25`, `SettingsScreen.jsx:28`, `hooks/useHabitScore.jsx:33` | Guaranteed 404 responses |
-| 16 | 🟡 | Mobile `overist_score` typo (should be `overall_score`) | `mobile/src/screens/HomeScreen.jsx:69` | Habit score always renders 0 |
-| 17 | 🟢 | `schemas/all.py` dead file with broken import | `backend/app/schemas/all.py:4` | Never imported, but a latent `ImportError` tripwire |
-| 18 | 🟢 | Triplicated divergent schema definitions | `schemas/__init__.py`, `schemas/all.py`, `schemas/auth.py` | Drift risk; consolidation required |
-| 19 | 🟢 | No test files exist; no CI/CD | entire repo | Nothing verifiable; no safety net |
+| 1 | 🔴 | Hardcoded JWT `SECRET_KEY` never read from env | `backend/app/services/auth.py` | Read from `os.getenv("SECRET_KEY")` with dev-only fallback |
+| 2 | 🔴 | Admin authorization bypass — `_require_admin()` always returns `True` | `backend/app/api/deps.py` | RBAC via `require_roles()`; `is_superuser`/staff checked (403 smoke-verified) |
+| 6 | 🟠 | `load_dotenv(override=True)` overrides Docker-injected `DATABASE_URL` | `backend/app/database.py` | Only loads `.env` when `DATABASE_URL` is not already set |
+| 7 | 🟠 | Dockerfile CMD references nonexistent `app:app` | `backend/Dockerfile` | Corrected to `app.main:app`; `.dockerignore` added |
+| 8 | 🟠 | CORS `allow_origins=["*"]` with `allow_credentials=True` | `backend/app/main.py` | Env-driven `CORS_ORIGINS`; credentials only with explicit origins |
+| 9 | 🟠 | Stale Alembic migration out of sync with Models.py | `migrations/versions/732e5cb49bcf_initial_schema.py` | Migration regenerated; `upgrade head` verified on fresh DB |
+| 10 | 🟠 | `migrations/env.py` imports `app.models` (lowercase) | `migrations/env.py:28` | Import fixed to `app.Models`; `DATABASE_URL` override honored |
+| 11 | 🟠 | No DB table initialization on fresh deploy | `scripts/init_db.py` | `create_all` + seed roles/demo user added (manual bootstrap; Docker entrypoint still TODO) |
+| 15 | 🟡 | Mobile calls nonexistent endpoints: `PUT /users/profile`, `PUT /users/{key}`, `PUT /habits/score` | `backend/app/api/users.py` | `users` router added (profile + settings GET/PUT, per-key PUT); habit score PUT is M3 |
+| 17 | 🟢 | `schemas/all.py` dead file with broken import | `backend/app/schemas/all.py` | No production import path uses it; removal deferred to Level 2 consolidation |
+
+### 9.2 Open Issues (target the milestone shown)
+
+| # | Severity | Issue | Location | Impact | Target |
+|---|---|---|---|---|---|
+| 3 | 🔴 | Challenge answer leaked in `puzzle_payload` response | `backend/app/services/challenge_service.py:93,104` | Challenges are trivially bypassable at the client | M2 |
+| 4 | 🔴 | No `ChallengeAttempt` creation / verify path (`POST /challenges/submit`) | n/a (missing) | Mobile wake-up dismiss flow cannot succeed | M2 |
+| 5 | 🔴 | Mobile dismiss payload mismatch | `mobile/src/screens/AlarmScreen.jsx` | Sends `{challenge_result}` vs required `AlarmDismissReq` schema → guaranteed 422 | M2/L11 |
+| 12 | 🟠 | Challenge template random-mismatch (Logic/Word/Pattern) | `backend/app/services/challenge_service.py` | Question and answer don't match the displayed puzzle | M2 |
+| 13 | 🟡 | Web dashboard renders hardcoded mock chart data | `web/src/utils/chartUtils.js` | Real `/habits/score/history` not called on Home page (Dashboard now wired) | M3/L10 |
+| 14 | 🟡 | Web silently substitutes fake scores (70) on API failure | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | Masks real outages behind fabricated "healthy" UI | M3/L10 |
+| 16 | 🟡 | Mobile `overist_score` typo (should be `overall_score`) | `mobile/src/screens/HomeScreen.jsx:69` | Habit score always renders 0 | M3 |
+| 18 | 🟢 | Triplicated divergent schema definitions | `schemas/__init__.py`, `schemas/all.py`, `schemas/auth.py` | Drift risk; consolidation required | Level 2 |
+| 19 | 🟢 | No test files exist; no CI/CD | entire repo | Nothing verifiable; no safety net | M4/L14–15 |
 
 ---
 
 ## 10. Implementation Status Matrix
 
-Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken
+Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-05 post-M1)*
 
 ### Backend Modules
 
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
-| Authentication (register/login/me) | ✅ Complete | Real bcrypt + JWT; works end-to-end | 85% |
-| RBAC / Authorization | ❌ Not enforced | Tables exist; `_require_admin()` no-op | 20% |
-| Alarm CRUD + Snooze | ⚠️ Partial | Routes work; `challenge_id` ignored on create; hardcoded 07:00 | 75% |
-| Alarm Dismiss | 🔴 Broken | Requires `ChallengeAttempt` no client can create | 15% |
-| Challenge Engine (7 types) | ⚠️ Partial | Real templates; answer leak + template mismatches | 80% |
-| Habit Scoring (35/25/20/20) | ✅ Complete | Real weighted computation + history | 90% |
-| Analytics | ⚠️ Partial | Multiple hardcoded placeholders (`sleep_duration_avg=7.5`, fake `recent_activity`) | 60% |
-| Offline Sync (server) | ⚠️ Partial | Idempotent upsert works; etag dead code; no mobile client | 85% |
-| Dashboard + Reports | ⚠️ Partial | CSV/JSON export; admin auth open; PDF/Excel missing | 75% |
-| ML Inference | ⚠️ Partial | PyTorch model class + fallback; no trained model file | 60% |
-| Database Models + Migrations | ⚠️ Partial | 8 tables with indexes; migration stale vs models | 75% |
-| Error Handling Standard | ❌ Not implemented | Bare `detail` only; no error_code/timestamp | 30% |
+| Authentication (register/login/me) | ✅ Complete | Real bcrypt + JWT; works end-to-end (smoke) | 95% |
+| RBAC / Authorization | ✅ Complete | `require_roles()` in `deps.py`; 403 smoke-verified | 90% |
+| User Profiles & Settings | ✅ Complete | `/users/profile` GET+PUT, `/users/settings` GET, `/users/{key}` PUT | 95% |
+| Alarm CRUD + Snooze | ✅ Complete | tz-aware `next_trigger`, recurrence, challenge linkage, `time` in response, snooze cap 5 | 95% |
+| Alarm Dismiss | 🔴 Broken | Requires `ChallengeAttempt` no client can create (M2) | 15% |
+| Challenge Engine (7 types) | ⚠️ Partial | Real templates; answer leak + template mismatches (M2) | 80% |
+| Habit Scoring (35/25/20/20) | ✅ Complete | Real weighted computation + history (smoke-verified) | 95% |
+| Analytics | ⚠️ Partial | Hardcoded placeholders (`sleep_duration_avg=7.5`, fake `recent_activity`) — M3 | 60% |
+| Offline Sync (server) | ⚠️ Partial | Idempotent upsert works; no mobile client calls it | 85% |
+| Dashboard + Reports | ⚠️ Partial | CSV/JSON export; PDF/Excel missing (M4); RBAC now enforced | 80% |
+| ML Inference | ⚠️ Partial | PyTorch model class + rule-based fallback; no trained model file | 60% |
+| Database Models + Migrations | ✅ Complete | 8 tables with indexes; migration current (732e5cb49bcf) | 95% |
+| Error Handling Standard | ❌ Not implemented | Bare `detail` only; no error_code/timestamp (Level 8) | 30% |
 
 ### Web Dashboard
 
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
 | Auth (login/register) | ✅ Complete | Works against API | 90% |
-| Home / Charts | ⚠️ Partial | Real score; hardcoded chart data + mock fallbacks | 45% |
-| Alarm Management | ⚠️ Partial | CRUD works; no time picker / dismiss / recurrence | 60% |
+| Home / Charts | ⚠️ Partial | Dashboard wired to real history; Home still mock + fallbacks (M3) | 55% |
+| Alarm Management | ✅ Complete | Full form (time picker, type, challenge, difficulty, recurrence); CRUD works | 85% |
 | Challenge Generator | ✅ Complete | List + adaptive next | 80% |
-| Reports | ⚠️ Partial | CSV only; PDF/Excel missing | 55% |
-| Settings | ❌ Stubbed | Local state only; no persistence | 10% |
-| Admin Dashboard | ❌ Not implemented | No UI page | 0% |
+| Reports | ⚠️ Partial | CSV only; PDF/Excel missing (M4) | 55% |
+| Settings (Profile) | ✅ Complete | API-backed persistence via `/users/profile` | 80% |
+| Admin Dashboard | ❌ Not implemented | No UI page; API ready (M4) | 0% |
 
 ### Mobile App
 
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
-| Auth / Navigation | ⚠️ Partial | Login works; no registration | 70% |
+| Auth / Navigation | ⚠️ Partial | Login works; no registration screen | 70% |
 | Alarm Display | ⚠️ Partial | Lists alarms; no creation UI | 50% |
-| Alarm Dismiss | 🔴 Broken | Payload mismatch; auto-filled answer | 10% |
-| Challenge Flow | 🔴 Broken | Client-side only; not adaptive; not persisted | 15% |
-| Profile | 🔴 Broken | Calls nonexistent endpoint | 20% |
-| Settings | 🔴 Broken | Calls nonexistent endpoint | 20% |
-| Offline Sync | ❌ Not implemented | Type schemas only | 5% |
-| Push Notifications | ❌ Stubbed | Token fetched but never registered | 15% |
+| Alarm Dismiss | 🔴 Broken | Payload mismatch; auto-filled answer (M2) | 10% |
+| Challenge Flow | 🔴 Broken | Client-side only; not adaptive; not persisted (M2) | 15% |
+| Profile | ✅ Complete | Calls now-implemented `PUT /users/profile` | 80% |
+| Settings | ✅ Complete | Calls now-implemented `PUT /users/settings` + `/users/{key}` | 80% |
+| Offline Sync | ❌ Not implemented | Type schemas only (M4/L13) | 5% |
+| Push Notifications | ❌ Stubbed | Token fetched but never registered (M4/L12) | 15% |
 
 ### Infrastructure
 
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
-| Docker | 🔴 Broken | Wrong CMD; `.env` override; no entrypoint | 30% |
-| Database Migrations | 🔴 Broken | Stale vs models; case-sensitive import | 25% |
-| CI/CD | ❌ Not implemented | No `.github/`, no pipeline | 0% |
-| Testing | ❌ Not implemented | Zero test files | 0% |
-| Environment Config | ⚠️ Partial | 18/23 env vars dead; secrets hardcoded | 15% |
+| Docker | ⚠️ Partial | CMD fixed, `.dockerignore`, compose config valid; full up-test pending | 55% |
+| Database Migrations | ✅ Complete | Migration current; `upgrade head` verified on fresh DB | 90% |
+| CI/CD | ❌ Not implemented | No `.github/`, no pipeline (M4/L15) | 0% |
+| Testing | ❌ Not implemented | Zero test files; `smoke_m1.py` (22 checks) is manual verification (M4) | 5% |
+| Environment Config | ✅ Complete | Secrets/CORS from env; 3 postgres vars honored for compose | 85% |

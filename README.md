@@ -13,25 +13,27 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 ## Project Status
 
-> **Current Stage**: Early Development / Functional Prototype — **~42% overall completion**
-> Analysis date: 2026-09-05. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap.
+> **Current Stage**: Functional Prototype — **Milestone 1 complete** (auth, RBAC, profiles, timezone-aware alarms, habit scoring, migrations, smoke-tested)
+> Status updated: 2026-09-05. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap.
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
-| Backend Core Logic | Functional | ~78% | Auth, challenges, habits, sync work; security gaps remain |
-| Backend Security | Critical | ~25% | Hardcoded JWT secret, admin bypass, CORS `*` |
-| Web Dashboard | Partial | ~55% | Real reads; charts mock data; no admin UI |
-| Mobile App | Critical | ~25% | Core alarm-dismiss flow broken; offline sync not wired |
-| Testing | None | 0% | Zero test files, no CI/CD |
-| Infrastructure/Docker | Broken | ~20% | Wrong Docker CMD, stale migrations, no CI |
+| Backend Core Logic | Functional | ~85% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync all working & smoke-tested |
+| Backend Security | Good | ~80% | Env-driven JWT secret + CORS, RBAC enforced; remaining: structured errors, rate limiting |
+| Web Dashboard | Partial | ~60% | Dashboard wired to real history charts; Home still mock; no admin UI |
+| Mobile App | Partial | ~35% | Profile/settings wired to backend; dismiss flow still broken; notifications/offline not wired |
+| Testing | None | 0% | Zero unit tests, no CI/CD (`smoke_m1.py` = manual verification only) |
+| Infrastructure/Docker | Partial | ~55% | Dockerfile CMD fixed, .dockerignore, migration current; full compose up-test pending |
 
-### Known Critical Issues
-1. Hardcoded JWT `SECRET_KEY` — never read from env (`backend/app/services/auth.py:17`)
-2. Admin endpoints open to all users — `_require_admin()` is a no-op
-3. Challenge answers leaked in API response — trivially bypassable
-4. Mobile alarm-dismiss payload mismatch — core flow cannot succeed
-5. `load_dotenv(override=True)` breaks Docker PostgreSQL connection
-6. Dockerfile CMD references nonexistent `app:app`
+### Known Critical Issues (remaining after M1)
+1. Challenge answers still leaked in `/api/v1/challenges/next` response — trivially bypassable (M2)
+2. Mobile alarm-dismiss payload mismatch + no `/api/v1/challenges/submit` endpoint — core flow cannot succeed (M2)
+3. No server-side challenge verification endpoint (M2)
+4. Analytics endpoint returns hardcoded placeholder values (M3)
+5. Zero unit tests and no CI/CD pipeline (M4)
+6. Mobile UI shows mock data / silent fake fallbacks; admin dashboard page missing (M3/M4)
+
+> M1-resolved issues: hardcoded JWT secret, admin auth bypass, CORS `*`, stale migration, wrong Dockerfile CMD, `load_dotenv` override — all fixed in M1 (see `context.md` continuity log).
 
 Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 
@@ -60,9 +62,9 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
                                       +---------------+
 ```
 
-**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 19 REST endpoints under `/api/v1` — auth, alarms, challenges, habits, analytics, sync, dashboard.
+**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 23 REST endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard.
 **Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores.
-**Mobile** (Expo SDK 57 / React Native 0.87): temp login + read-only flows; core dismiss flow broken.
+**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; core dismiss flow still broken (M2).
 **Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 8 ORM tables with performance indexes.
 
 ---
@@ -109,9 +111,10 @@ docker-compose up -d db
 
 ### 3. Database Migrations
 ```bash
-cd migrations
+# From project root (or with DATABASE_URL set for a non-default target):
 alembic upgrade head
-# NOTE: Current migration is stale vs Models.py — regeneration required (see HierarchicalRemediationPlan.md Level 3)
+# Migration is current with `app/Models.py` (revision 732e5cb49bcf).
+# `migrations/env.py` honors the `DATABASE_URL` env var; SQLite is the local-dev default.
 ```
 
 ### 4. Backend Server
@@ -125,7 +128,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 # Docs at http://localhost:8000/docs
 ```
 
-> ⚠️ **NOTE**: The Dockerfile currently uses `uvicorn app:app` which is **incorrect** — the correct target is **`app.main:app`**. This is listed as a critical fix in the remediation plan.
+> ✅ **NOTE**: The Dockerfile now uses the correct `app.main:app` target and ships with a `.dockerignore`. Full container up-test is pending — requires Docker Desktop running.
 
 ### 5. Web Dashboard (React)
 ```bash
@@ -144,7 +147,7 @@ npx expo start
 # Press 'a' for Android emulator, or scan QR code with Expo Go app on physical device
 ```
 
-> ⚠️ **NOTE**: The mobile alarm-dismiss flow is currently broken against the current backend contract. See `HierarchicalRemediationPlan.md` Level 11.
+> ⚠️ **NOTE**: Mobile profile/settings screens are wired to the backend, but the alarm-**dismiss** flow still does not match the backend contract (no `/challenges/submit` endpoint server-side). See `HierarchicalRemediationPlan.md` Level 11 / M2.
 
 ### 7. Verify All Services
 ```bash
@@ -170,20 +173,20 @@ DEBUG=True
 HOST=0.0.0.0
 PORT=8000
 
-# DATABASE_URL takes precedence; default: sqlite:///./cerebrokognit.db
+# DATABASE_URL takes precedence; default local dev: sqlite:///./cerebro_kognit.db
 POSTGRES_SERVER=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=cerebro_kognit
 POSTGRES_USER=cerebro_user
 POSTGRES_PASSWORD=change_me
 
-# ⚠️ IMPORTANT: SECRET_KEY is NOT yet read by AuthService (hardcoded).
-# Fix required per HierarchicalRemediationPlan.md Level 1.
+# ✅ SECRET_KEY is read from env by AuthService (Level 1 fix applied).
 SECRET_KEY=change_this_to_a_very_random_secret_key_min_32_bytes
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 REFRESH_TOKEN_EXPIRE_DAYS=30
 
+# ✅ CORS is loaded from env (Level 1 fix applied).
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 
 MODEL_DIR=models
@@ -210,10 +213,10 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 
 | Milestone | Weeks | Deliverables | Status |
 |---|---|---|---|
-| **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ⚠️ Partial — auth works; RBAC/enforcement missing |
+| **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migration `732e5cb49bcf`, 22/22 smoke |
 | **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ⚠️ Partial — engine works; answer leak, no submit endpoint |
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ⚠️ Partial — scoring works; analytics placeholders |
-| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ❌ Not started — no tests, no CI, Docker broken |
+| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ❌ Not started — no tests, no CI, full container up-test pending |
 
 Full milestone detail: see `Milestone.md`.
 
@@ -226,7 +229,8 @@ Full milestone detail: see `Milestone.md`.
 |---|---|
 | `uvicorn app.main:app --reload` | Start dev server with auto-reload |
 | `alembic upgrade head` | Apply pending DB migrations |
-| `backend/test_run.bat` | Manual smoke test (Windows only, not automated) |
+| `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
+| `python scripts/smoke_m1.py` | End-to-end HTTP smoke test (22 checks) — needs server running |
 
 ⚠️ **Note**: A real test suite (`pytest`) is not yet configured — this is remediation Level 14.
 
@@ -251,7 +255,7 @@ Full milestone detail: see `Milestone.md`.
 | Document | Purpose |
 |---|---|
 | `README.md` | This file — quick start, status, architecture |
-| `SRS.md` | Software Requirements Specification (IEEE format, v1.1) |
+| `SRS.md` | Software Requirements Specification (IEEE format, v1.2) |
 | `PRD.md` | Product Requirements Document — vision, personas, modules |
 | `context.md` | System Memory & State Anchor — session continuity, discrepancy matrix |
 | `Milestone.md` | Milestone definitions, tasks, outcomes, evaluation criteria |

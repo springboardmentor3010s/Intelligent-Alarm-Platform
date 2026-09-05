@@ -157,10 +157,10 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 
 | Milestone | Duration | Key Deliverables | Actual Status (2026-09-05) |
 |---|---|---|---|
-| **M1: Foundation** | Weeks 1–2 | Project initialization, auth system, DB schema, user profiles, basic alarm scheduling | ⚠️ Partial — auth works end-to-end; RBAC not enforced; profile update endpoints missing |
+| **M1: Foundation** | Weeks 1–2 | Project initialization, auth system, DB schema, user profiles, basic alarm scheduling | ✅ **Complete** — auth+RBAC, profiles/settings, tz-aware alarms, regenerated migration `732e5cb49bcf`, 22/22 smoke test |
 | **M2: Cognitive Engine** | Weeks 3–4 | Challenge engine operational, puzzle generation workflows, wake-up verification mechanisms, challenge evaluation | ⚠️ Partial — 7 types + adaptive selection work; answers leaked in payload; no submit endpoint; mobile dismiss broken |
 | **M3: Adaptive Intelligence** | Weeks 5–6 | Adaptive difficulty engine functional, habit scoring system operational, recommendation workflows completed, habit tracking dashboards | ⚠️ Partial — habit scoring works; adaptive difficulty falls back to rules (no model file); analytics has hardcoded placeholders |
-| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | ❌ Not started — zero tests, no CI/CD, Docker deployment broken, web charts mocked, no admin UI |
+| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | ❌ Not started — zero tests, no CI/CD, Docker up-test pending, web charts partially mocked, no admin UI |
 
 ---
 
@@ -172,51 +172,51 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 
 ---
 
-## Current Implementation Status (2026-09-05)
+## Current Implementation Status (2026-09-05, post-M1)
 
-> Deep codebase analysis result. Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken
+> Deep codebase analysis result, refreshed after Milestone 1. Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken
 
 ### Core Modules
 
 | PRD Module | Status | Notes |
 |---|---|---|
-| Cognitive Alarm Engine | ⚠️ Partial | 7 challenge types + adaptive selection work; answers leaked in payload; Logic/Word/Pattern templates have random-mismatch bugs |
-| Difficulty Adaptation Engine | ⚠️ Partial | Rule-based fallback always active (no trained model file); no `/challenges/submit` endpoint |
-| Offline Puzzle Solver | ❌ Not implemented | Schemas only; no caching, no sync engine |
-| Sleep/Wake Telemetry | ⚠️ Partial | Adherence/snooze computation exists; analytics has hardcoded placeholder values |
-| Habit Scoring Engine | ✅ Complete | 35/25/20/20 weighted composite computed from real attempt data |
+| Cognitive Alarm Engine | ⚠️ Partial | 7 challenge types + adaptive selection work; answers leaked in payload; Logic/Word/Pattern templates have random-mismatch bugs (M2) |
+| Difficulty Adaptation Engine | ⚠️ Partial | Rule-based fallback always active (no trained model file); no `/challenges/submit` endpoint (M2) |
+| Offline Puzzle Solver | ❌ Not implemented | Schemas only; no caching, no sync engine (M4) |
+| Sleep/Wake Telemetry | ⚠️ Partial | Adherence/snooze computation exists; analytics has hardcoded placeholder values (M3) |
+| Habit Scoring Engine | ✅ Complete | 35/25/20/20 weighted composite computed from real attempt data; 90%+ smoke-verified |
 | Recommendation Engine | ⚠️ Partial | Scored via habit metrics; limits not implemented |
-| Dashboard & Analytics | ⚠️ Partial | Backend endpoints exist; web charts use hardcoded mock data; no admin UI page |
-| Notification & Reminder System | ❌ Not implemented | No push registration endpoint, no local scheduling, token never registered |
-| Reports & Export System | ⚠️ Partial | CSV export works; PDF/Excel not implemented |
-| Final Integration, Testing & Deployment | ❌ Not started | Zero tests, no CI/CD, Docker deployment broken |
+| Dashboard & Analytics | ⚠️ Partial | Backend endpoints exist + RBAC enforced; web charts partially wired to real data; no admin UI page |
+| Notification & Reminder System | ❌ Not implemented | No push registration endpoint, no local scheduling, token never registered (M4) |
+| Reports & Export System | ⚠️ Partial | CSV export works; PDF/Excel not implemented (M4) |
+| Final Integration, Testing & Deployment | ❌ Not started | Zero tests, no CI/CD, Docker up-test pending (M4) |
 
 ### Cross-Cutting Status
 
 | Concern | Status | Detail |
 |---|---|---|
-| Security | 🔴 Critical | Hardcoded JWT secret; admin auth bypass; CORS `*`; challenge answers leaked |
-| Mobile integration | 🔴 Broken | Dismiss payload mismatch; 3 calls to nonexistent endpoints |
+| Security | 🟡 M1-fixed / M2 gaps | Env-driven JWT secret + CORS, RBAC enforced. Remaining: challenge answers leaked, structured errors, rate limiting |
+| Mobile integration | 🔴 Broken | Dismiss payload mismatch still; profile/settings now wired to implemented endpoints |
 | Error handling | ⚠️ Partial | `{"detail"}` only; no `error_code`/`timestamp` envelope |
-| Database | ⚠️ Partial | 8 tables; Alembic migration stale vs models; env import bug |
-| Testing | ❌ None | Zero test files; deleted failing test artifact |
-| CI/CD | ❌ None | No pipeline, no commits |
+| Database | ✅ Good | 8 tables; migration regenerated + verified; SQLite local dev, PostgreSQL via Docker |
+| Testing | ❌ None | Zero unit tests; `smoke_m1.py` (22 checks) is manual verification |
+| CI/CD | ❌ None | No pipeline; first remote push pending |
 
-### Estimated Overall Completion: **~42%**
+### Estimated Overall Completion: **~52%**
 
 ---
 
-## Known Gaps (from Deep Analysis)
+## Known Gaps (from Deep Analysis — post-M1)
 
-1. **Mobile alarm-dismiss flow is fundamentally broken** — mobile sends `{challenge_result}` while backend `AlarmDismissReq` requires `{challenge_attempt_id, correct_answers, total_questions, time_taken_seconds}`. No `ChallengeAttempt` creation path exists. The mobile also auto-fills the correct challenge answer.
-2. **No server-side challenge verification** — `/challenges/next` returns the correct answer in `puzzle_payload`; there is no `POST /challenges/submit` to create and verify attempts server-side.
-3. **Missing user profile endpoints** — `PUT /users/profile` and `PUT /users/{key}` called by mobile do not exist in the backend.
-4. **Admin authorization is a no-op** — `_require_admin()` in `dashboard.py` always returns `True`; `is_superuser` never checked.
-5. **Hardcoded JWT secret** (`auth.py:17`) — tokens forgeable by anyone with repo access.
-6. **`load_dotenv(override=True)` in `database.py:11`** — overrides Docker-injected `DATABASE_URL`, so containers connect to SQLite.
-7. **Dockerfile CMD is wrong** — `uvicorn app:app` should be `uvicorn app.main:app`.
-8. **Database schema drift** — Alembic migration missing `full_name`, `timezone`, `difficulty_preference`, `generated_at` columns and the `alarm_roles` table.
-9. **`migrations/env.py` imports `app.models` (lowercase)** — breaks on Linux/Docker case-sensitive FS.
-10. **Web dashboard masks errors with mock data** — Home/Dashboard/Reports silently render hardcoded scores (70) when the API fails; charts use hardcoded weekly data from `chartUtils.js`.
-11. **Mobile `overist_score` typo** — `HomeScreen.jsx:69`; habit score always renders 0.
-12. **Zero tests and no CI/CD** — nothing catches regressions; a previously-deleted `test_api.py` was recorded as failing.
+1. **Mobile alarm-dismiss flow is fundamentally broken (M2)** — mobile sends `{challenge_result}` while backend `AlarmDismissReq` requires `{challenge_attempt_id, correct_answers, total_questions, time_taken_seconds}`. No `ChallengeAttempt` creation path exists. The mobile also auto-fills the correct challenge answer.
+2. **No server-side challenge verification (M2)** — `/challenges/next` returns the correct answer in `puzzle_payload`; there is no `POST /challenges/submit` to create and verify attempts server-side.
+3. **Challenge template random-mismatch bugs (M2)** — Logic/Word/Pattern templates produce puzzles whose displayed question and expected answer disagree.
+4. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; `recent_activity` fake data in `/api/v1/analytics/me`.
+5. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; pages silently substitute fake score 70 on API failure.
+6. **Mobile `overist_score` typo (M3)** — `HomeScreen.jsx:69`; habit score always renders 0.
+7. **No `/challenges/submit` → habit score gap** — habit scoring computes from attempts, but no attempt records get created, so the composite stays at defaults in practice.
+8. **Zero tests and no CI/CD (M4)** — nothing catches regressions; only manual `smoke_m1.py`.
+9. **Docker container up-test pending (M4)** — compose config + Dockerfile validate; full `docker compose up` not yet verified end-to-end.
+10. **Notifications & offline sync not wired (M4)** — FCM token fetched but never registered; offline cache is type-schema only.
+
+> ⚠️ **Resolved in M1:** hardcoded JWT secret; admin auth bypass; CORS `*`; `load_dotenv` overriding Docker `DATABASE_URL`; wrong Dockerfile CMD — plus missing `PUT /users/profile` / `PUT /users/{key}` / settings endpoints now exist and are wired in the mobile app.

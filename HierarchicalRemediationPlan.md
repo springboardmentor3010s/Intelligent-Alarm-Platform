@@ -3,6 +3,7 @@
 ---
 
 ## Level 0: Repository Foundation
+**Status: ✅ DONE (M1)** — `.gitignore`/`.gitattributes` in place, secrets/artifacts untracked, initial commit `bc31e9f`
 > *Must be done first — everything else depends on a clean, version-controlled repo.*
 
 ```
@@ -27,6 +28,7 @@
 ---
 
 ## Level 1: Backend Security & Core Configuration
+**Status: 🟡 PARTIAL (M1)** — 1.1 JWT secret from env ✅ · 1.2 CORS from env ✅ · 1.3 bcrypt rounds verified ✅ · **1.4 EmailStr validation ⏳ not yet applied**
 > *Fix security-critical issues that affect every other component.*
 
 ```
@@ -54,6 +56,7 @@
 ---
 
 ## Level 2: Backend Schema Consolidation
+**Status: ❌ NOT STARTED** — `schemas/all.py` + `schemas/auth.py` still duplicated (only 2.3.1 formatted consistently)
 > *Resolve the tripled/broken schemas before fixing any endpoint.*
 
 ```
@@ -78,6 +81,7 @@
 ---
 
 ## Level 3: Database & Migrations
+**Status: 🟡 PARTIAL (M1)** — 3.1 import/env fixes ✅ · 3.2 migration regenerated `732e5cb49bcf` + verified ✅ · 3.3 startup init ⏳ manual `init_db.py` only (Docker entrypoint not wired) · 3.4 seed script ✅ (roles + demo user; sample challenges not seeded)
 > *Must be working before any feature can be reliably tested.*
 
 ```
@@ -112,6 +116,7 @@
 ---
 
 ## Level 4: Backend RBAC & Authorization
+**Status: ✅ DONE (M1)** — `app/api/deps.py` `require_roles()`; role auto-assign on registration; dashboard staff/admin enforced (403 smoke-verified)
 > *Fix the admin bypass before any dashboard work.*
 
 ```
@@ -134,6 +139,7 @@
 ---
 
 ## Level 5: Backend Challenge Engine Fixes
+**Status: ❌ NOT STARTED (M2)** — 5.1 answer leaked in `puzzle_payload` · 5.2 Logic/Word/Pattern mismatches · 5.3 no `/challenges/submit`
 > *Fix the security leak and template bugs before the dismiss flow can work.*
 
 ```
@@ -158,6 +164,7 @@
 ---
 
 ## Level 6: Backend Alarm Dismiss Flow Fix
+**Status: 🟡 PARTIAL (M1)** — 6.1 `create_alarm` challenge fields wired ✅ · 6.2 dismiss validation ❌ (M2) · 6.3 tz handling `utcnow`→`timezone.utc`, user-tz, no 07:00 hardcode ✅ · 6.4 `/users/profile` endpoints ✅
 > *The core product feature — must work end-to-end.*
 
 ```
@@ -187,6 +194,7 @@
 ---
 
 ## Level 7: Backend Analytics & Reporting Fixes
+**Status: ❌ NOT STARTED (M3)** — hardcoded `sleep_duration_avg`, fake `recent_activity`, uptime placeholder, no PDF/Excel
 > *Replace all hardcoded placeholders with real computation.*
 
 ```
@@ -209,6 +217,7 @@
 ---
 
 ## Level 8: Backend Error Handling Standardization
+**Status: ❌ NOT STARTED** — still `{"detail": ...}` only; no `error_code`/`timestamp` envelope
 > *SRS requires {detail, error_code, timestamp} envelope.*
 
 ```
@@ -227,6 +236,7 @@
 ---
 
 ## Level 9: Docker & Infrastructure
+**Status: 🟡 PARTIAL (M1)** — 9.1.1 CMD fixed ✅ · 9.2 `load_dotenv` override fixed ✅ · 9.3 `.dockerignore` ✅ · 9.1.2/9.1.3 entrypoint+non-root ❌ · 9.4 compose config valid but `version:` key + healthchecks ⏳ · 9.5 web Dockerfile ❌. Full `docker compose up` test pending.
 > *Make it deployable.*
 
 ```
@@ -264,6 +274,7 @@
 ---
 
 ## Level 10: Web Dashboard Fixes
+**Status: 🟡 PARTIAL (M1)** — 10.3 alarm form (time picker, recurrence, challenge, difficulty) ✅ · 10.5.1 settings→profile persistence ✅ · 10.2 Dashboard wired to `/habits/score/history` ✅ but Home still mock · 10.1 fallback scores remain · 10.4/10.5.2/10.6 ❌
 > *Fix existing pages before adding new ones.*
 
 ```
@@ -303,6 +314,7 @@
 ---
 
 ## Level 11: Mobile App — Core Flow Fixes
+**Status: 🟡 PARTIAL (M1)** — 11.4.1/11.4.2 profile & settings now call implemented endpoints ✅ · 11.2 dismiss flow, 11.3 challenge flow, 11.4.3 habit PUT, 11.4.4 typo, 11.5 screens ❌ (M2)
 > *Fix the broken alarm dismiss flow — the app's primary purpose.*
 
 ```
@@ -340,6 +352,7 @@
 ---
 
 ## Level 12: Mobile — Alarm Scheduling & Notifications
+**Status: ❌ NOT STARTED (M4)** — no local scheduling, no push registration, `mobile/assets/` missing (app.json references nonexistent files)
 > *The "alarm" part of "Intelligent Cognitive Alarm Platform."*
 
 ```
@@ -368,6 +381,7 @@
 ---
 
 ## Level 13: Mobile — Offline Sync
+**Status: ❌ NOT STARTED (M4)** — `offline-cache-schemas.ts` defines types only; mobile never calls `/sync/*`
 > *Offline-first is a core design principle per SRS.*
 
 ```
@@ -394,6 +408,7 @@
 ---
 
 ## Level 14: Testing
+**Status: ❌ NOT STARTED (M4)** — zero test files; only manual `scripts/smoke_m1.py` (22 checks, HTTP-level)
 > *Add comprehensive test coverage.*
 
 ```
@@ -440,6 +455,7 @@
 ---
 
 ## Level 15: Linting, Type Checking & CI/CD
+**Status: ❌ NOT STARTED (M4)** — no ruff/eslint/mypy config; no `.github/workflows`
 > *Automated quality gates.*
 
 ```
@@ -469,6 +485,7 @@
 ---
 
 ## Level 16: Monitoring, Logging & Production Hardening
+**Status: ❌ NOT STARTED** — no structured logs, rate limiting, Sentry, or perf work
 > *Make it observable and resilient.*
 
 ```
@@ -538,23 +555,23 @@ LEVEL 1 (Security & Config) --> LEVEL 2 (Schema Consolidation)
 
 ## Summary: Effort Estimates per Level
 
-| Level | Description | Est. Time | Depends On |
-|-------|-------------|-----------|------------|
-| 0 | Repository Foundation | 30 min | -- |
-| 1 | Backend Security & Config | 2 hours | Level 0 |
-| 2 | Schema Consolidation | 1.5 hours | Level 1 |
-| 3 | Database & Migrations | 2 hours | Level 2 |
-| 4 | RBAC & Authorization | 2 hours | Level 3 |
-| 5 | Challenge Engine Fixes | 3 hours | Level 2 |
-| 6 | Alarm Dismiss Flow | 4 hours | Levels 4, 5 |
-| 7 | Analytics & Reporting | 3 hours | Level 3 |
-| 8 | Error Handling | 2 hours | Level 2 |
-| 9 | Docker & Infrastructure | 3 hours | Levels 1, 3 |
-| 10 | Web Dashboard Fixes | 6 hours | Levels 6, 7 |
-| 11 | Mobile Core Flow Fixes | 8 hours | Levels 5, 6 |
-| 12 | Alarm Scheduling & Notifications | 6 hours | Level 11 |
-| 13 | Offline Sync | 8 hours | Level 11 |
-| 14 | Testing | 10 hours | Levels 6-13 |
-| 15 | Linting & CI/CD | 4 hours | Level 14 |
-| 16 | Production Hardening | 6 hours | Level 15 |
-| | **TOTAL** | **~70 hours** | |
+| Level | Description | Est. Time | Status | Depends On |
+|-------|-------------|-----------|--------|------------|
+| 0 | Repository Foundation | 30 min | ✅ Done (M1) | -- |
+| 1 | Backend Security & Config | 2 hours | 🟡 Partial (1.4 EmailStr left) | Level 0 |
+| 2 | Schema Consolidation | 1.5 hours | ❌ Not started | Level 1 |
+| 3 | Database & Migrations | 2 hours | 🟡 Partial (3.3 startup init) | Level 2 |
+| 4 | RBAC & Authorization | 2 hours | ✅ Done (M1) | Level 3 |
+| 5 | Challenge Engine Fixes | 3 hours | ❌ Not started (M2) | Level 2 |
+| 6 | Alarm Dismiss Flow | 4 hours | 🟡 Partial (6.2 left, M2) | Levels 4, 5 |
+| 7 | Analytics & Reporting | 3 hours | ❌ Not started (M3) | Level 3 |
+| 8 | Error Handling | 2 hours | ❌ Not started | Level 2 |
+| 9 | Docker & Infrastructure | 3 hours | 🟡 Partial (up-test pending) | Levels 1, 3 |
+| 10 | Web Dashboard Fixes | 6 hours | 🟡 Partial (Home/admin/mocks left) | Levels 6, 7 |
+| 11 | Mobile Core Flow Fixes | 8 hours | 🟡 Partial (dismiss flow left, M2) | Levels 5, 6 |
+| 12 | Alarm Scheduling & Notifications | 6 hours | ❌ Not started (M4) | Level 11 |
+| 13 | Offline Sync | 8 hours | ❌ Not started (M4) | Level 11 |
+| 14 | Testing | 10 hours | ❌ Not started (M4) | Levels 6-13 |
+| 15 | Linting & CI/CD | 4 hours | ❌ Not started (M4) | Level 14 |
+| 16 | Production Hardening | 6 hours | ❌ Not started | Level 15 |
+| | **TOTAL remaining** | **~60 hours** | | |
