@@ -1,0 +1,270 @@
+# Intelligent Cognitive Alarm Platform
+
+## Project Overview
+The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock application that helps users develop consistent wake-up habits by requiring them to solve personalized cognitive challenges (math problems, logic puzzles, memory games, word games, riddles, and quick quizzes) before dismissing alarms. The platform adapts challenge difficulty based on user behavior, wake-up performance, snooze patterns, sleep schedules, and cognitive engagement levels to improve productivity, reduce oversleeping, and encourage healthy sleep routines.
+
+### Target User Personas
+- **Students**: Need consistent wake-up times for classes; benefit from cognitive engagement to fully wake up.
+- **Professionals**: Early meetings; require quick but effective cognitive challenges to start the day productively.
+- **Fitness Enthusiasts**: Fixed training schedules; want sleep adherence tracking and wake-up consistency.
+- **Wellness Platforms**: External health/wellness apps; want to integrate habit tracking and sleep analytics.
+
+---
+
+## Project Status
+
+> **Current Stage**: Early Development / Functional Prototype — **~42% overall completion**
+> Analysis date: 2026-09-05. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap.
+
+| Module | Status | Completion | Key Notes |
+|---|---|---|---|
+| Backend Core Logic | Functional | ~78% | Auth, challenges, habits, sync work; security gaps remain |
+| Backend Security | Critical | ~25% | Hardcoded JWT secret, admin bypass, CORS `*` |
+| Web Dashboard | Partial | ~55% | Real reads; charts mock data; no admin UI |
+| Mobile App | Critical | ~25% | Core alarm-dismiss flow broken; offline sync not wired |
+| Testing | None | 0% | Zero test files, no CI/CD |
+| Infrastructure/Docker | Broken | ~20% | Wrong Docker CMD, stale migrations, no CI |
+
+### Known Critical Issues
+1. Hardcoded JWT `SECRET_KEY` — never read from env (`backend/app/services/auth.py:17`)
+2. Admin endpoints open to all users — `_require_admin()` is a no-op
+3. Challenge answers leaked in API response — trivially bypassable
+4. Mobile alarm-dismiss payload mismatch — core flow cannot succeed
+5. `load_dotenv(override=True)` breaks Docker PostgreSQL connection
+6. Dockerfile CMD references nonexistent `app:app`
+
+Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
+
+---
+
+## System Architecture
+
+```
++----------------------+       +----------------------+       +----------------------+
+|  Mobile (Expo Go)    |<----->|  Backend (FastAPI)   |<----->|  PostgreSQL DB       |
+|  (iOS/Android)       |       |  (Python 3.11)       |       |  (schemas in models)|
++----------------------+       +----------------------+       +----------------------+
+        |                            |                            |
+        |          HTTPS/JSON        |          asyncpg           |
+        v                            v                            v
++----------------------+       +----------------------+       +----------------------+
+|  Web Dashboard (React)|       |  Redis (optional)    |       |  MongoDB Collections |
+|  (Tailwind, Chart.js) |<----->|  (caching/inference) |<----->|  (user sessions,    |
++----------------------+       +----------------------+       |   telemetry logs)    |
+                                           |                            +----------------------+
+                                           |
+                                           v
+                                      +---------------+
+                                      |  ML Model Cache|
+                                      |  (PyTorch/Joblib)|
+                                      +---------------+
+```
+
+**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 19 REST endpoints under `/api/v1` — auth, alarms, challenges, habits, analytics, sync, dashboard.
+**Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores.
+**Mobile** (Expo SDK 57 / React Native 0.87): temp login + read-only flows; core dismiss flow broken.
+**Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 8 ORM tables with performance indexes.
+
+---
+
+## Prerequisites
+
+### Local Development
+- **Python 3.11** installed
+- **Node.js 20+** and **npm** installed
+- **Expo CLI** installed globally: `npm install -g expo-cli`
+- **Docker** and **Docker Compose** installed
+- **PostgreSQL 15** installed (or use Docker)
+
+### IDE Recommendations
+- **VS Code** with extensions:
+  - Python (Microsoft)
+  - FastAPI (Mica)
+  - Tailwind CSS IntelliSense
+  - React Native/Expo (Expo)
+  - PostgreSQL (Atomiks)
+
+---
+
+## Local Setup Instructions
+
+### 1. Python Virtual Environment (Backend)
+```bash
+cd backend
+python -m venv .venv
+# Activate:
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env  # Edit with actual values
+```
+
+### 2. PostgreSQL Initialization
+```bash
+# If not using Docker:
+createdb cerebro_kognit
+# Or via Docker Compose (see docker-compose.yml):
+docker-compose up -d db
+```
+
+### 3. Database Migrations
+```bash
+cd migrations
+alembic upgrade head
+# NOTE: Current migration is stale vs Models.py — regeneration required (see HierarchicalRemediationPlan.md Level 3)
+```
+
+### 4. Backend Server
+```bash
+cd backend
+# If venv not activated:
+.venv\Scripts\activate   # (Windows)
+source .venv/bin/activate  # (macOS/Linux)
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+# API available at http://localhost:8000
+# Docs at http://localhost:8000/docs
+```
+
+> ⚠️ **NOTE**: The Dockerfile currently uses `uvicorn app:app` which is **incorrect** — the correct target is **`app.main:app`**. This is listed as a critical fix in the remediation plan.
+
+### 5. Web Dashboard (React)
+```bash
+cd web
+npm install
+npm run dev
+# Available at http://localhost:5173
+```
+
+### 6. Mobile (Expo Go - Android)
+```bash
+cd mobile
+npm install
+# Start Expo development server:
+npx expo start
+# Press 'a' for Android emulator, or scan QR code with Expo Go app on physical device
+```
+
+> ⚠️ **NOTE**: The mobile alarm-dismiss flow is currently broken against the current backend contract. See `HierarchicalRemediationPlan.md` Level 11.
+
+### 7. Verify All Services
+```bash
+# Check Docker containers:
+docker-compose ps
+
+# Test API health:
+curl http://localhost:8000/health
+
+# Verify frontend loads at http://localhost:5173
+```
+
+---
+
+## Environment Variables Reference
+
+### Backend (`.env.example` → `.env`)
+```
+APP_NAME="Intelligent Cognitive Alarm Platform"
+ENVIRONMENT=development
+DEBUG=True
+
+HOST=0.0.0.0
+PORT=8000
+
+# DATABASE_URL takes precedence; default: sqlite:///./cerebrokognit.db
+POSTGRES_SERVER=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=cerebro_kognit
+POSTGRES_USER=cerebro_user
+POSTGRES_PASSWORD=change_me
+
+# ⚠️ IMPORTANT: SECRET_KEY is NOT yet read by AuthService (hardcoded).
+# Fix required per HierarchicalRemediationPlan.md Level 1.
+SECRET_KEY=change_this_to_a_very_random_secret_key_min_32_bytes
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+REFRESH_TOKEN_EXPIRE_DAYS=30
+
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+
+MODEL_DIR=models
+DEVICE=cpu  # auto-detect: cuda or cpu
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+
+FCM_SERVER_KEY=your_fcm_server_key_here
+```
+
+### Mobile (`.env`)
+```
+EXPO_PUBLIC_API_URL=http://10.0.2.2:8000  # Android emulator localhost
+```
+
+### Web Dashboard
+Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite.config.js`).
+
+---
+
+## Development Roadmap
+
+| Milestone | Weeks | Deliverables | Status |
+|---|---|---|---|
+| **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ⚠️ Partial — auth works; RBAC/enforcement missing |
+| **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ⚠️ Partial — engine works; answer leak, no submit endpoint |
+| **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ⚠️ Partial — scoring works; analytics placeholders |
+| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ❌ Not started — no tests, no CI, Docker broken |
+
+Full milestone detail: see `Milestone.md`.
+
+---
+
+## Available Scripts
+
+### Backend
+| Command | Description |
+|---|---|
+| `uvicorn app.main:app --reload` | Start dev server with auto-reload |
+| `alembic upgrade head` | Apply pending DB migrations |
+| `backend/test_run.bat` | Manual smoke test (Windows only, not automated) |
+
+⚠️ **Note**: A real test suite (`pytest`) is not yet configured — this is remediation Level 14.
+
+### Web
+| Command | Description |
+|---|---|
+| `npm run dev` | Start Vite dev server |
+| `npm run build` | Build for production |
+
+⚠️ **Note**: `npm run lint` and `npm run test` are not yet configured — remediation Level 15.
+
+### Mobile
+| Command | Description |
+|---|---|
+| `npx expo start` | Start Expo dev server |
+| `npx expo start --android` | Launch Android emulator |
+
+---
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| `README.md` | This file — quick start, status, architecture |
+| `SRS.md` | Software Requirements Specification (IEEE format, v1.1) |
+| `PRD.md` | Product Requirements Document — vision, personas, modules |
+| `context.md` | System Memory & State Anchor — session continuity, discrepancy matrix |
+| `Milestone.md` | Milestone definitions, tasks, outcomes, evaluation criteria |
+| `HierarchicalRemediationPlan.md` | Prioritized remediation roadmap — Levels 0–16 with effort estimates |
+
+---
+
+## Contributing
+
+Before making changes, review:
+1. `HierarchicalRemediationPlan.md` — understand current priority order
+2. `context.md` — understand known gaps vs spec
+3. `.opencode/skills/` — coding conventions for backend/frontend/mobile
+
+## License
+Proprietary – All rights reserved.

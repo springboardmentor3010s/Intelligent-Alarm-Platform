@@ -1,0 +1,47 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Source code — force LF for consistency across all platforms
+*.py    text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.sql   text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.bat   text eol=crlf
+*.cfg   text eol=lf
+*.ini   text eol=lf
+*.toml  text eol=lf
+
+# Config & tooling
+*.sh    text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Binary files — never modify
+*.db    binary
+*.sqlite3 binary
+*.sqlite binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.pt    binary
+*.pth   binary
+*.joblib binary
+*.pickle binary
+*.xlsx  binary
+
+# Text files that should never be diffed
+package-lock.json -diff linguist-generated

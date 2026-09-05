@@ -1,0 +1,1 @@
+"""Backend application package for Intelligent Cognitive Alarm Platform."""
