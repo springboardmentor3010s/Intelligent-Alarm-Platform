@@ -130,6 +130,26 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 # Docs at http://localhost:8000/docs
 ```
 
+> ⚠️ **Mobile connectivity (physical phone / emulator)**: the mobile app auto-derives the backend
+> host at runtime from the JS bundle server (`Constants.expoConfig.hostUri`, see
+> `mobile/src/utils/api.js`) — it does **not** hard-code an IP. Whatever LAN IP Expo Go loaded the
+> bundle from is used to reach the backend (`http://<that-ip>:8000`, then `:8090` relay as fallback).
+> This self-heals across Wi-Fi/IP changes (`10.22.124.136` ↔ `192.168.149.136` seen in dev).
+>
+> **Physical phone dev loop:**
+> 1. Phone and PC on the **same Wi-Fi/router** (client isolation OFF).
+> 2. Backend: `cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000` (already `0.0.0.0`).
+> 3. Metro: `cd mobile && npx expo start --lan` → note the `exp://<LAN-IP>:8081` URL (or QR).
+> 4. Expo Go on the phone: open that `exp://<LAN-IP>:8081` URL.
+> 5. If the phone browser can reach `http://<LAN-IP>:8000/docs` but the app cannot, allow inbound TCP
+>    8000/8081 in Windows Firewall (admin PowerShell):
+>    `netsh advfirewall firewall add rule name=CerebroDev-API dir=in action=allow protocol=TCP localport=8000`
+>    (`localport=8081` for Metro).
+>
+> **Emulator fallback (optional, dev-only):** `scripts/host_relay.py` (8090→8000) and
+> `scripts/dev_up_all.ps1` exist for Android-emulator debugging; not required for the phone.
+> `mobile/.env` (`EXPO_PUBLIC_API_URL`) is an explicit override — leave it empty in dev.
+
 > ✅ **NOTE**: The Dockerfile now uses the correct `app.main:app` target and ships with a `.dockerignore`. Full container up-test is pending — requires Docker Desktop running.
 
 ### 5. Web Dashboard (React)
@@ -217,7 +237,7 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 |---|---|---|---|
 | **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migrations, 22/22 smoke (`smoke_m1.py`) |
 | **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ✅ Complete — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, 28/28 smoke (`smoke_m2.py`) |
-| **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ⚠️ Partial — scoring works; analytics placeholders |
+| **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ✅ Complete — analytics service (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories), web wired to live data |
 | **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ❌ Not started — no tests, no CI, full container up-test pending |
 
 Full milestone detail: see `Milestone.md`.

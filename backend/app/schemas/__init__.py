@@ -204,6 +204,17 @@ class AnalyticsRes(BaseModel):
     )
 
 
+class RecommendationRes(BaseModel):
+    """Response schema for a personalized recommendation (M3)."""
+    id: int
+    category: str  # "sleep" | "wake_up" | "habit" | "challenge"
+    priority: str  # "high" | "medium" | "low"
+    title: str
+    message: str
+    suggested_action: Optional[str] = None
+    metrics: Dict[str, Any] = Field(default_factory=dict)
+
+
 # ============================================================
 # SYNC SCHEMAS (Mobile Offline-First)
 # ============================================================

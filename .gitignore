@@ -91,6 +91,9 @@ recent_files.csv
 *.joblib
 *.pickle
 backend/ml_models/
+!backend/ml_models/
+# M3 deliverable: trained difficulty model ships with the repo (regenerate via scripts/train_difficulty_model.py)
+!backend/ml_models/difficulty_model.pt
 
 # Coverage
 coverage.xml

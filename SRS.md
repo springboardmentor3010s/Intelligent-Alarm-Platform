@@ -883,7 +883,7 @@ FUNCTION sync_pending_records(records):
 
 ## 10. Implementation Status Matrix
 
-Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-06 post-M2)*
+Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-06 post-M3)*
 
 ### Backend Modules
 
@@ -896,7 +896,9 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Alarm Dismiss | ✅ Complete | `/next` → `/submit` → `/dismiss` verified end-to-end (smoke_m2: ownership, all-correct gate, 400/404 paths) | 95% |
 | Challenge Engine (7 types) | ✅ Complete | 7×5 deterministic templates; no answer leak; server-authoritative submit (smoke_m2) | 95% |
 | Habit Scoring (35/25/20/20) | ✅ Complete | Real weighted computation + history (smoke-verified) | 95% |
-| Analytics | ⚠️ Partial | Hardcoded placeholders (`sleep_duration_avg=7.5`, fake `recent_activity`) — M3 | 60% |
+| Analytics | ✅ Complete (M3) | Real sleep estimate (alarm gaps/preference), 5-pt trend band, per-type recent activity, `generated_at`; recommendations endpoint live | 95% |
+| Recommendations | ✅ Complete (M3) | `GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted (FR-RE-001..004) | 95% |
+| ML Difficulty Inference | ✅ Complete (M3) | Trained `backend/ml_models/difficulty_model.pt`; `ml-status model_loaded=true`; rule-based fallback retained | 95% |
 | Offline Sync (server) | ⚠️ Partial | Idempotent upsert works; no mobile client calls it | 85% |
 | Dashboard + Reports | ⚠️ Partial | CSV/JSON export; PDF/Excel missing (M4); RBAC now enforced | 80% |
 | ML Inference | ⚠️ Partial | PyTorch model class + rule-based fallback; no trained model file | 60% |

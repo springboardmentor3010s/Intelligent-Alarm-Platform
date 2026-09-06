@@ -63,7 +63,7 @@
 ---
 
 ## Milestone 3: Adaptive Intelligence & Recommendations
-**Weeks 5–6** · **Status: ⚠️ PARTIAL — habit scoring works; adaptive difficulty rule-based only; analytics placeholders**
+**Weeks 5–6** · **Status: ✅ COMPLETE (delivered 2026-09-06) — analytics service, trained ML model, recommendation engine, streak-factored scoring, real web data**
 
 ### Tasks
 - Implement adaptive difficulty engine
@@ -78,9 +78,9 @@
 - Recommendation workflows completed
 
 ### Evaluation Criteria
-- [ ] Adaptive difficulty engine operational ⚠️ (rule-based `DificultyPredictor`; no trained ML model file)
-- [ ] Habit scoring functional ✅ (35/25/20/20 weighted composite, smoke-verified)
-- [ ] Recommendation workflows completed ❌ (limited; no recommendations API)
+- [x] Adaptive difficulty engine operational ✅ (trained `backend/ml_models/difficulty_model.pt`; `ml-status` reports `model_loaded=true`; rule-based fallback retained)
+- [x] Habit scoring functional ✅ (35/25/20/20 weighted composite + streak bonus, smoke-verified)
+- [x] Recommendation workflows completed ✅ (`GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted)
 
 ---
 

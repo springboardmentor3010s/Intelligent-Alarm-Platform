@@ -194,8 +194,8 @@
 ---
 
 ## Level 7: Backend Analytics & Reporting Fixes
-**Status: 🟡 PARTIAL (M2)** — 7.1.1 `sleep_duration_avg` still hardcoded ❌ (M3) · 7.1.2 `recent_activity` real ✅ · 7.1.3 trend static ❌ (M3) · **challenge analytics real per-type (accuracy, attempts, avg solve time) ✅ (M2)** · uptime placeholder (M3) · PDF/Excel (M4)
-> *Replace remaining hardcoded placeholders with real computation (M3 scope).*
+**Status: 🟡 MOSTLY COMPLETE (M3)** — 7.1.1 real `sleep_duration_avg` (alarm gaps/preference) ✅ · 7.1.2 real `recent_activity` ✅ · 7.1.3 real trend (5-pt band) ✅ · 7.1.4 `response_model=dict` kept for backward-compat ✅ · recommendations engine + endpoint ✅ (M3) · **uptime placeholder remains (M3)** · PDF/Excel (M4)
+> *Remaining: system_uptime placeholder in `/dashboard/analytics` (M3/M4); PDF/Excel report export (M4).*
 
 ```
 7.1  Fix analytics endpoint

@@ -17,13 +17,7 @@ export default function Reports() {
       .catch(err => {
         console.error(err);
         setError('Could not load report data.');
-        setReportData({
-          overall_score: '—',
-          wake_up_consistency: '—',
-          challenge_completion: '—',
-          snooze_reduction: '—',
-          sleep_schedule_adherence: '—',
-        });
+        setReportData(null);
       });
   }, []);
 

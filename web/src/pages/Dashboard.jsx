@@ -7,6 +7,7 @@ export default function Dashboard() {
   const [habitScore, setHabitScore] = useState(null);
   const [history, setHistory] = useState([]);
   const [analytics, setAnalytics] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -29,11 +30,14 @@ export default function Dashboard() {
       .then(setHistory)
       .catch(console.error);
 
-    fetch('/api/v1/analytics/me', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
+    fetch('/api/v1/analytics/me', { headers })
       .then(res => res.ok ? res.json() : null)
       .then(setAnalytics)
+      .catch(console.error);
+
+    fetch('/api/v1/analytics/recommendations', { headers })
+      .then(res => res.ok ? res.json() : [])
+      .then(setRecommendations)
       .catch(console.error);
   }, []);
 
@@ -105,6 +109,24 @@ export default function Dashboard() {
           <div className="chart-card"><Line data={habitCharts.sleep} options={chartOptions} /></div>
         </Card>
       </Grid>
+
+      {recommendations.length > 0 && (
+        <div className="mt-6">
+          <div className="card-label mb-4">Recommendations</div>
+          <Grid>
+            {recommendations.map(r => (
+              <Card key={r.id} className="p-4">
+                <div className="card-label" style={{ textTransform: 'capitalize' }}>{r.category} · {r.priority}</div>
+                <div className="title" style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{r.title}</div>
+                <p className="text-sm text-muted-600 mt-2">{r.message}</p>
+                {r.suggested_action && (
+                  <p className="text-sm mt-2" style={{ color: 'var(--accent)' }}>{r.suggested_action}</p>
+                )}
+              </Card>
+            ))}
+          </Grid>
+        </div>
+      )}
     </div>
   );
 }

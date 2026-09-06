@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Grid, MetricCard } from '../styles';
 import { Line } from 'react-chartjs-2';
-import { habitsChartData, chartOptions } from '../utils/chartUtils';
+import { buildHabitCharts, chartOptions } from '../utils/chartUtils';
 
 export default function Home() {
   const [habitScore, setHabitScore] = useState(null);
+  const [history, setHistory] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('/api/v1/habits/score', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
+    const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+
+    fetch('/api/v1/habits/score', { headers })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -19,17 +20,18 @@ export default function Home() {
       .catch(err => {
         console.error(err);
         setError('Could not load habit score.');
-        setHabitScore({
-          overall_score: 70,
-          wake_up_consistency: 70,
-          challenge_completion: 70,
-          snooze_reduction: 70,
-          sleep_schedule_adherence: 70,
-        });
+        setHabitScore(null);
       });
+
+    fetch('/api/v1/habits/score/history?days=7', { headers })
+      .then(res => res.ok ? res.json() : [])
+      .then(setHistory)
+      .catch(console.error);
   }, []);
 
   if (!habitScore) return <div className="page">Loading habit score…</div>;
+
+  const habitCharts = buildHabitCharts(history.filter(h => h.overall_score !== null));
 
   return (
     <div className="page">
@@ -51,28 +53,28 @@ export default function Home() {
           <div className="card-label">Wake-up Consistency</div>
           <div className="card-value">{habitScore.wake_up_consistency}</div>
           <div className="mt-2 text-sm text-muted-600">35% weight</div>
-          <div className="chart-card"><Line data={habitsChartData.wakeUp} options={chartOptions} /></div>
+          <div className="chart-card"><Line data={habitCharts.wakeUp} options={chartOptions} /></div>
         </Card>
 
         <Card className="p-4">
           <div className="card-label">Challenge Completion</div>
           <div className="card-value">{habitScore.challenge_completion}</div>
           <div className="mt-2 text-sm text-muted-600">25% weight</div>
-          <div className="chart-card"><Line data={habitsChartData.challenge} options={chartOptions} /></div>
+          <div className="chart-card"><Line data={habitCharts.challenge} options={chartOptions} /></div>
         </Card>
 
         <Card className="p-4">
           <div className="card-label">Snooze Reduction</div>
           <div className="card-value">{habitScore.snooze_reduction}</div>
           <div className="mt-2 text-sm text-muted-600">20% weight</div>
-          <div className="chart-card"><Line data={habitsChartData.snooze} options={chartOptions} /></div>
+          <div className="chart-card"><Line data={habitCharts.snooze} options={chartOptions} /></div>
         </Card>
 
         <Card className="p-4">
           <div className="card-label">Sleep Schedule Adherence</div>
           <div className="card-value">{habitScore.sleep_schedule_adherence}</div>
           <div className="mt-2 text-sm text-muted-600">20% weight</div>
-          <div className="chart-card"><Line data={habitsChartData.sleep} options={chartOptions} /></div>
+          <div className="chart-card"><Line data={habitCharts.sleep} options={chartOptions} /></div>
         </Card>
       </Grid>
     </div>

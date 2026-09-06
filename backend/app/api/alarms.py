@@ -294,14 +294,15 @@ def dismiss_alarm(
     # OneTime alarms stay disabled
     
     # 4. Update habit score using the proper weighted computation
-    from ..api.habits import (
+    from ..services.analytics_service import (
         _compute_wake_up_consistency,
         _compute_challenge_completion,
         _compute_snooze_reduction,
         _compute_sleep_adherence,
+        compute_habit_composite,
     )
     
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
     # Check for existing habit score
     habit_score = db.query(HabitScore).filter(
@@ -314,7 +315,7 @@ def dismiss_alarm(
     challenge = _compute_challenge_completion(db, current_user.id, today)
     snooze = _compute_snooze_reduction(db, current_user.id, today)
     sleep = _compute_sleep_adherence(db, current_user.id, today)
-    overall = int(wake_up * 0.35 + challenge * 0.25 + snooze * 0.20 + sleep * 0.20)
+    overall = compute_habit_composite(wake_up, challenge, snooze, sleep)
     
     if habit_score:
         habit_score.wake_up_consistency = wake_up

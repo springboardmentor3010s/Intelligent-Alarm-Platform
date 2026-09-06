@@ -17,7 +17,7 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | psycopg2-binary | present | 1.1.33 | PostgreSQL driver |
 | | Pydantic | 2.13.4 | >=2.5.0 | v2 models everywhere |
 | | Alembic | 1.19.2 | >=1.13.0 (added M1) | Migrations regenerated & verified |
-| | PyTorch | present | >=2.3.x | ML / adaptive difficulty; **no trained model file** |
+| | PyTorch | present | >=2.3.x | ML / adaptive difficulty; **trained `backend/ml_models/difficulty_model.pt` (M3)** |
 | | scikit-learn | present | >=1.4.x | Unused in code |
 | | XGBoost | 3.4.1 | >=2.0.x | Unused in code |
 | | Uvicorn | 0.52.4 | >=0.27.x | ASGI server |
@@ -209,6 +209,7 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 | `/api/v1/habits/score/history` | GET | Get habit score history | Bearer | `days` query | `List[HabitScoreRes]` | ✅ Working |
 | `/api/v1/analytics/me` | GET | User's analytics summary | Bearer | — | `AnalyticsRes` | ⚠️ Hardcoded placeholder values — M3 |
 | `/api/v1/analytics/ml-status` | GET | ML inference diagnostics | Bearer | — | `dict` | ✅ Working |
+| `/api/v1/analytics/recommendations` | GET | Personalized recommendations (sleep/wake-up/habit/challenge) | Bearer | — | `List[RecommendationRes]` | ✅ Working (M3) |
 | `/api/v1/challenges/submit` | POST | Submit challenge answer (server-authoritative verify) | Bearer | `ChallengeSubmitReq` | `ChallengeSubmitRes` | ✅ Working (M2) — verifies pending attempt, saves `user_answers`, marks complete |
 
 ### Mobile Sync Endpoints
@@ -229,7 +230,7 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 ### Missing Endpoints (called by mobile, don't exist)
 | Path | Method | Called From | Issue |
 |---|---|---|---|
-| `/api/v1/habits/score` | PUT | `mobile/src/hooks/useHabitScore.jsx:33` | 405 — backend only has GET (server accepts no PUT; habit scoring is server-computed — M3 to reconcile)
+| ~~`/api/v1/habits/score`~~ | ~~PUT~~ | ~~`mobile/src/hooks/useHabitScore.jsx`~~ | ✅ Resolved (M2) — `useHabitScore` now uses GET; habit scoring is server-computed and read-only |
 
 ### Error Response Standard
 All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX", "timestamp": "ISO8601" }` — ⚠️ **currently only `detail` is returned; error_code/timestamp not implemented.**
@@ -244,7 +245,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 |---|---|---|---|---|
 | **Milestone 1** | 1–2 | `complete` | — | Done 2026-09-05: auth+RBAC enforced, env-based secrets/CORS, profile/settings APIs, timezone-aware alarm scheduling; see WP-A→F in continuity log below |
 | **Milestone 2** | 3–4 | `complete` | — | Done 2026-09-06: server-authoritative challenge engine (no answer leak), `/challenges/submit`, wake-up verify dismiss gate, real challenge analytics, mobile E2E dismiss flow, `smoke_m2.py` 28/28 + `smoke_m1.py` 22/22. Next → Milestone 3 |
-| **Milestone 3** | 5–6 | `partial` | — | Habit scoring 35/25/20/20 works; **sleep analytics placeholder (`sleep_duration_avg=7.5`)**; no trained ML model file (rule-based fallback only); recommendation engine absent |
+| **Milestone 3** | 5–6 | `complete` | — | Done 2026-09-06: analytics service refactor (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories, priority-sorted), streak-factored habit scoring, web dashboard wired to live data. Next → Milestone 4 |
 | **Milestone 4** | 7–8 | `not started` | — | **No tests, no CI/CD, no deployment**; Dockerfile up-test pending; PDF/Excel reports; admin UI; mobile offline/notifications not implemented |
 
 ### Session Continuity Log
@@ -318,9 +319,9 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 |---|---|---|
 | FR-CE-001: 7 challenge types | ✅ Complete | Math, Logic, Memory, Word, Pattern, Riddle, QuickQuiz templates |
 | FR-CE-002: 5 difficulty levels | ✅ Complete | Beginner→Expert with adaptive selection |
-| FR-CE-003: Adjust difficulty based on performance | ⚠️ Partial | ML inference (PyTorch) with rule-based fallback — **no trained model file, rule-based always active** |
+| FR-CE-003: Adjust difficulty based on performance | ✅ Complete | ML inference (PyTorch) with rule-based fallback; trained `difficulty_model.pt` loaded (`ml-status model_loaded=true`) |
 | FR-CE-004: Validate completion threshold | ✅ Complete | Server-authoritative `POST /challenges/submit` verifies against the stored attempt; `puzzle_payload` contains no answer (smoke_m2 no-leak check). |
-| FR-CE-005: Personalized selection | ⚠️ Partial | Rule-based adapts to success_rate, time, snoozes, streak; no ML file |
+| FR-CE-005: Personalized selection | ✅ Complete | ML model + rule-based adapts to success_rate, time, snoozes, streak (M3) |
 | FR-CE-006: Store description/metadata | ✅ Complete | Challenge model has title, description, generated_at |
 | NF-PERF-002: Challenge < 100ms | ✅ Complete | Template-based generation is fast |
 
@@ -338,7 +339,11 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 |---|---|---|
 | FR-BA-001: Snooze pattern trends | ✅ Complete | Snooze reduction computed from 7-day rolling average |
 | FR-BA-002: Wake-up behavior tracking | ✅ Complete | Wake-up consistency from alarm dismissal patterns |
-| FR-BA-004: Sleep pattern analytics | ⚠️ Partial | `sleep_duration_avg = 7.5` hardcoded; `recent_activity` fake data |
+| FR-BA-004: Sleep pattern analytics | ✅ Complete | `sleep_duration_avg` estimated from alarm overnight gaps or user preference; trend + recent activity computed from real data (M3) |
+| FR-RE-001: Sleep improvement recommendations | ✅ Complete | Bedtime/wake-up 15-min adjustments based on sleep window + preference (M3) |
+| FR-RE-002: Wake-up optimization suggestions | ✅ Complete | Optimal wake-up + challenge anchor from snooze count / attempt accuracy (M3) |
+| FR-RE-003: Habit improvement guidance | ✅ Complete | Behavioral thresholds (e.g. "+20% completion") trigger coaching (M3) |
+| FR-RE-004: Personalized challenge recommendations | ✅ Complete | Unattempted types + difficulty progression from accuracy history (M3) |
 
 ### Dashboard & Analytics
 | Requirement | Status | Notes |
@@ -373,7 +378,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 |---|---|---|---|---|
 | **Milestone 1** | 1–2 | `complete` | — | ✅ Delivered 2026-09-05 (WP-A→F): env JWT/CORS, RBAC enforced, profile/settings endpoints, tz-aware alarms, migration regen, seed+smoke scripts, web+mobile M1 wiring, initial git commit `bc31e9f` |
 | **Milestone 2** | 3–4 | `complete` | — | ✅ Delivered 2026-09-06: server-authoritative challenge verification, `/challenges/submit`, no-answer-leak `/next`, E2E mobile dismiss, real challenge analytics; `smoke_m2.py` 28/28, M1 regression 22/22 |
-| **Milestone 3** | 5–6 | `partial` | — | Replace hardcoded analytics values, wire web charts to `/habits/score/history`, remove mock fallbacks |
+| **Milestone 3** | 5–6 | `complete` | — | ✅ Delivered 2026-09-06: analytics service refactor, trained ML model + ml-status verification, recommendation engine (4 categories), streak-factored habit scoring, web real-data wiring (Home/Dashboard/Reports); smokes 22/22 + 28/28 green |
 | **Milestone 4** | 7–8 | `not started` | — | Add test suite (pytest/vitest/jest-expo), CI/CD pipeline, fix Docker deployment, add notifications/offline sync |
 
 ### Session Continuity Log (2026-09-05 update)
@@ -385,6 +390,10 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | 2026-09-05 | architect | **M1 execution (WP-A→F)**: UI wireframes, migration/env/Docker fixes, `deps.py` RBAC, `init_db.py`+`smoke_m1.py`, profile/settings APIs, timezone-aware alarm scheduling (+`time` in response), web chart wiring, HTTP end-to-end verified (06:45 NY → 10:45 UTC), migration regenerated (`732e5cb49bcf`), alembic added to requirements, **initial commit `bc31e9f`** | Success 2026-09-05 | WP-B: `migrations/env.py`, `backend/Dockerfile`, `.dockerignore`; WP-C: `app/api/deps.py`; WP-D: `app/api/users.py`, profile cards; WP-D20: web dashboard real charts; WP-E: `app/api/alarms.py` rewrite; WP-F: scripts + migration + commit |
 | 2026-09-05 | architect | Docs refresh post-M1 (README/SRS-v1.2/PRD/context/Milestone/HRP), stale artifact cleanup (`test_run.bat` removed), `.env.example` DATABASE_URL note, `.gitattributes` +`*.docx`, first remote push | Docs updated; push pending | `SRS.md`, `PRD.md`, `README.md`, `context.md`, `Milestone.md`, `HierarchicalRemediationPlan.md`, `.gitattributes`, `backend/.env.example` |
 | 2026-09-06 | architect | **M2 execution**: server-authoritative challenge engine, `/challenges/submit`, no-answer-leak `/next`, tz-aware snooze, real challenge analytics, mobile E2E dismiss flow + Home nav/typo fixes, 7×5 challenge seed, `smoke_m2.py` 28/28 + fresh-DB migration + `smoke_m1.py` 22/22 regression + web build + mobile Babel parse | Success 2026-09-06 | `backend/app/services/challenge_service.py`, `backend/app/api/challenges.py`, `backend/app/api/analytics.py`, `backend/app/api/alarms.py`, `backend/app/schemas/__init__.py`, `backend/app/Models.py`, `migrations/versions/1c584bd4a5b0_add_challenge_attempt_answer_data.py`, `backend/scripts/{smoke_m2,init_db}.py`, `mobile/src/{hooks,screens,utils}` |
+| 2026-09-06 | architect | **Emulator→backend connectivity fix**: mobile dev could not reach uvicorn from Expo Go/emulator (POSTs canceled/`fetch request has been canceled`, IP churn `192.168…→10.22…`, emulator adb dropouts). Added `netconn` rescue: `backend/scripts/host_relay.py` (8090→8000), `backend/scripts/dev_up_all.ps1` (bring-up: backend+relay+emulator+adb reverses), `mobile` app now probes backend candidates with a body-POST and advances past dead ones (`api.js` POST-probe + skip-and-retry), `.env` → `http://localhost:8090` via `adb reverse`, Expo Go opened via `exp://localhost:8081` (adb) to avoid LAN/HMR warning. Verified: relay+direct host logins return tokens; emulator connects to relay+direct. | In progress — final on-screen login/Home check pending user | `backend/scripts/{host_relay,dev_up_all}.ps1|py`, `mobile/src/utils/api.js`, `mobile/.env`, `README.md` §4, this file |
+| 2026-09-06 | architect | **Moved to physical-phone dev (emulator/adb abandoned)**: root cause of all mobile failures = API base hard-coded to emulator-only addresses (`localhost:8090` in `.env` + `10.0.2.2` candidates) — `localhost` means the device itself on a real phone → `ConnectException`, and Wi-Fi IP churn broke every fixed IP. `api.js` now derives backend host from `Constants.expoConfig.hostUri` (the LAN IP Expo Go used) → `http://<LAN-IP>:8000` primary, `:8090` relay fallback, env override blanked in `.env`. Metro running LAN mode on :8081; LAN-IP curl verified (packager `running`, backend 401). Firewall admin rules for 8000/8081 passed to user (UAC automation not possible from harness). | Done 2026-09-06; final phone verify pending user | `mobile/src/utils/api.js`, `mobile/.env`, `README.md` §4, this file |
+| 2026-09-06 | architect | **Phone E2E bugfix (auth + habit score)**: physical phone reached backend over LAN (`[api] backend reachable at http://10.22.124.136:8000`) but Home showed `Invalid authentication credentials`. Root causes: (1) `useAuth` trusted any stored AsyncStorage token without validation → expired 60-min JWT → auto-login to Home → every authed call 401; (2) dev SQLite DB (`cerebrokognit.db`) predated M2 — `challenge_attempts` lacked `puzzle_payload`/`expected_answers`/`user_answers` → **any** attempt query 500'd (`habits/score` = Internal Server Error even with valid token). Fixes: `api.js` adds `onAuthExpired` 401 event bus; `useAuth` validates stored token via `/api/v1/auth/me` on startup (clears on 401, keeps on network error) + logs out on any 401; backend rebuilt with `scripts/init_db.py --reset` (fresh schema incl. M2 columns + reseed) and uvicorn restarted; verified `habits/score`→200 (63), history→200, alarms→1, challenges/next→200. | Done 2026-09-06 — phone re-login pending user | `mobile/src/hooks/useAuth.jsx`, `mobile/src/utils/api.js`, `backend/scripts/init_db.py`, `CONTEXT.md` |
+| 2026-09-06 | architect | **M3 execution**: refactored analytics into `services/analytics_service.py` (sleep estimate from alarm gaps, tz-safe datetimes, 5-point band trend, per-type recent activity, streak-factored challenge completion capped at 10% of component, IntegrityError-guarded score writes); trained `backend/ml_models/difficulty_model.pt` via `scripts/train_difficulty_model.py` (synthetic rule-based dataset, 93.7% val acc; `ml-status` `model_loaded=true`); added `services/recommendation_service.py` + `RecommendationRes` + `GET /api/v1/analytics/recommendations` (sleep/wake-up/habit/challenge, priority-sorted, 4 categories verified); wired web to real data (`Home.jsx` + history charts via `buildHabitCharts`, removed static `chartUtils` series + hardcoded fallbacks, Dashboard recommendations panel, Reports `'—'` fallback removed); web `npm run build` clean; smoke_m1 22/22 + smoke_m2 28/28 green | Success 2026-09-06 | `backend/app/services/{analytics_service,recommendation_service}.py`, `backend/app/api/{analytics,habits,alarms}.py`, `backend/app/schemas/__init__.py`, `backend/scripts/train_difficulty_model.py`, `backend/ml_models/difficulty_model.pt`, `web/src/pages/{Home,Reports,Dashboard}.jsx`, `web/src/utils/chartUtils.js`, `Milestone.md`, `CONTEXT.md` |
 
 ### Implementation Priority Order
 1. **Level 0 — Repository Foundation** — `.gitignore`, `.gitattributes`, cleanup, initial commit
