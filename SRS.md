@@ -98,7 +98,7 @@ This document covers:
 | FR-CE-001 | The system shall generate cognitive challenges of the following types: Math, Logic, Memory, Word, Pattern, Riddle, QuickQuiz. | High | `challenge_type` column in `challenges` table; enum constraint matching PRD. |
 | FR-CE-002 | The system shall support 5 difficulty levels: Beginner, Easy, Medium, Hard, Expert. | High | `difficulty` column in `challenges` table; enum constraint. |
 | FR-CE-003 | The adaptive difficulty engine shall adjust challenge difficulty based on user performance: increase on consistent success, decrease on repeated failure. | High | See FR-DA-001 for detailed adjustment algorithm. |
-| FR-CE-004 | The system shall validate challenge completion: user must answer all questions correctly or meet threshold within time limit. | High | ⚠️ **Known security issue:** the correct `answer` is currently included in the `puzzle_payload` response (`challenge_service.py:93,104`), making challenges trivially bypassable. A server-side answer verification endpoint (`POST /challenges/submit`) is required. |
+| FR-CE-004 | The system shall validate challenge completion: user must answer all questions correctly or meet threshold within time limit. | High | ✅ **Implemented (M2):** `POST /challenges/submit` performs server-authoritative verification against the attempt snapshot; `puzzle_payload` contains no answer (smoke_m2 no-leak check). |
 | FR-CE-005 | The system shall generate personalized challenge selection based on user's difficulty preference, past performance, and time-of-day engagement. | Medium | Uses behavioral analytics inputs; fallback to default difficulty if no history exists. |
 | FR-CE-006 | The system shall store challenge description and metadata in the `challenges` table. | High | `title` and `description` fields; used for display and logging. |
 
@@ -106,7 +106,7 @@ This document covers:
 
 | Requirement ID | Requirement Text | Priority | Notes |
 |---|---|---|---|
-| FR-WV-001 | The system shall require challenge completion before alarm can be dismissed. | High | Alarm dismissed only after `completed = true` in `challenge_attempts`. |
+| FR-WV-001 | The system shall require challenge completion before alarm can be dismissed. | High | ✅ Implemented: attempt snapshot created at `/next`; dismiss only after `completed = true` + all-correct + user-owned (smoke_m2 verified 400/404 paths). |
 | FR-WV-002 | The system shall support multi-step challenges (3-5 questions) for deeper wake-up verification. | Medium | Configurable per alarm type; default is single challenge with configurable question count. |
 | FR-WV-003 | The system shall track consecutive correct answers as a verification metric. | Medium | Stored in `challenge_attempts`; used by adaptive difficulty engine. |
 | FR-WV-004 | The system shall support time-based challenges (user must complete within N seconds). | Medium | Time limit configurable per challenge type; default thresholds: Math 60s, Logic 90s, Memory 45s. |
@@ -352,22 +352,27 @@ class DismissRes(BaseModel):
 | Next Adaptive Challenge | GET | `/api/v1/challenges/next` | Bearer | — | `ChallengeRes` |
 | Submit Challenge Answer | POST | `/api/v1/challenges/submit` | Bearer | `ChallengeSubmitReq` | `ChallengeSubmitRes` |
 
-> ⚠️ **NOTE:** `POST /api/v1/challenges/submit` is **NOT YET IMPLEMENTED** — this endpoint is required for the wake-up verification workflow. The mobile app currently generates challenges client-side and submits an incompatible payload to the dismiss endpoint, breaking the end-to-end flow.
+> ✅ **IMPLEMENTED (M2):** `POST /api/v1/challenges/submit` is live and server-authoritative. Flow: mobile calls `GET /next` (gets `challenge_attempt_id`, no answers) → user solves → `POST /submit` (verification against the snapshot) → `POST /alarms/{id}/dismiss`.
 
-##### 4.1.4.3 ChallengeSubmitReq (Pydantic v2) — REQUIRED, NOT YET IMPLEMENTED
+##### 4.1.4.3 ChallengeSubmitReq (Pydantic v2) — IMPLEMENTED (M2)
 ```python
 class ChallengeSubmitReq(BaseModel):
     challenge_id: int = Field(..., description="ID of the challenge being answered")
-    user_answer: str = Field(..., description="User's answer to the challenge")
+    challenge_attempt_id: int = Field(..., description="Pending attempt id returned by /next")
+    user_answer: str | None = Field(None, description="Single answer (single-question challenges)")
+    user_answers: list[str] | None = Field(None, description="Ordered answers (multi-question challenges)")
     time_taken_seconds: int = Field(..., ge=0, description="Time spent solving")
 ```
 
-##### 4.1.4.4 ChallengeSubmitRes (Pydantic v2) — REQUIRED, NOT YET IMPLEMENTED
+##### 4.1.4.4 ChallengeSubmitRes (Pydantic v2) — IMPLEMENTED (M2)
 ```python
 class ChallengeSubmitRes(BaseModel):
-    correct: bool
+    challenge_id: int
     challenge_attempt_id: int  # Used by /alarms/{id}/dismiss
+    correct: bool
     completed: bool
+    correct_answers: int
+    total_questions: int
 ```
 
 ##### 4.1.4.1 ChallengeListRes (Pydantic v2)
@@ -863,13 +868,13 @@ FUNCTION sync_pending_records(records):
 
 | # | Severity | Issue | Location | Impact | Target |
 |---|---|---|---|---|---|
-| 3 | 🔴 | Challenge answer leaked in `puzzle_payload` response | `backend/app/services/challenge_service.py:93,104` | Challenges are trivially bypassable at the client | M2 |
-| 4 | 🔴 | No `ChallengeAttempt` creation / verify path (`POST /challenges/submit`) | n/a (missing) | Mobile wake-up dismiss flow cannot succeed | M2 |
-| 5 | 🔴 | Mobile dismiss payload mismatch | `mobile/src/screens/AlarmScreen.jsx` | Sends `{challenge_result}` vs required `AlarmDismissReq` schema → guaranteed 422 | M2/L11 |
-| 12 | 🟠 | Challenge template random-mismatch (Logic/Word/Pattern) | `backend/app/services/challenge_service.py` | Question and answer don't match the displayed puzzle | M2 |
+| ~~3~~ | 🔴 | ~~Challenge answer leaked in `puzzle_payload` response~~ | `backend/app/services/challenge_service.py` | **RESOLVED (M2):** payload contains no answer; `POST /submit` verifies server-side | — |
+| ~~4~~ | 🔴 | ~~No `ChallengeAttempt` creation / verify path (`POST /challenges/submit`)~~ | `backend/app/api/challenges.py` | **RESOLVED (M2):** `/next` creates a pending snapshot attempt; `/submit` verifies | — |
+| ~~5~~ | 🔴 | ~~Mobile dismiss payload mismatch~~ | `mobile/src/screens/AlarmScreen.jsx` | **RESOLVED (M2):** mobile now runs `/next` → `/submit` → `/dismiss` with matching payload | — |
+| ~~12~~ | 🟠 | ~~Challenge template random-mismatch (Logic/Word/Pattern)~~ | `backend/app/services/challenge_service.py` | **RESOLVED (M2):** deterministic generators compute prompt + answer from the same data | — |
+| 16 | 🟡 | Mobile `overist_score` typo (should be `overall_score`) | `mobile/src/screens/HomeScreen.jsx` | **RESOLVED (M2)** — rendered as `overall_score`; was always 0 | — |
 | 13 | 🟡 | Web dashboard renders hardcoded mock chart data | `web/src/utils/chartUtils.js` | Real `/habits/score/history` not called on Home page (Dashboard now wired) | M3/L10 |
 | 14 | 🟡 | Web silently substitutes fake scores (70) on API failure | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | Masks real outages behind fabricated "healthy" UI | M3/L10 |
-| 16 | 🟡 | Mobile `overist_score` typo (should be `overall_score`) | `mobile/src/screens/HomeScreen.jsx:69` | Habit score always renders 0 | M3 |
 | 18 | 🟢 | Triplicated divergent schema definitions | `schemas/__init__.py`, `schemas/all.py`, `schemas/auth.py` | Drift risk; consolidation required | Level 2 |
 | 19 | 🟢 | No test files exist; no CI/CD | entire repo | Nothing verifiable; no safety net | M4/L14–15 |
 

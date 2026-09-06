@@ -34,7 +34,7 @@
 ---
 
 ## Milestone 2: Cognitive Challenges & Verification System
-**Weeks 3–4** · **Status: ⚠️ PARTIAL — engine + 7 types work; answer leak in payload, template mismatch bugs, no `/challenges/submit`, mobile dismiss broken**
+**Weeks 3–4** · **Status: ✅ COMPLETE (verified 2026-09-06, smoke_m2 28/28, smoke_m1 regression 22/22)**
 
 ### Tasks
 - Implement cognitive challenge engine
@@ -49,9 +49,16 @@
 - Challenge evaluation system completed
 
 ### Evaluation Criteria
-- [ ] Cognitive challenge engine operational ⚠️ (templates work; randomness bugs remain)
-- [ ] Wake-up verification system functional ❌ (no submit endpoint; dismiss flow broken)
-- [ ] Challenge analytics implemented ❌ (analytics uses hardcoded placeholders)
+- [x] Cognitive challenge engine operational — 7 types × 5 difficulties; deterministic templates; on-demand Challenge row creation; multi-step (`question_count`) and per-type timeouts
+- [x] Wake-up verification system functional — server-authoritative `/challenges/next` → `POST /challenges/submit` → `POST /alarms/{id}/dismiss`; alarm dismisses only after an all-correct, user-owned attempt
+- [x] Challenge analytics implemented — `challenge_accuracy`, per-type breakdown, avg solve time from real `challenge_attempts` (sleep analytics stays M3)
+
+### Evidence
+- `scripts/smoke_m2.py` → **28/28 PASS**: fresh-DB Alembic migration chain, register/login, `/next` on empty table, **no answer leakage** (recursive check), wrong-answer rejection, correct-answer acceptance, multi-step (2-questions) acceptance, dismiss only after completed attempt, dismiss rejection for incomplete (400) and unknown (404) attempts, real analytics, habit score
+- `scripts/smoke_m1.py` → **22/22 PASS** (no Milestone 1 regressions)
+- `web` production build clean; all changed `mobile` files parse under Babel
+- Migration `migrations/versions/1c584bd4a5b0_add_challenge_attempt_answer_data.py` (JSON columns `puzzle_payload`/`expected_answers`/`user_answers`)
+- Seed `scripts/init_db.py` now creates the 7×5 challenge grid
 
 ---
 

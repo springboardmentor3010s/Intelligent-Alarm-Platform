@@ -17,3 +17,16 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   return response;
 };
+
+export const authHeaders = (token) => ({
+  Authorization: `Bearer ${token}`,
+});
+
+export const parseApiError = async (response) => {
+  try {
+    const body = await response.json();
+    return body.detail || body.message || `Request failed (${response.status})`;
+  } catch (e) {
+    return `Request failed (${response.status})`;
+  }
+};

@@ -230,7 +230,7 @@ def snooze_alarm(
         raise HTTPException(status_code=400, detail="Maximum snooze limit reached")
 
     alarm.times_snoozed += 1
-    alarm.next_trigger = datetime.utcnow() + timedelta(minutes=5)
+    alarm.next_trigger = datetime.now(timezone.utc) + timedelta(minutes=5)
 
     db.commit()
     db.refresh(alarm)

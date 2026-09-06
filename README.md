@@ -18,22 +18,23 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
-| Backend Core Logic | Functional | ~85% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync all working & smoke-tested |
+| Backend Core Logic | Functional | ~88% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync, **server-authoritative challenge engine** all working & smoke-tested |
 | Backend Security | Good | ~80% | Env-driven JWT secret + CORS, RBAC enforced; remaining: structured errors, rate limiting |
 | Web Dashboard | Partial | ~60% | Dashboard wired to real history charts; Home still mock; no admin UI |
-| Mobile App | Partial | ~35% | Profile/settings wired to backend; dismiss flow still broken; notifications/offline not wired |
-| Testing | None | 0% | Zero unit tests, no CI/CD (`smoke_m1.py` = manual verification only) |
+| Mobile App | Partial | ~45% | Profile/settings wired; **alarm dismiss E2E (next→submit→dismiss) now functional**; notifications/offline not wired |
+| Testing | None | 0% | Zero unit tests, no CI/CD (`smoke_m1.py` + `smoke_m2.py` = manual verification only) |
 | Infrastructure/Docker | Partial | ~55% | Dockerfile CMD fixed, .dockerignore, migration current; full compose up-test pending |
 
-### Known Critical Issues (remaining after M1)
-1. Challenge answers still leaked in `/api/v1/challenges/next` response — trivially bypassable (M2)
-2. Mobile alarm-dismiss payload mismatch + no `/api/v1/challenges/submit` endpoint — core flow cannot succeed (M2)
-3. No server-side challenge verification endpoint (M2)
-4. Analytics endpoint returns hardcoded placeholder values (M3)
-5. Zero unit tests and no CI/CD pipeline (M4)
-6. Mobile UI shows mock data / silent fake fallbacks; admin dashboard page missing (M3/M4)
+### Known Critical Issues (remaining after M2)
+1. Analytics sleep values still placeholder (`sleep_duration_avg = 7.5`) (M3)
+2. No trained ML model file — adaptive difficulty uses rule-based fallback (M3)
+3. Web dashboard Home page still renders mock chart data / silent fake fallbacks (M3)
+4. Zero unit tests and no CI/CD pipeline (M4)
+5. Admin dashboard page missing; PDF/Excel reports not implemented (M3/M4)
+6. Mobile offline caching + notifications not wired (M4)
 
-> M1-resolved issues: hardcoded JWT secret, admin auth bypass, CORS `*`, stale migration, wrong Dockerfile CMD, `load_dotenv` override — all fixed in M1 (see `context.md` continuity log).
+> M1-resolved issues: hardcoded JWT secret, admin auth bypass, CORS `*`, stale migration, wrong Dockerfile CMD, `load_dotenv` override — all fixed in M1.
+> M2-resolved issues: challenge answer leak, template random-mismatch bugs, missing `/challenges/submit`, broken mobile dismiss flow, challenge analytics placeholders — all fixed in M2 (see `context.md` continuity log).
 
 Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 
@@ -147,7 +148,7 @@ npx expo start
 # Press 'a' for Android emulator, or scan QR code with Expo Go app on physical device
 ```
 
-> ⚠️ **NOTE**: Mobile profile/settings screens are wired to the backend, but the alarm-**dismiss** flow still does not match the backend contract (no `/challenges/submit` endpoint server-side). See `HierarchicalRemediationPlan.md` Level 11 / M2.
+> ✅ **M2**: Mobile alarm-**dismiss** flow is functional end-to-end: `GET /challenges/next` (no answers) → solve → `POST /challenges/submit` → `POST /alarms/{id}/dismiss`. Verify with `backend/scripts/smoke_m2.py`.
 
 ### 7. Verify All Services
 ```bash

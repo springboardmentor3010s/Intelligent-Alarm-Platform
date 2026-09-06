@@ -1,55 +1,78 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../hooks/useAuth';
 import { useChallenge } from '../hooks/useChallenge';
 
+const normalizeType = (raw) => {
+  if (!raw) return undefined;
+  const lower = String(raw).toLowerCase();
+  const map = { math: 'Math', logic: 'Logic', memory: 'Memory', word: 'Word', pattern: 'Pattern', riddle: 'Riddle', quickquiz: 'QuickQuiz' };
+  return map[lower] || String(raw);
+};
+
 export default function ChallengeScreen({ route, navigation }) {
+  const { token } = useAuth();
   const { type } = route.params || {};
-  const { generateChallenge, completeChallenge } = useChallenge();
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [showResult, setShowResult] = useState(false);
-  const [correct, setCorrect] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { current, loading, fetchChallenge, submitChallenge } = useChallenge(token);
+  const [answers, setAnswers] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const loadChallenge = useCallback(async () => {
+    setResult(null);
+    try {
+      const challenge = await fetchChallenge({ challengeType: normalizeType(type) });
+      const total = challenge.puzzle_payload.total_questions || 1;
+      setAnswers(Array(total).fill(''));
+    } catch (e) {
+      Alert.alert('Error', e.message || 'Failed to load challenge');
+    }
+  }, [token, type]);
 
   useFocusEffect(
-    React.useCallback(() => {
-      const q = generateChallenge(type || 'math');
-      setQuestion(q.question);
-      setAnswer('');
-      setShowResult(false);
-    }, [type])
+    useCallback(() => {
+      loadChallenge();
+    }, [loadChallenge])
   );
 
+  const setAnswerAt = (index, value) => {
+    setAnswers((prev) => prev.map((a, i) => (i === index ? value : a)));
+  };
+
   const handleSubmit = async () => {
-    if (!answer.trim()) return;
-
-    setLoading(true);
+    if (answers.some((a) => !String(a).trim())) return;
+    setSubmitting(true);
     try {
-      const result = await completeChallenge(answer);
-      setCorrect(result.correct);
-      setShowResult(true);
-
-      if (result.correct) {
-        setTimeout(() => {
-          navigation.goBack();
-        }, 1500);
+      const res = await submitChallenge(answers);
+      setResult({ correct: res.completed && res.correct, correctAnswers: res.correct_answers, total: res.total_questions });
+      if (res.completed && res.correct) {
+        setTimeout(() => navigation.goBack(), 1500);
       }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Something went wrong. Try again.');
+    } catch (e) {
+      Alert.alert('Error', e.message || 'Something went wrong');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  if (showResult) {
+  if (loading) {
     return (
-      <View style={[styles.center, correct ? styles.correctBg : styles.incorrectBg]}>
-        <Text style={styles.resultTitle}>{correct ? 'Correct!' : 'Incorrect'}</Text>
-        <Text style={styles.resultText}>{correct ? 'Great job!' : 'That was not right. Try again.'}</Text>
-        {!correct && (
-          <TouchableOpacity style={styles.retryBtn} onPress={() => setShowResult(false)}>
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    );
+  }
+
+  if (result) {
+    return (
+      <View style={[styles.center, result.correct ? styles.correctBg : styles.incorrectBg]}>
+        <Text style={styles.resultTitle}>{result.correct ? 'Correct!' : 'Incorrect'}</Text>
+        <Text style={styles.resultText}>
+          {result.correct ? 'Great job!' : `You got ${result.correctAnswers}/${result.total}. Try again with a new challenge.`}
+        </Text>
+        {!result.correct && (
+          <TouchableOpacity style={styles.retryBtn} onPress={async () => { setResult(null); await loadChallenge(); }}>
             <Text style={styles.retryText}>Try Again</Text>
           </TouchableOpacity>
         )}
@@ -57,30 +80,49 @@ export default function ChallengeScreen({ route, navigation }) {
     );
   }
 
+  const questions = current?.puzzle_payload?.questions || [];
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Cognitive Challenge</Text>
-      <Text style={styles.instruction}>Task: {type ? type.toUpperCase() : 'Math'}</Text>
+      <Text style={styles.instruction}>
+        {current ? `${current.challenge_type} · ${current.difficulty}` : 'Practice'}
+      </Text>
 
-      <View style={styles.challengeCard}>
-        <Text style={styles.questionText}>{question}</Text>
-      </View>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your answer"
-        value={answer}
-        onChangeText={setAnswer}
-        keyboardType={type === 'math' ? 'numeric' : 'default'}
-        autoFocus
-      />
+      {questions.map((q, index) => (
+        <View key={index} style={styles.challengeCard}>
+          <Text style={styles.questionLabel}>Question {index + 1}</Text>
+          <Text style={styles.questionText}>{q.prompt}</Text>
+          {q.options && q.options.length > 0 ? (
+            <View style={styles.optionRow}>
+              {q.options.map((opt) => (
+                <TouchableOpacity
+                  key={opt}
+                  style={[styles.option, answers[index] === opt && styles.optionSelected]}
+                  onPress={() => setAnswerAt(index, opt)}
+                >
+                  <Text style={[styles.optionText, answers[index] === opt && styles.optionTextSelected]}>{opt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your answer"
+              value={String(answers[index] || '')}
+              onChangeText={(v) => setAnswerAt(index, v)}
+              autoFocus={index === 0}
+            />
+          )}
+        </View>
+      ))}
 
       <TouchableOpacity
-        style={[styles.btn, !answer.trim() && { opacity: 0.5 }]}
+        style={[styles.btn, (submitting || answers.some((a) => !String(a).trim())) && { opacity: 0.5 }]}
         onPress={handleSubmit}
-        disabled={loading || !answer.trim()}
+        disabled={submitting}
       >
-        {loading ? <ActivityIndicator color="white" /> : <Text style={styles.btnText}>Submit Answer</Text>}
+        {submitting ? <ActivityIndicator color="white" /> : <Text style={styles.btnText}>Submit Answer</Text>}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -92,9 +134,15 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   title: { fontSize: 28, fontWeight: 'bold', color: '#1f2937', marginBottom: 8 },
   instruction: { fontSize: 16, color: '#6b7280', marginBottom: 32 },
-  challengeCard: { backgroundColor: 'white', padding: 40, borderRadius: 16, width: '100%', alignItems: 'center', elevation: 3, marginBottom: 32 },
-  questionText: { fontSize: 24, fontWeight: 'bold', color: '#1f2937', textAlign: 'center' },
-  input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 16, fontSize: 18, width: '100%', marginBottom: 24, textAlign: 'center' },
+  challengeCard: { backgroundColor: 'white', padding: 24, borderRadius: 16, width: '100%', elevation: 3, marginBottom: 16 },
+  questionLabel: { fontSize: 12, color: '#6b7280', textTransform: 'uppercase', marginBottom: 8 },
+  questionText: { fontSize: 20, fontWeight: 'bold', color: '#1f2937', marginBottom: 16 },
+  optionRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  option: { backgroundColor: '#e5e7eb', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, marginRight: 8, marginBottom: 8 },
+  optionSelected: { backgroundColor: '#3b82f6' },
+  optionText: { color: '#1f2937', fontWeight: '600', fontSize: 16 },
+  optionTextSelected: { color: 'white' },
+  input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 16, fontSize: 18, width: '100%', textAlign: 'center' },
   btn: { backgroundColor: '#3b82f6', padding: 16, borderRadius: 8, width: '100%', alignItems: 'center' },
   btnText: { color: 'white', fontWeight: '600', fontSize: 18 },
   correctBg: { backgroundColor: '#10b981' },

@@ -41,6 +41,31 @@ def seed_roles(db):
     db.commit()
 
 
+CHALLENGE_TYPES = ["Math", "Logic", "Memory", "Word", "Pattern", "Riddle", "QuickQuiz"]
+CHALLENGE_DIFFICULTIES = ["Beginner", "Easy", "Medium", "Hard", "Expert"]
+
+
+def seed_challenges(db):
+    """Seed the full 7-type x 5-difficulty challenge grid so /challenges/next always works."""
+    existing = {
+        (c.challenge_type, c.difficulty)
+        for c in db.query(Challenge).filter(Challenge.is_active == True).all()
+    }
+    for ctype in CHALLENGE_TYPES:
+        for diff in CHALLENGE_DIFFICULTIES:
+            if (ctype, diff) not in existing:
+                db.add(
+                    Challenge(
+                        title=f"{ctype} challenge",
+                        description=f"{ctype} challenge at {diff} difficulty",
+                        challenge_type=ctype,
+                        difficulty=diff,
+                        is_active=True,
+                    )
+                )
+    db.commit()
+
+
 def seed_demo_user(db):
     user = db.query(User).filter(User.email == DEMO_EMAIL).first()
     if user is None:
@@ -105,8 +130,10 @@ def main():
     db = SessionLocal()
     try:
         seed_roles(db)
+        seed_challenges(db)
         seed_demo_user(db)
         print("Roles seeded: User, Wellness Coach, Administrator")
+        print("Challenges seeded: 7 types x 5 difficulties")
         print(f"Demo user ready: {DEMO_EMAIL} / {DEMO_PASSWORD}")
     finally:
         db.close()

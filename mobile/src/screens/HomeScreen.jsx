@@ -66,9 +66,21 @@ export default function HomeScreen({ navigation }) {
       {habitScore && (
         <View style={styles.habitBox}>
           <Text style={styles.habitTitle}>Today's Habit Score</Text>
-          <Text style={styles.habitScore}>{habitScore.overall_score || habitScore.overist_score || 0}</Text>
+          <Text style={styles.habitScore}>{habitScore.overall_score || 0}</Text>
         </View>
       )}
+
+      <View style={styles.navRow}>
+        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.navigate('Challenge')}>
+          <Text style={styles.navBtnText}>Practice Challenge</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.navigate('Profile')}>
+          <Text style={styles.navBtnText}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navBtn} onPress={() => navigation.navigate('Settings')}>
+          <Text style={styles.navBtnText}>Settings</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -80,8 +92,11 @@ const styles = StyleSheet.create({
   alarmInfo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   alarmTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937' },
   alarmTime: { fontSize: 14, color: '#6b7280' },
-  habitBox: { backgroundColor: 'white', padding: 20, borderRadius: 12, marginTop: 24, marginBottom: 24, elevation: 2 },
+  habitBox: { backgroundColor: 'white', padding: 20, borderRadius: 12, marginTop: 24, elevation: 2 },
   habitTitle: { fontSize: 14, color: '#6b7280', marginBottom: 8 },
   habitScore: { fontSize: 32, fontWeight: 'bold', color: '#3b82f6' },
+  navRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
+  navBtn: { flex: 1, backgroundColor: '#3b82f6', paddingVertical: 12, paddingHorizontal: 8, borderRadius: 8, marginHorizontal: 4, alignItems: 'center' },
+  navBtnText: { color: 'white', fontWeight: '600', fontSize: 13 },
   emptyText: { textAlign: 'center', color: '#6b7280', marginTop: 20 }
 });

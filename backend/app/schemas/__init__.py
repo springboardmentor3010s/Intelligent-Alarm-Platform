@@ -78,6 +78,9 @@ class AlarmCreateReq(BaseModel):
     recurrence: Optional[str] = Field(None, description="Recurrence rule (iCalendar format) or short name")
     challenge_type: Optional[str] = Field(None, description="Math/Logic/Memory/Word/Pattern/Riddle/QuickQuiz")
     difficulty: Optional[str] = Field(None, description="Beginner/Easy/Medium/Hard/Expert")
+    question_count: Optional[int] = Field(
+        None, ge=1, le=5, description="Override the number of questions for this alarm's challenge"
+    )
     next_trigger: Optional[datetime] = Field(None, description="Override computed next trigger")
 
 
@@ -132,16 +135,41 @@ class ChallengeListRes(BaseModel):
 
 
 class ChallengeRes(BaseModel):
-    """Response schema for challenge data."""
+    """Response schema for a served challenge (must never expose answers).
+
+    `puzzle_payload` contains only prompts/options/timeout for the client.
+    `challenge_attempt_id` is the pending attempt created server-side by
+    `/challenges/next`, used to submit and then dismiss the alarm.
+    """
     id: int
     title: str
     description: Optional[str] = None
     challenge_type: str
     difficulty: str
     generated_at: Optional[datetime] = None
-    puzzle_payload: Dict[str, Any] = Field(..., description="Challenge data sent to mobile client")
+    challenge_attempt_id: Optional[int] = None
+    puzzle_payload: Dict[str, Any] = Field(..., description="Challenge data sent to mobile client (no answers)")
 
     model_config = {"from_attributes": True}
+
+
+class ChallengeSubmitReq(BaseModel):
+    """Request schema for submitting answers to a served challenge."""
+    challenge_id: int = Field(..., description="Challenge id returned by /challenges/next")
+    challenge_attempt_id: int = Field(..., description="Pending attempt id returned by /challenges/next")
+    user_answer: Optional[str] = Field(None, description="Single answer (single-question challenges)")
+    user_answers: Optional[List[str]] = Field(None, description="Ordered answers (multi-question challenges)")
+    time_taken_seconds: int = Field(..., ge=0, description="Time from challenge start to submission")
+
+
+class ChallengeSubmitRes(BaseModel):
+    """Response schema for a challenge submission."""
+    challenge_id: int
+    challenge_attempt_id: int
+    correct: bool = Field(..., description="Whether the full attempt passed (all answers correct)")
+    completed: bool = Field(..., description="Attempt marked complete after verification")
+    correct_answers: int = Field(..., ge=0)
+    total_questions: int = Field(..., gt=0)
 
 
 # ============================================================
@@ -169,7 +197,11 @@ class AnalyticsRes(BaseModel):
     wake_up_consistency_trend: str = "stable"  # improving/stable/declining
     challenge_accuracy: float = 0.0  # overall correct/total ratio
     sleep_duration_avg: float = 0.0  # average hours/night
-    recent_activity: Dict[str, Any] = Field(default_factory=dict)
+    recent_activity: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Real per-type challenge breakdown: days_with_alarm, successful_dismissals, "
+                    "challenge_accuracy_by_type, avg_solve_time_seconds",
+    )
 
 
 # ============================================================

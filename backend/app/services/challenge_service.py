@@ -1,182 +1,387 @@
-"""Challenge service for adaptive difficulty and puzzle generation."""
+"""Challenge service for adaptive difficulty and server-authoritative puzzle generation.
+
+Design (Milestone 2):
+- Each challenge type generates a deterministic question set from one source of
+  truth: the prompt AND the answer derive from the same generated data, so the
+  client never sees the answer.
+- `GET /challenges/next` creates a pending `ChallengeAttempt` holding the puzzle
+  snapshot (`puzzle_payload`) and the server-side expected answers.
+- `POST /challenges/submit` performs the authoritative comparison and marks the
+  attempt complete. The alarm dismiss endpoint then only accepts a completed,
+  all-correct, user-owned attempt.
+"""
 
 import random
-from datetime import datetime
-from typing import Optional, Dict, Any
+import re
+from datetime import datetime, timezone
+from typing import Dict, Any, List, Optional, Tuple
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.Models import Challenge, User
-from ..schemas import ChallengeListRes, ChallengeRes
+
+from app.Models import Challenge, User, ChallengeAttempt
 
 
 class ChallengeService:
-    """Service for adaptive challenge generation and difficulty management."""
+    """Service for adaptive challenge generation and answer verification."""
 
-    # Challenge generation templates by type
-    CHALLENGE_TEMPLATES = {
-        "Math": {
-            "generate": lambda: {
-                "a": random.randint(1, 50),
-                "b": random.randint(1, 12),
-            },
-            "format_question": lambda a, b: f"What is {a} × {b}?",
-            "compute_answer": lambda a, b: a * b,
-            "type": "numeric",
-        },
-        "Logic": {
-            "generate": lambda: {
-                "pattern": [random.choice(['A', 'B', 'C', 'D']) for _ in range(2)],
-            },
-            "format_question": lambda pattern: f"Complete the pattern: {' '.join(pattern)} ?",
-            "compute_answer": lambda pattern: random.choice(['A', 'B', 'C', 'D']),
-            "type": "choice",
-        },
-        "Memory": {
-            "generate": lambda: {
-                "sequence": [random.randint(0, 9) for _ in range(5)],
-            },
-            "format_question": lambda sequence: f"Memorize this sequence: {', '.join(map(str, sequence))}",
-            "compute_answer": lambda sequence: ", ".join(map(str, sequence)),
-            "type": "sequence",
-        },
-        "Word": {
-            "generate": lambda: {
-                "word": "example",
-                "scrambled": ''.join(random.sample('example', 7)),
-            },
-            "format_question": lambda word, scrambled: f"Unscramble: {scrambled}",
-            "compute_answer": lambda word, scrambled: word,
-            "type": "text",
-        },
-        "Pattern": {
-            "generate": lambda: {
-                "shapes": [random.choice(['▲', '▼', '◀', '▶']) for _ in range(2)],
-            },
-            "format_question": lambda shapes: f"Pattern: {' '.join(shapes)} ?",
-            "compute_answer": lambda shapes: random.choice(['▲', '▼', '◀', '▶']),
-            "type": "visual",
-        },
-        "Riddle": {
-            "generate": lambda: {
-                "riddle": random.choice([
-                    ("What has keys but can't open locks?", "piano"),
-                    ("What comes once in a minute, twice in a moment, but never in a thousand years?", "the letter M"),
-                    ("What can travel around the world while staying in a corner?", "stamp"),
-                ]),
-            },
-            "format_question": lambda riddle: riddle[0],
-            "compute_answer": lambda riddle: riddle[1],
-            "type": "text",
-        },
-        "QuickQuiz": {
-            "generate": lambda: {
-                "question": "Quick quiz: What is 15 + 27?",
-                "answer": 42,
-            },
-            "format_question": lambda question, answer: question,
-            "compute_answer": lambda question, answer: answer,
-            "type": "numeric",
-        },
+    CHALLENGE_TYPES = ["Math", "Logic", "Memory", "Word", "Pattern", "Riddle", "QuickQuiz"]
+    DIFFICULTIES = ["Beginner", "Easy", "Medium", "Hard", "Expert"]
+
+    # Question counts per difficulty; (lo, hi) means random in range (inclusive).
+    QUESTION_COUNTS = {
+        "Beginner": 1,
+        "Easy": (1, 2),
+        "Medium": 2,
+        "Hard": 3,
+        "Expert": (3, 5),
     }
 
+    # Time budget (seconds) per challenge type for time-based verification (FR-WV-004).
+    TIMEOUTS = {
+        "Math": 60,
+        "Logic": 90,
+        "Memory": 45,
+        "Word": 90,
+        "Pattern": 60,
+        "Riddle": 90,
+        "QuickQuiz": 60,
+    }
+    DEFAULT_TIMEOUT = 90
+
+    WORDS = ["morning", "alarm", "puzzle", "streak", "focus", "energy", "brain", "memory", "routine", "waking"]
+    SHAPES = ["▲", "●", "■", "◆"]
+    RIDDLES = [
+        ("What has keys but can't open locks?", "piano"),
+        ("What has a head and a tail but no body?", "coin"),
+        ("What gets wetter the more it dries?", "towel"),
+        ("The more you take, the more you leave behind. What am I?", "footsteps"),
+        ("What comes once in a minute, twice in a moment, but never in a thousand years?", "m"),
+        ("What can travel around the world while staying in a corner?", "stamp"),
+    ]
+
+    # ------------------------------------------------------------------
+    # Deterministic question generators: each returns (questions, answers).
+    # ------------------------------------------------------------------
+
     @staticmethod
-    def _generate_payload(challenge_type: str) -> Dict[str, Any]:
-        """Generate challenge payload based on type."""
-        if challenge_type in ChallengeService.CHALLENGE_TEMPLATES:
-            template = ChallengeService.CHALLENGE_TEMPLATES[challenge_type]
-            data = template["generate"]()
-            question = template["format_question"](**data) if callable(template["format_question"]) else template["format_question"]
-            answer = template["compute_answer"](**data) if callable(template["compute_answer"]) else template["compute_answer"]
-            
-            return {
-                "question": question,
-                "answer": str(answer),
-                "type": template["type"],
-                "data": data,  # Store raw data for validation if needed
-            }
-        # Default to math
-        template = ChallengeService.CHALLENGE_TEMPLATES["Math"]
-        data = template["generate"]()
-        question = template["format_question"](**data)
-        answer = template["compute_answer"](**data)
-        
+    def _gen_math(count: int) -> Tuple[List[dict], List[str]]:
+        questions, answers = [], []
+        ops = [
+            ("+", lambda a, b: a + b),
+            ("-", lambda a, b: a - b),
+            ("x", lambda a, b: a * b),
+        ]
+        for _ in range(count):
+            op_sym, compute = random.choice(ops)
+            if op_sym == "-":
+                a, b = random.randint(2, 50), random.randint(1, 9)
+                if b > a:
+                    a, b = b, a
+            else:
+                a, b = random.randint(1, 50), random.randint(1, 12)
+            questions.append({"prompt": f"{a} {op_sym} {b}", "type": "numeric", "options": None})
+            answers.append(str(compute(a, b)))
+        return questions, answers
+
+    @staticmethod
+    def _gen_logic(count: int) -> Tuple[List[dict], List[str]]:
+        questions, answers = [], []
+        for _ in range(count):
+            step = random.choice([2, 3, 5])
+            start = random.randint(1, 9)
+            seq = [start + step * i for i in range(4)]
+            questions.append({
+                "prompt": f"Solve the pattern: {', '.join(map(str, seq))}, ?",
+                "type": "numeric",
+                "options": None,
+            })
+            answers.append(str(seq[-1] + step))
+        return questions, answers
+
+    @staticmethod
+    def _gen_memory(count: int) -> Tuple[List[dict], List[str]]:
+        questions, answers = [], []
+        for _ in range(count):
+            seq = [random.randint(0, 9) for _ in range(5)]
+            questions.append({
+                "prompt": f"Memorize this sequence: {' '.join(map(str, seq))}",
+                "type": "sequence",
+                "options": None,
+            })
+            answers.append(" ".join(map(str, seq)))
+        return questions, answers
+
+    @staticmethod
+    def _gen_word(count: int) -> Tuple[List[dict], List[str]]:
+        questions, answers = [], []
+        for word in random.sample(ChallengeService.WORDS, min(count, len(ChallengeService.WORDS))):
+            scrambled = "".join(random.sample(word, len(word)))
+            questions.append({"prompt": f"Unscramble the word: {scrambled}", "type": "text", "options": None})
+            answers.append(word)
+        return questions, answers
+
+    @staticmethod
+    def _gen_pattern(count: int) -> Tuple[List[dict], List[str]]:
+        questions, answers = [], []
+        for _ in range(count):
+            cycle_len = random.choice([2, 3])
+            cycle = random.sample(ChallengeService.SHAPES, cycle_len)
+            next_shape = cycle[2 * cycle_len % cycle_len]
+            shown = (cycle * 3)[: cycle_len * 2]
+            questions.append({
+                "prompt": f"Pattern: {' '.join(shown)} ?",
+                "type": "visual",
+                "options": list(ChallengeService.SHAPES),
+            })
+            answers.append(next_shape)
+        return questions, answers
+
+    @staticmethod
+    def _gen_riddle(count: int) -> Tuple[List[dict], List[str]]:
+        chosen = random.sample(ChallengeService.RIDDLES, min(count, len(ChallengeService.RIDDLES)))
+        questions = [{"prompt": text, "type": "text", "options": None} for text, _ in chosen]
+        answers = [answer for _, answer in chosen]
+        return questions, answers
+
+    @staticmethod
+    def _gen_quickquiz(count: int) -> Tuple[List[dict], List[str]]:
+        questions, answers = [], []
+        for _ in range(count):
+            a, b = random.randint(1, 50), random.randint(1, 50)
+            questions.append({"prompt": f"Quick Quiz: {a} + {b}", "type": "numeric", "options": None})
+            answers.append(str(a + b))
+        return questions, answers
+
+    GENERATORS = {
+        "Math": _gen_math,
+        "Logic": _gen_logic,
+        "Memory": _gen_memory,
+        "Word": _gen_word,
+        "Pattern": _gen_pattern,
+        "Riddle": _gen_riddle,
+        "QuickQuiz": _gen_quickquiz,
+    }
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def _question_count_for(cls, difficulty: str, override: Optional[int] = None) -> int:
+        if override is not None:
+            return max(1, min(int(override), 5))
+        spec = cls.QUESTION_COUNTS.get(difficulty, cls.QUESTION_COUNTS["Medium"])
+        if isinstance(spec, tuple):
+            lo, hi = spec
+            return random.randint(lo, hi)
+        return spec
+
+    @classmethod
+    def _timeout_for(cls, challenge_type: str) -> int:
+        return cls.TIMEOUTS.get(challenge_type, cls.DEFAULT_TIMEOUT)
+
+    @staticmethod
+    def _normalize_answer(value: Any) -> str:
+        if value is None:
+            return ""
+        s = str(value).strip().lower()
+        if "." in s and s.replace(".", "", 1).isdigit() and s.endswith(".0"):
+            s = s[:-2]
+        return s
+
+    @staticmethod
+    def _normalize_sequence(value: Any) -> str:
+        return re.sub(r"\D", "", str(value or ""))
+
+    @classmethod
+    def _answers_match(cls, expected: Any, user: Any) -> bool:
+        """Type-aware comparison: exact, numeric, or digit-sequence."""
+        if cls._normalize_answer(expected) == cls._normalize_answer(user):
+            return True
+        exp_digits = cls._normalize_sequence(expected)
+        usr_digits = cls._normalize_sequence(user)
+        return len(exp_digits) > 0 and exp_digits == usr_digits
+
+    @classmethod
+    def _generate_question_set(cls, challenge_type: str, count: int) -> Tuple[List[dict], List[str]]:
+        generator = cls.GENERATORS.get(challenge_type, cls.GENERATORS["Math"])
+        questions, answers = generator(count)
+        return questions[:count], answers[:count]
+
+    @classmethod
+    def payload_for(cls, attempt: ChallengeAttempt) -> Dict[str, Any]:
+        """Client-safe puzzle payload — never includes answers."""
         return {
-            "question": question,
-            "answer": str(answer),
-            "type": template["type"],
-            "data": data,
+            "questions": attempt.puzzle_payload or [],
+            "total_questions": attempt.total_questions or 0,
+            "timeout_seconds": ChallengeService._timeout_for(attempt.challenge.challenge_type),
         }
+
+    # ------------------------------------------------------------------
+    # Core flows
+    # ------------------------------------------------------------------
 
     @classmethod
     async def get_adaptive_challenge(
-        cls, db: Session, user_id: int, current_difficulty: str = "Medium"
-    ) -> Optional[Challenge]:
-        """Get next adaptive challenge based on user performance."""
-        # Query user's challenge history to determine difficulty adjustment
-        from app.Models import ChallengeAttempt
-        
-        # Get recent attempts
-        recent_attempts = db.query(ChallengeAttempt).filter(
-            ChallengeAttempt.user_id == user_id
-        ).order_by(ChallengeAttempt.created_at.desc()).limit(5).all()
-        
-        # Calculate success rate
+        cls,
+        db: Session,
+        user_id: int,
+        current_difficulty: str = "Medium",
+        challenge_type: Optional[str] = None,
+        question_count: Optional[int] = None,
+    ) -> Optional[Tuple[Challenge, ChallengeAttempt]]:
+        """Create a pending challenge attempt adapted to the user's performance.
+
+        Returns (challenge, pending_attempt) with `puzzle_payload` and
+        `expected_answers` snapshots persisted server-side.
+        """
+        # --- Adaptive difficulty from user history (rule-based fallback) ---
+        recent_attempts = (
+            db.query(ChallengeAttempt)
+            .filter(ChallengeAttempt.user_id == user_id, ChallengeAttempt.completed == True)
+            .order_by(ChallengeAttempt.created_at.desc())
+            .limit(5)
+            .all()
+        )
+
         if recent_attempts:
-            total_questions = sum(a.total_questions for a in recent_attempts)
-            correct_total = sum(a.correct_answers for a in recent_attempts)
-            success_rate = correct_total / total_questions if total_questions > 0 else 0.5
-        else:
-            success_rate = 0.5  # Default: medium difficulty
-        
-        # Compute additional features for ML model
-        avg_time = 0.0
-        snooze_count = 0
-        streak = 0
-        if recent_attempts:
+            total_q = sum(a.total_questions for a in recent_attempts) or 1
+            correct_t = sum(a.correct_answers for a in recent_attempts)
+            success_rate = correct_t / total_q if total_q else 0.5
             times = [a.time_taken_seconds for a in recent_attempts if a.time_taken_seconds and a.time_taken_seconds > 0]
             avg_time = sum(times) / len(times) if times else 30.0
-            
-            # Count snoozes from user's alarms
-            from app.Models import Alarm
-            user_alarms = db.query(Alarm).filter(Alarm.user_id == user_id).all()
-            snooze_count = sum(a.times_snoozed for a in user_alarms)
-            
-            # Compute current streak (consecutive completed challenges)
-            for attempt in recent_attempts:
-                if attempt.completed:
-                    streak += 1
-                else:
-                    break
-        
-        # Use ML inference with rule-based fallback
+        else:
+            success_rate, avg_time = 0.5, 30.0
+
+        from ..Models import Alarm
+
+        snooze_count = sum(
+            a.times_snoozed for a in db.query(Alarm).filter(Alarm.user_id == user_id).all()
+        )
+        streak = 0
+        for attempt in recent_attempts:
+            if attempt.completed:
+                streak += 1
+            else:
+                break
+
         from .ml_inference import MLInferenceService
-        new_difficulty, method = MLInferenceService.predict_difficulty(
+
+        new_difficulty, _method = MLInferenceService.predict_difficulty(
             success_rate=success_rate,
             avg_time_seconds=avg_time,
             snooze_count=snooze_count,
             streak_length=streak,
             current_difficulty=current_difficulty,
         )
-        
-        # Query for active challenge at this difficulty
-        challenge = db.query(Challenge).filter(
-            Challenge.difficulty == new_difficulty,
-            Challenge.is_active == True,
-        ).order_by(func.random()).first()
-        
-        if not challenge:
-            # Fallback to any active challenge
-            challenge = db.query(Challenge).filter(Challenge.is_active == True).first()
-        
-        if challenge:
-            # Generate puzzle payload
-            payload = ChallengeService._generate_payload(challenge.challenge_type)
-            
-            # Update challenge last generated time
-            challenge.generated_at = datetime.utcnow()
+
+        # --- Select or create the challenge row ---
+        if new_difficulty not in cls.DIFFICULTIES:
+            new_difficulty = "Medium"
+
+        query = db.query(Challenge).filter(Challenge.is_active == True)
+        if challenge_type in cls.CHALLENGE_TYPES:
+            query = query.filter(Challenge.challenge_type == challenge_type)
+        challenge = query.filter(Challenge.difficulty == new_difficulty).order_by(func.random()).first()
+
+        if challenge is None:
+            challenge = cls._get_or_create_challenge(db, challenge_type or "Math", new_difficulty)
+
+        # --- Build the question set and persist a pending attempt ---
+        count = cls._question_count_for(new_difficulty, question_count)
+        questions, answers = cls._generate_question_set(challenge.challenge_type, count)
+
+        last_number = (
+            db.query(func.max(ChallengeAttempt.attempt_number))
+            .filter(ChallengeAttempt.user_id == user_id, ChallengeAttempt.challenge_id == challenge.id)
+            .scalar()
+        ) or 0
+
+        pending = ChallengeAttempt(
+            user_id=user_id,
+            challenge_id=challenge.id,
+            attempt_number=int(last_number) + 1,
+            completed=False,
+            correct_answers=0,
+            total_questions=count,
+            start_time=datetime.now(timezone.utc),
+            puzzle_payload=questions,
+            expected_answers=answers,
+        )
+        challenge.generated_at = datetime.now(timezone.utc)
+
+        db.add(pending)
+        db.add(challenge)
+        db.commit()
+        db.refresh(pending)
+        db.refresh(challenge)
+        return challenge, pending
+
+    @staticmethod
+    def _get_or_create_challenge(db: Session, challenge_type: str, difficulty: str) -> Challenge:
+        """Find or lazily create a Challenge row for a type/difficulty (Level 3.4.4)."""
+        challenge = (
+            db.query(Challenge)
+            .filter(Challenge.challenge_type == challenge_type, Challenge.difficulty == difficulty)
+            .first()
+        )
+        if challenge is None:
+            challenge = Challenge(
+                title=f"{challenge_type} challenge",
+                description=f"Adaptive {challenge_type} challenge at {difficulty} difficulty",
+                challenge_type=challenge_type,
+                difficulty=difficulty,
+                is_active=True,
+            )
             db.add(challenge)
-            db.commit()
-        
-        # Return a challenge reshape even if we need to create one
-        # In production, this would be more sophisticated
+            db.flush()
         return challenge
+
+    @classmethod
+    def submit_attempt(
+        cls,
+        db: Session,
+        user_id: int,
+        challenge_id: int,
+        attempt_id: int,
+        user_answer: Optional[str] = None,
+        user_answers: Optional[List[str]] = None,
+        time_taken_seconds: int = 0,
+    ) -> ChallengeAttempt:
+        """Authoritative server-side answer verification for a pending attempt."""
+        attempt = (
+            db.query(ChallengeAttempt)
+            .filter(
+                ChallengeAttempt.id == attempt_id,
+                ChallengeAttempt.user_id == user_id,
+                ChallengeAttempt.challenge_id == challenge_id,
+            )
+            .first()
+        )
+        if attempt is None:
+            raise LookupError("Challenge attempt not found for this user")
+        if attempt.completed:
+            raise LookupError("Challenge attempt already completed")
+
+        expected = attempt.expected_answers or []
+        if user_answers is not None:
+            submitted = [str(u) if u is not None else "" for u in user_answers]
+        else:
+            submitted = [str(user_answer) if user_answer is not None else ""]
+
+        correct = sum(
+            1 for exp, usr in zip(expected, submitted) if cls._answers_match(exp, usr)
+        )
+        completed = len(expected) > 0 and correct == len(expected)
+
+        attempt.user_answers = submitted
+        attempt.correct_answers = correct
+        attempt.completed = completed
+        attempt.end_time = datetime.now(timezone.utc)
+        attempt.time_taken_seconds = max(0, time_taken_seconds)
+
+        db.add(attempt)
+        db.commit()
+        db.refresh(attempt)
+        return attempt

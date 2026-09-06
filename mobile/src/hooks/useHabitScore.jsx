@@ -1,53 +1,32 @@
-import { useState, useEffect } from 'react';
-import { apiFetch } from '../utils/api';
+import { useState, useEffect, useCallback } from 'react';
+import { apiFetch, authHeaders, parseApiError } from '../utils/api';
 
 export function useHabitScore(token) {
   const [score, setScore] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (token) {
-      fetchHabitScore();
-    }
-  }, [token]);
-
-  const fetchHabitScore = async () => {
+  const fetchHabitScore = useCallback(async () => {
+    if (!token) return;
     try {
       const response = await apiFetch('/api/v1/habits/score', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: authHeaders(token),
       });
       if (response.ok) {
-        const data = await response.json();
-        setScore(data);
+        setScore(await response.json());
+      } else {
+        console.error('Failed to load habit score:', await parseApiError(response));
       }
     } catch (error) {
       console.error('Failed to fetch habit score:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const updateScore = async (scoreData) => {
-    try {
-      const response = await apiFetch('/api/v1/habits/score', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(scoreData)
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setScore(data);
-        return { success: true };
-      }
-      return { success: false, error: 'Failed to update' };
-    } catch (error) {
-      console.error('Failed to update habit score:', error);
-      return { success: false, error: 'Network error' };
-    }
-  };
+  useEffect(() => {
+    fetchHabitScore();
+  }, [fetchHabitScore]);
 
-  return { score, history, loading, fetchHabitScore, updateScore };
+  return { score, history, loading, fetchHabitScore };
 }

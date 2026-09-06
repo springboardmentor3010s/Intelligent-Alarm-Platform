@@ -180,8 +180,8 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 
 | PRD Module | Status | Notes |
 |---|---|---|
-| Cognitive Alarm Engine | ⚠️ Partial | 7 challenge types + adaptive selection work; answers leaked in payload; Logic/Word/Pattern templates have random-mismatch bugs (M2) |
-| Difficulty Adaptation Engine | ⚠️ Partial | Rule-based fallback always active (no trained model file); no `/challenges/submit` endpoint (M2) |
+| Cognitive Alarm Engine | ✅ Complete (M2) | 7 challenge types × 5 difficulties, deterministic templates, on-demand Challenge creation, server-authoritative verification, multi-step + timeouts |
+| Difficulty Adaptation Engine | ⚠️ Partial | Rule-based fallback always active (no trained model file); adaptive selection operational (M3 for ML model/recommendations) |
 | Offline Puzzle Solver | ❌ Not implemented | Schemas only; no caching, no sync engine (M4) |
 | Sleep/Wake Telemetry | ⚠️ Partial | Adherence/snooze computation exists; analytics has hardcoded placeholder values (M3) |
 | Habit Scoring Engine | ✅ Complete | 35/25/20/20 weighted composite computed from real attempt data; 90%+ smoke-verified |
@@ -196,7 +196,7 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | Concern | Status | Detail |
 |---|---|---|
 | Security | 🟡 M1-fixed / M2 gaps | Env-driven JWT secret + CORS, RBAC enforced. Remaining: challenge answers leaked, structured errors, rate limiting |
-| Mobile integration | 🔴 Broken | Dismiss payload mismatch still; profile/settings now wired to implemented endpoints |
+| Mobile integration | 🟡 M2-wired | Alarm-dismiss E2E now matches the backend contract (`/next` → `/submit` → `/dismiss`); profile/settings wired; offline caching still M4 |
 | Error handling | ⚠️ Partial | `{"detail"}` only; no `error_code`/`timestamp` envelope |
 | Database | ✅ Good | 8 tables; migration regenerated + verified; SQLite local dev, PostgreSQL via Docker |
 | Testing | ❌ None | Zero unit tests; `smoke_m1.py` (22 checks) is manual verification |
@@ -208,15 +208,12 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 
 ## Known Gaps (from Deep Analysis — post-M1)
 
-1. **Mobile alarm-dismiss flow is fundamentally broken (M2)** — mobile sends `{challenge_result}` while backend `AlarmDismissReq` requires `{challenge_attempt_id, correct_answers, total_questions, time_taken_seconds}`. No `ChallengeAttempt` creation path exists. The mobile also auto-fills the correct challenge answer.
-2. **No server-side challenge verification (M2)** — `/challenges/next` returns the correct answer in `puzzle_payload`; there is no `POST /challenges/submit` to create and verify attempts server-side.
-3. **Challenge template random-mismatch bugs (M2)** — Logic/Word/Pattern templates produce puzzles whose displayed question and expected answer disagree.
-4. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; `recent_activity` fake data in `/api/v1/analytics/me`.
-5. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; pages silently substitute fake score 70 on API failure.
-6. **Mobile `overist_score` typo (M3)** — `HomeScreen.jsx:69`; habit score always renders 0.
-7. **No `/challenges/submit` → habit score gap** — habit scoring computes from attempts, but no attempt records get created, so the composite stays at defaults in practice.
-8. **Zero tests and no CI/CD (M4)** — nothing catches regressions; only manual `smoke_m1.py`.
-9. **Docker container up-test pending (M4)** — compose config + Dockerfile validate; full `docker compose up` not yet verified end-to-end.
+1. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; challenge analytics are now real (per-type accuracy, avg solve time).
+2. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; pages silently substitute fake score 70 on API failure.
+3. **No trained ML model file (M3)** — adaptive difficulty uses the rule-based fallback of `ml_inference.py`.
+4. **Zero tests and no CI/CD (M4)** — nothing catches regressions; only `smoke_m1.py`/`smoke_m2.py` manual verification.
+5. **Docker container up-test pending (M4)** — compose config + Dockerfile validate; full `docker compose up` not yet verified end-to-end.
+6. **Offline sync & notifications (M4)** — sync endpoints exist server-side but mobile never calls them; push token fetched but never registered.
 10. **Notifications & offline sync not wired (M4)** — FCM token fetched but never registered; offline cache is type-schema only.
 
 > ⚠️ **Resolved in M1:** hardcoded JWT secret; admin auth bypass; CORS `*`; `load_dotenv` overriding Docker `DATABASE_URL`; wrong Dockerfile CMD — plus missing `PUT /users/profile` / `PUT /users/{key}` / settings endpoints now exist and are wired in the mobile app.

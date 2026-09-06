@@ -139,8 +139,8 @@
 ---
 
 ## Level 5: Backend Challenge Engine Fixes
-**Status: ❌ NOT STARTED (M2)** — 5.1 answer leaked in `puzzle_payload` · 5.2 Logic/Word/Pattern mismatches · 5.3 no `/challenges/submit`
-> *Fix the security leak and template bugs before the dismiss flow can work.*
+**Status: ✅ DONE (M2 2026-09-06)** — 5.1 no answer leak · 5.2 deterministic templates · 5.3 `/challenges/submit` live · single-question/multi-step/timeouts · `smoke_m2.py` no-leak + wrong/right answer checks pass
+> *Implemented server-authoritative design: `/next` persists `puzzle_payload` + `expected_answers` on a pending `ChallengeAttempt`; `/submit` verifies and marks complete; adaptive difficulty preserved.*
 
 ```
 5.1  Stop leaking answers in puzzle payload
@@ -164,7 +164,7 @@
 ---
 
 ## Level 6: Backend Alarm Dismiss Flow Fix
-**Status: 🟡 PARTIAL (M1)** — 6.1 `create_alarm` challenge fields wired ✅ · 6.2 dismiss validation ❌ (M2) · 6.3 tz handling `utcnow`→`timezone.utc`, user-tz, no 07:00 hardcode ✅ · 6.4 `/users/profile` endpoints ✅
+**Status: ✅ DONE (M1 + M2 2026-09-06)** — 6.1 create_alarm challenge fields ✅ · 6.2 dismiss verified end-to-end via `/next`→`/submit`→`/dismiss` (400/404 paths smoke-tested) ✅ · 6.3 tz handling (`timezone.utc` snooze + user-tz) ✅ · 6.4 `/users/profile` endpoints ✅
 > *The core product feature — must work end-to-end.*
 
 ```
@@ -194,8 +194,8 @@
 ---
 
 ## Level 7: Backend Analytics & Reporting Fixes
-**Status: ❌ NOT STARTED (M3)** — hardcoded `sleep_duration_avg`, fake `recent_activity`, uptime placeholder, no PDF/Excel
-> *Replace all hardcoded placeholders with real computation.*
+**Status: 🟡 PARTIAL (M2)** — 7.1.1 `sleep_duration_avg` still hardcoded ❌ (M3) · 7.1.2 `recent_activity` real ✅ · 7.1.3 trend static ❌ (M3) · **challenge analytics real per-type (accuracy, attempts, avg solve time) ✅ (M2)** · uptime placeholder (M3) · PDF/Excel (M4)
+> *Replace remaining hardcoded placeholders with real computation (M3 scope).*
 
 ```
 7.1  Fix analytics endpoint
@@ -314,8 +314,8 @@
 ---
 
 ## Level 11: Mobile App — Core Flow Fixes
-**Status: 🟡 PARTIAL (M1)** — 11.4.1/11.4.2 profile & settings now call implemented endpoints ✅ · 11.2 dismiss flow, 11.3 challenge flow, 11.4.3 habit PUT, 11.4.4 typo, 11.5 screens ❌ (M2)
-> *Fix the broken alarm dismiss flow — the app's primary purpose.*
+**Status: 🟡 PARTIAL (M1+M2)** — 11.1 API layer ✅ (authHeaders + parseApiError) · 11.2 dismiss E2E ✅ (next→solve→submit→dismiss, server challenge, no auto-answer, success/failure UI) · 11.3 useChallenge server-authoritative ✅ · 11.4.3 habit PUT removed ✅ · 11.4.4 `overist_score` typo fixed ✅ · 11.5.3 Home nav to Challenge/Profile/Settings ✅ · 11.5.1 registration + 11.5.2 alarm-creation screens ❌ (out of M2 scope)
+> *Core flow (the app's primary purpose) now works server-authoritatively; remaining mobile items are screen additions, not blocked by the backend.*
 
 ```
 11.1  Fix API integration layer

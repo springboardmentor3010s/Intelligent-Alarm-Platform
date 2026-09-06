@@ -201,15 +201,15 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 | `/api/v1/alarms` | POST | Create alarm | Bearer | `AlarmCreateReq` | `AlarmRes` | ✅ Working (M1: time/type/challenge/difficulty/recurrence wired) |
 | `/api/v1/alarms/{id}` | PUT | Update alarm | Bearer | `AlarmCreateReq` | `AlarmRes` | ✅ Working |
 | `/api/v1/alarms/{id}` | DELETE | Delete alarm | Bearer | — | `{"deleted": true}` | ✅ Working |
-| `/api/v1/alarms/{id}/dismiss` | POST | Dismiss alarm with challenge | Bearer | `AlarmDismissReq` | `DismissRes` | 🔴 Still broken end-to-end (no `/challenges/submit`; mobile payload mismatch) — M2 |
+| `/api/v1/alarms/{id}/dismiss` | POST | Dismiss alarm with challenge | Bearer | `AlarmDismissReq` | `DismissRes` | ✅ Working end-to-end (M2) |
 | `/api/v1/alarms/{id}/snooze` | POST | Snooze alarm (+5 min, cap 5) | Bearer | — | `AlarmRes` | ✅ Working |
 | `/api/v1/challenges` | GET | List available challenges | Bearer | — | `List[ChallengeListRes]` | ✅ Working |
-| `/api/v1/challenges/next` | GET | Get next adaptive challenge | Bearer | — | `ChallengeRes` | ⚠️ Answer still leaked in payload — M2 |
+| `/api/v1/challenges/next` | GET | Get next adaptive challenge (creates pending attempt; no answer leak) | Bearer | — | `ChallengeRes` (+`challenge_attempt_id`, `question_count`/`difficulty`/`challenge_type` query) | ✅ Working — no answer leakage (M2) |
 | `/api/v1/habits/score` | GET | Get habit score | Bearer | — | `HabitScoreRes` | ✅ Working (response_model=dict) |
 | `/api/v1/habits/score/history` | GET | Get habit score history | Bearer | `days` query | `List[HabitScoreRes]` | ✅ Working |
 | `/api/v1/analytics/me` | GET | User's analytics summary | Bearer | — | `AnalyticsRes` | ⚠️ Hardcoded placeholder values — M3 |
 | `/api/v1/analytics/ml-status` | GET | ML inference diagnostics | Bearer | — | `dict` | ✅ Working |
-| `/api/v1/challenges/submit` | POST | Submit challenge answer | Bearer | `ChallengeSubmitReq` | `ChallengeSubmitRes` | ❌ **MISSING — required for dismiss flow (M2)** |
+| `/api/v1/challenges/submit` | POST | Submit challenge answer (server-authoritative verify) | Bearer | `ChallengeSubmitReq` | `ChallengeSubmitRes` | ✅ Working (M2) — verifies pending attempt, saves `user_answers`, marks complete |
 
 ### Mobile Sync Endpoints
 | Path | Method | Description | Status |
@@ -243,9 +243,9 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | Milestone | Weeks | Status | Owner | Next Immediate Step |
 |---|---|---|---|---|
 | **Milestone 1** | 1–2 | `complete` | — | Done 2026-09-05: auth+RBAC enforced, env-based secrets/CORS, profile/settings APIs, timezone-aware alarm scheduling; see WP-A→F in continuity log below |
-| **Milestone 2** | 3–4 | `partial` | — | Challenge engine + adaptive difficulty work; **answer leak in payload**; template mismatch bugs; no `/challenges/submit` endpoint; mobile dismiss broken |
-| **Milestone 3** | 5–6 | `partial` | — | Habit scoring 35/25/20/20 works; **analytics has hardcoded placeholders**; no trained ML model file (rule-based fallback only) |
-| **Milestone 4** | 7–8 | `not started` | — | **No tests, no CI/CD, no deployment**; Dockerfile CMD broken; migrations stale; web charts mocked; mobile offline/notifications not implemented |
+| **Milestone 2** | 3–4 | `complete` | — | Done 2026-09-06: server-authoritative challenge engine (no answer leak), `/challenges/submit`, wake-up verify dismiss gate, real challenge analytics, mobile E2E dismiss flow, `smoke_m2.py` 28/28 + `smoke_m1.py` 22/22. Next → Milestone 3 |
+| **Milestone 3** | 5–6 | `partial` | — | Habit scoring 35/25/20/20 works; **sleep analytics placeholder (`sleep_duration_avg=7.5`)**; no trained ML model file (rule-based fallback only); recommendation engine absent |
+| **Milestone 4** | 7–8 | `not started` | — | **No tests, no CI/CD, no deployment**; Dockerfile up-test pending; PDF/Excel reports; admin UI; mobile offline/notifications not implemented |
 
 ### Session Continuity Log
 | Date (UTC) | Actor | Action | Outcome | References |
@@ -261,6 +261,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | 2026-08-31 | architect | Phase 6: Dashboards & reports (admin analytics, CSV export) | Success | `backend/app/api/dashboard.py`, `backend/app/api/analytics.py` |
 | 2026-08-31 | architect | Phase 7: ML inference (PyTorch DifficultyPredictor, rule-based fallback) | Success | `backend/app/services/ml_inference.py` |
 | 2026-09-05 | architect | Deep multi-agent codebase analysis: architecture, backend, frontend/mobile, testing/quality, infrastructure | Completed | See final report; corrected milestone statuses; created `HierarchicalRemediationPlan.md`, `Milestone.md`, `.gitignore`, `.gitattributes`; updated `SRS.md`, `README.md`, `PRD.md`, `context.md` |
+| 2026-09-06 | architect | **M2 execution**: server-authoritative challenge service (deterministic templates, answer normalization, on-demand Challenge creation, pending ChallengeAttempt snapshot), `/challenges/submit`, no-answer-leak `/next`, tz-aware snooze, real challenge analytics, mobile E2E dismiss flow (useChallenge/Alarm/Challenge/Home + typo fix), `init_db.py` challenge seeding, `smoke_m2.py` 28/28 with alembic-on-fresh-DB, smoke_m1 22/22 regression | Success 2026-09-06 | `backend/app/services/challenge_service.py`, `backend/app/api/challenges.py`, `backend/app/api/alarms.py`, `backend/app/api/analytics.py`, `backend/app/schemas/__init__.py`, `backend/app/Models.py`, `migrations/versions/1c584bd4a5b0_*.py`, `backend/scripts/smoke_m2.py`, `backend/scripts/init_db.py`, `mobile/src/hooks/useChallenge.jsx`, `mobile/src/utils/api.js`, `mobile/src/screens/{Alarm,Challenge,Home}Screen.jsx`, `mobile/src/hooks/useHabitScore.jsx` |
 
 ---
 
@@ -310,7 +311,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | FR-AS-003: Smart adaptive alarms | ✅ Complete | Challenge selection based on user performance history |
 | FR-AS-004: Compute next_trigger | ✅ Complete | Auto-computed for Daily/Weekday; One-Time stays disabled |
 | FR-AS-005: Snooze tracking | ✅ Complete | Snooze endpoint with cap at 5; tracked in habit scoring |
-| **Alarm dismiss (end-to-end)** | 🔴 Broken | Mobile still sends wrong payload; no `/challenges/submit` path creates attempts → `dismiss` can't verify (M2). Alarm creation fields (time/type/challenge/difficulty/recurrence) are now fully wired (M1). |
+| **Alarm dismiss (end-to-end)** | ✅ Complete | Server-snapshot attempt → `/challenges/submit` → `/alarms/{id}/dismiss`; dismiss only after all-correct completion (smoke_m2 verified). Alarm creation fields (time/type/challenge/difficulty/recurrence/question_count) wired. |
 
 ### Cognitive Challenge Engine
 | Requirement | Status | Notes |
@@ -318,7 +319,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | FR-CE-001: 7 challenge types | ✅ Complete | Math, Logic, Memory, Word, Pattern, Riddle, QuickQuiz templates |
 | FR-CE-002: 5 difficulty levels | ✅ Complete | Beginner→Expert with adaptive selection |
 | FR-CE-003: Adjust difficulty based on performance | ⚠️ Partial | ML inference (PyTorch) with rule-based fallback — **no trained model file, rule-based always active** |
-| FR-CE-004: Validate completion threshold | 🔴 Bypassable | Correct `answer` leaked in `puzzle_payload`; no server-side submit/verify endpoint |
+| FR-CE-004: Validate completion threshold | ✅ Complete | Server-authoritative `POST /challenges/submit` verifies against the stored attempt; `puzzle_payload` contains no answer (smoke_m2 no-leak check). |
 | FR-CE-005: Personalized selection | ⚠️ Partial | Rule-based adapts to success_rate, time, snoozes, streak; no ML file |
 | FR-CE-006: Store description/metadata | ✅ Complete | Challenge model has title, description, generated_at |
 | NF-PERF-002: Challenge < 100ms | ✅ Complete | Template-based generation is fast |
@@ -326,7 +327,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 ### Wake-Up Verification Module
 | Requirement | Status | Notes |
 |---|---|---|
-| FR-WV-001: Challenge completion required | 🔴 Broken | Dismissal verifies `attempt.completed` but NO endpoint creates attempts; mobile payload doesn't match `AlarmDismissReq` |
+| FR-WV-001: Challenge completion required | ✅ Complete | Server creates the pending attempt at `/next`; dismiss verifies ownership + `completed` + all-correct (smoke_m2 verified: incomplete → 400, unknown → 404). |
 | FR-WV-002: Multi-step challenges | ⚠️ Partial | Total questions configurable per challenge attempt |
 | FR-WV-003: Consecutive correct answers | ⚠️ Partial | Streak computed in ML inference from attempt history |
 | FR-WV-004: Time-based challenges | ⚠️ Partially documented | time_taken_seconds tracked |
@@ -371,7 +372,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | Milestone | Weeks | Status | Owner | Next Immediate Step |
 |---|---|---|---|---|
 | **Milestone 1** | 1–2 | `complete` | — | ✅ Delivered 2026-09-05 (WP-A→F): env JWT/CORS, RBAC enforced, profile/settings endpoints, tz-aware alarms, migration regen, seed+smoke scripts, web+mobile M1 wiring, initial git commit `bc31e9f` |
-| **Milestone 2** | 3–4 | `partial` | — | Remove answer leak from payload, fix template mismatch bugs, add `/challenges/submit`, align mobile dismiss contract |
+| **Milestone 2** | 3–4 | `complete` | — | ✅ Delivered 2026-09-06: server-authoritative challenge verification, `/challenges/submit`, no-answer-leak `/next`, E2E mobile dismiss, real challenge analytics; `smoke_m2.py` 28/28, M1 regression 22/22 |
 | **Milestone 3** | 5–6 | `partial` | — | Replace hardcoded analytics values, wire web charts to `/habits/score/history`, remove mock fallbacks |
 | **Milestone 4** | 7–8 | `not started` | — | Add test suite (pytest/vitest/jest-expo), CI/CD pipeline, fix Docker deployment, add notifications/offline sync |
 
@@ -383,6 +384,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | 2026-09-05 | architect | Updated `SRS.md` (v1.1), `README.md`, `PRD.md`, `context.md` to reflect actual state | Success | Project root |
 | 2026-09-05 | architect | **M1 execution (WP-A→F)**: UI wireframes, migration/env/Docker fixes, `deps.py` RBAC, `init_db.py`+`smoke_m1.py`, profile/settings APIs, timezone-aware alarm scheduling (+`time` in response), web chart wiring, HTTP end-to-end verified (06:45 NY → 10:45 UTC), migration regenerated (`732e5cb49bcf`), alembic added to requirements, **initial commit `bc31e9f`** | Success 2026-09-05 | WP-B: `migrations/env.py`, `backend/Dockerfile`, `.dockerignore`; WP-C: `app/api/deps.py`; WP-D: `app/api/users.py`, profile cards; WP-D20: web dashboard real charts; WP-E: `app/api/alarms.py` rewrite; WP-F: scripts + migration + commit |
 | 2026-09-05 | architect | Docs refresh post-M1 (README/SRS-v1.2/PRD/context/Milestone/HRP), stale artifact cleanup (`test_run.bat` removed), `.env.example` DATABASE_URL note, `.gitattributes` +`*.docx`, first remote push | Docs updated; push pending | `SRS.md`, `PRD.md`, `README.md`, `context.md`, `Milestone.md`, `HierarchicalRemediationPlan.md`, `.gitattributes`, `backend/.env.example` |
+| 2026-09-06 | architect | **M2 execution**: server-authoritative challenge engine, `/challenges/submit`, no-answer-leak `/next`, tz-aware snooze, real challenge analytics, mobile E2E dismiss flow + Home nav/typo fixes, 7×5 challenge seed, `smoke_m2.py` 28/28 + fresh-DB migration + `smoke_m1.py` 22/22 regression + web build + mobile Babel parse | Success 2026-09-06 | `backend/app/services/challenge_service.py`, `backend/app/api/challenges.py`, `backend/app/api/analytics.py`, `backend/app/api/alarms.py`, `backend/app/schemas/__init__.py`, `backend/app/Models.py`, `migrations/versions/1c584bd4a5b0_add_challenge_attempt_answer_data.py`, `backend/scripts/{smoke_m2,init_db}.py`, `mobile/src/{hooks,screens,utils}` |
 
 ### Implementation Priority Order
 1. **Level 0 — Repository Foundation** — `.gitignore`, `.gitattributes`, cleanup, initial commit
@@ -390,9 +392,9 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 3. **Level 2 — Schema Consolidation** — delete `schemas/all.py`, merge `schemas/auth.py` into `__init__.py`
 4. **Level 3 — Database & Migrations** — fix `migrations/env.py` import, regenerate migration, add `create_all` fallback, seed script
 5. **Level 4 — RBAC** — real `_require_admin()`, role assignment on registration
-6. **Level 5 — Challenge Engine** — remove answer leak, fix template bugs, add `/challenges/submit`
-7. **Level 6 — Alarm Dismiss Flow** — fix `create_alarm` challenge fields, align mobile contract, timezone handling, add `/users/profile`
-8. **Level 7 — Analytics & Reports** — replace placeholders, add PDF/Excel export
+6. **Level 5 — Challenge Engine** — remove answer leak, fix template bugs, add `/challenges/submit` ✅ **DONE (M2)**
+7. **Level 6 — Alarm Dismiss Flow** — fix `create_alarm` challenge fields, align mobile contract, timezone handling, add `/users/profile` ✅ **DONE (M1 + M2)**
+8. **Level 7 — Analytics & Reports** — real challenge analytics ✅ partial (M2); PDF/Excel export still pending (M4)
 9. **Level 8 — Error Handling** — structured errors `{detail, error_code, timestamp}`, logging
 10. **Level 9 — Docker** — fix CMD, `load_dotenv` override, `.dockerignore`, compose healthchecks
 11. **Level 10 — Web Dashboard** — remove mock data, wire history charts, admin UI, settings persistence

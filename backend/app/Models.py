@@ -109,6 +109,13 @@ class ChallengeAttempt(Base):
     start_time = Column(DateTime(timezone=True))
     end_time = Column(DateTime(timezone=True))
     time_taken_seconds = Column(Integer, nullable=True)
+    # Server-authoritative puzzle snapshot. `puzzle_payload` is what was sent to
+    # the client (questions/options/timeout — never the answers). `expected_answers`
+    # is kept server-side only for verification at /challenges/submit. `user_answers`
+    # stores what the client submitted.
+    puzzle_payload = Column(JSON, nullable=True)
+    expected_answers = Column(JSON, nullable=True)
+    user_answers = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     # Relationships
     user = relationship("User", back_populates="challenge_attempts")
