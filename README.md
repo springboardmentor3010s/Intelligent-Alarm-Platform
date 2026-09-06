@@ -13,8 +13,8 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 ## Project Status
 
-> **Current Stage**: Functional Prototype — **Milestone 1 complete** (auth, RBAC, profiles, timezone-aware alarms, habit scoring, migrations, smoke-tested)
-> Status updated: 2026-09-05. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap.
+> **Current Stage**: Functional Prototype — **Milestones 1–2 complete** (auth, RBAC, profiles, timezone-aware alarms, habit scoring, server-authoritative challenge engine, E2E alarm dismiss, migrations, smoke-tested)
+> Status updated: 2026-09-06. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap.
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
@@ -62,10 +62,11 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
                                       |  (PyTorch/Joblib)|
                                       +---------------+
 ```
+> Redis, MongoDB, and the ML model cache are **planned components** — not implemented in the current codebase.
 
-**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 23 REST endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard.
+**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 27 REST endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard.
 **Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores.
-**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; core dismiss flow still broken (M2).
+**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); offline caching + notifications pending (M4).
 **Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 8 ORM tables with performance indexes.
 
 ---
@@ -114,7 +115,7 @@ docker-compose up -d db
 ```bash
 # From project root (or with DATABASE_URL set for a non-default target):
 alembic upgrade head
-# Migration is current with `app/Models.py` (revision 732e5cb49bcf).
+# Migration is current with `app/Models.py` (revision 1c584bd4a5b0).
 # `migrations/env.py` honors the `DATABASE_URL` env var; SQLite is the local-dev default.
 ```
 
@@ -214,8 +215,8 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 
 | Milestone | Weeks | Deliverables | Status |
 |---|---|---|---|
-| **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migration `732e5cb49bcf`, 22/22 smoke |
-| **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ⚠️ Partial — engine works; answer leak, no submit endpoint |
+| **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migrations, 22/22 smoke (`smoke_m1.py`) |
+| **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ✅ Complete — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, 28/28 smoke (`smoke_m2.py`) |
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ⚠️ Partial — scoring works; analytics placeholders |
 | **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ❌ Not started — no tests, no CI, full container up-test pending |
 
@@ -231,7 +232,8 @@ Full milestone detail: see `Milestone.md`.
 | `uvicorn app.main:app --reload` | Start dev server with auto-reload |
 | `alembic upgrade head` | Apply pending DB migrations |
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
-| `python scripts/smoke_m1.py` | End-to-end HTTP smoke test (22 checks) — needs server running |
+| `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
+| `python scripts/smoke_m2.py` | In-process M2 smoke test (28 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
 
 ⚠️ **Note**: A real test suite (`pytest`) is not yet configured — this is remediation Level 14.
 

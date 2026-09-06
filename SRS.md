@@ -1,8 +1,8 @@
 # SRS.md - Software Requirements Specification (IEEE Format)
 
 **System**: Intelligent Cognitive Alarm Platform  
-**Version**: 1.1  
-**Date**: 2026-09-05  
+**Version**: 1.3  
+**Date**: 2026-09-06  
 **Organization**: CerebroKognit Project  
 **Contact**: architect@cerebrokognit.local
 
@@ -842,12 +842,13 @@ FUNCTION sync_pending_records(records):
 | 1.0 | 2026-08-23 | architect | Initial SRS draft based on PDF analysis and project scaffolding |
 | 1.1 | 2026-09-05 | architect | Reflected actual implementation state from deep codebase analysis; added missing endpoints, known issues, and implementation status matrix |
 | 1.2 | 2026-09-05 | architect | Marked M1-resolved items (RBAC enforced, env JWT/CORS, `PUT /users/profile` implemented, migration regenerated, Dockerfile CMD fixed); updated known-issues and implementation status matrices to verified post-M1 state |
+| 1.3 | 2026-09-06 | architect | Refreshed to post-M2 state: `POST /challenges/submit`, no-answer-leak `/next`, and mobile E2E dismiss marked complete; corrected `load_dotenv` note in issue #6; migration HEAD `1c584bd4a5b0`; `smoke_m2.py` 28/28 added to testing matrix |
 
 ---
 
 ## 9. Known Issues & Security Vulnerabilities
 
-> Audit performed 2026-09-05 (pre-M1); status refreshed 2026-09-05 after M1. Priority: 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low
+> Audit performed 2026-09-05 (pre-M1); status refreshed 2026-09-06 after M1+M2. Priority: 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low
 
 ### 9.1 Resolved by Milestone 1 (2026-09-05)
 
@@ -855,7 +856,7 @@ FUNCTION sync_pending_records(records):
 |---|---|---|---|---|
 | 1 | 🔴 | Hardcoded JWT `SECRET_KEY` never read from env | `backend/app/services/auth.py` | Read from `os.getenv("SECRET_KEY")` with dev-only fallback |
 | 2 | 🔴 | Admin authorization bypass — `_require_admin()` always returns `True` | `backend/app/api/deps.py` | RBAC via `require_roles()`; `is_superuser`/staff checked (403 smoke-verified) |
-| 6 | 🟠 | `load_dotenv(override=True)` overrides Docker-injected `DATABASE_URL` | `backend/app/database.py` | Only loads `.env` when `DATABASE_URL` is not already set |
+| 6 | 🟠 | `load_dotenv(override=True)` overrides Docker-injected `DATABASE_URL` | `backend/app/database.py` | Deferred as acceptable risk: `backend/.dockerignore` excludes `.env` from the image, so nothing baked in can clobber Docker-injected env |
 | 7 | 🟠 | Dockerfile CMD references nonexistent `app:app` | `backend/Dockerfile` | Corrected to `app.main:app`; `.dockerignore` added |
 | 8 | 🟠 | CORS `allow_origins=["*"]` with `allow_credentials=True` | `backend/app/main.py` | Env-driven `CORS_ORIGINS`; credentials only with explicit origins |
 | 9 | 🟠 | Stale Alembic migration out of sync with Models.py | `migrations/versions/732e5cb49bcf_initial_schema.py` | Migration regenerated; `upgrade head` verified on fresh DB |
@@ -882,7 +883,7 @@ FUNCTION sync_pending_records(records):
 
 ## 10. Implementation Status Matrix
 
-Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-05 post-M1)*
+Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-06 post-M2)*
 
 ### Backend Modules
 
@@ -892,14 +893,14 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | RBAC / Authorization | ✅ Complete | `require_roles()` in `deps.py`; 403 smoke-verified | 90% |
 | User Profiles & Settings | ✅ Complete | `/users/profile` GET+PUT, `/users/settings` GET, `/users/{key}` PUT | 95% |
 | Alarm CRUD + Snooze | ✅ Complete | tz-aware `next_trigger`, recurrence, challenge linkage, `time` in response, snooze cap 5 | 95% |
-| Alarm Dismiss | 🔴 Broken | Requires `ChallengeAttempt` no client can create (M2) | 15% |
-| Challenge Engine (7 types) | ⚠️ Partial | Real templates; answer leak + template mismatches (M2) | 80% |
+| Alarm Dismiss | ✅ Complete | `/next` → `/submit` → `/dismiss` verified end-to-end (smoke_m2: ownership, all-correct gate, 400/404 paths) | 95% |
+| Challenge Engine (7 types) | ✅ Complete | 7×5 deterministic templates; no answer leak; server-authoritative submit (smoke_m2) | 95% |
 | Habit Scoring (35/25/20/20) | ✅ Complete | Real weighted computation + history (smoke-verified) | 95% |
 | Analytics | ⚠️ Partial | Hardcoded placeholders (`sleep_duration_avg=7.5`, fake `recent_activity`) — M3 | 60% |
 | Offline Sync (server) | ⚠️ Partial | Idempotent upsert works; no mobile client calls it | 85% |
 | Dashboard + Reports | ⚠️ Partial | CSV/JSON export; PDF/Excel missing (M4); RBAC now enforced | 80% |
 | ML Inference | ⚠️ Partial | PyTorch model class + rule-based fallback; no trained model file | 60% |
-| Database Models + Migrations | ✅ Complete | 8 tables with indexes; migration current (732e5cb49bcf) | 95% |
+| Database Models + Migrations | ✅ Complete | 8 tables with indexes; migration current (`1c584bd4a5b0`) | 95% |
 | Error Handling Standard | ❌ Not implemented | Bare `detail` only; no error_code/timestamp (Level 8) | 30% |
 
 ### Web Dashboard
@@ -920,8 +921,8 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 |---|---|---|---|
 | Auth / Navigation | ⚠️ Partial | Login works; no registration screen | 70% |
 | Alarm Display | ⚠️ Partial | Lists alarms; no creation UI | 50% |
-| Alarm Dismiss | 🔴 Broken | Payload mismatch; auto-filled answer (M2) | 10% |
-| Challenge Flow | 🔴 Broken | Client-side only; not adaptive; not persisted (M2) | 15% |
+| Alarm Dismiss | ✅ Complete | Runs `/next` → `/submit` → `/dismiss` with matching payload (M2) | 90% |
+| Challenge Flow | ✅ Complete | Fetches `/next`, submits `/submit`, renders verification result (M2) | 85% |
 | Profile | ✅ Complete | Calls now-implemented `PUT /users/profile` | 80% |
 | Settings | ✅ Complete | Calls now-implemented `PUT /users/settings` + `/users/{key}` | 80% |
 | Offline Sync | ❌ Not implemented | Type schemas only (M4/L13) | 5% |
@@ -934,5 +935,5 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Docker | ⚠️ Partial | CMD fixed, `.dockerignore`, compose config valid; full up-test pending | 55% |
 | Database Migrations | ✅ Complete | Migration current; `upgrade head` verified on fresh DB | 90% |
 | CI/CD | ❌ Not implemented | No `.github/`, no pipeline (M4/L15) | 0% |
-| Testing | ❌ Not implemented | Zero test files; `smoke_m1.py` (22 checks) is manual verification (M4) | 5% |
+| Testing | ❌ Not implemented | Zero test files; `smoke_m1.py` (22) + `smoke_m2.py` (28, incl. alembic-on-fresh-DB) are manual verification (M4) | 5% |
 | Environment Config | ✅ Complete | Secrets/CORS from env; 3 postgres vars honored for compose | 85% |

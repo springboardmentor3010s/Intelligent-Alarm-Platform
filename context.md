@@ -33,7 +33,7 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | SQLite | (local dev) | — | Used via `backend/.env` override |
 | | MongoDB | — | 7.x | ⚠️ **Not implemented** — referenced in architecture only |
 | **DevOps** | Docker | Compose v2 | latest | Containerization |
-| | Git & GitHub | — | Latest | Version control; **zero commits** |
+| | Git & GitHub | — | Latest | Version control; **5 commits, HEAD `3dfe85a` (M2), pushed to `origin/main`** |
 | | GitHub Actions | — | Latest | ⚠️ **Not implemented** — no CI/CD |
 | **Mobile** | Expo | SDK ~57.0.15 | Latest | React Native framework |
 | | Firebase Cloud Messaging | — | Latest | ⚠️ **Not wired** — token fetched, never registered |

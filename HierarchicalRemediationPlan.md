@@ -81,7 +81,7 @@
 ---
 
 ## Level 3: Database & Migrations
-**Status: 🟡 PARTIAL (M1)** — 3.1 import/env fixes ✅ · 3.2 migration regenerated `732e5cb49bcf` + verified ✅ · 3.3 startup init ⏳ manual `init_db.py` only (Docker entrypoint not wired) · 3.4 seed script ✅ (roles + demo user; sample challenges not seeded)
+**Status: 🟡 PARTIAL (M1)** — 3.1 import/env fixes ✅ · 3.2 migration regenerated (`732e5cb49bcf` initial + `1c584bd4a5b0` answer-data) + verified on fresh DB ✅ · 3.3 startup init ⏳ manual `init_db.py` only (Docker entrypoint not wired) · 3.4 seed script ✅ (roles + demo user + full 7×5 challenge grid)
 > *Must be working before any feature can be reliably tested.*
 
 ```
@@ -408,7 +408,7 @@
 ---
 
 ## Level 14: Testing
-**Status: ❌ NOT STARTED (M4)** — zero test files; only manual `scripts/smoke_m1.py` (22 checks, HTTP-level)
+**Status: ❌ NOT STARTED (M4)** — zero test files; only manual `scripts/smoke_m1.py` (22 checks) + `scripts/smoke_m2.py` (28 checks, incl. alembic-on-fresh-DB and no-answer-leak), both in-process via TestClient
 > *Add comprehensive test coverage.*
 
 ```
@@ -562,13 +562,13 @@ LEVEL 1 (Security & Config) --> LEVEL 2 (Schema Consolidation)
 | 2 | Schema Consolidation | 1.5 hours | ❌ Not started | Level 1 |
 | 3 | Database & Migrations | 2 hours | 🟡 Partial (3.3 startup init) | Level 2 |
 | 4 | RBAC & Authorization | 2 hours | ✅ Done (M1) | Level 3 |
-| 5 | Challenge Engine Fixes | 3 hours | ❌ Not started (M2) | Level 2 |
-| 6 | Alarm Dismiss Flow | 4 hours | 🟡 Partial (6.2 left, M2) | Levels 4, 5 |
-| 7 | Analytics & Reporting | 3 hours | ❌ Not started (M3) | Level 3 |
+| 5 | Challenge Engine Fixes | 3 hours | ✅ Done (M2) | Level 2 |
+| 6 | Alarm Dismiss Flow | 4 hours | ✅ Done (M1+M2) | Levels 4, 5 |
+| 7 | Analytics & Reporting | 3 hours | 🟡 Partial (challenge analytics real in M2; PDF/Excel + ML model pending M3/M4) | Level 3 |
 | 8 | Error Handling | 2 hours | ❌ Not started | Level 2 |
 | 9 | Docker & Infrastructure | 3 hours | 🟡 Partial (up-test pending) | Levels 1, 3 |
 | 10 | Web Dashboard Fixes | 6 hours | 🟡 Partial (Home/admin/mocks left) | Levels 6, 7 |
-| 11 | Mobile Core Flow Fixes | 8 hours | 🟡 Partial (dismiss flow left, M2) | Levels 5, 6 |
+| 11 | Mobile Core Flow Fixes | 8 hours | 🟡 Partial (dismiss E2E done; registration/alarm-creation screens left) | Levels 5, 6 |
 | 12 | Alarm Scheduling & Notifications | 6 hours | ❌ Not started (M4) | Level 11 |
 | 13 | Offline Sync | 8 hours | ❌ Not started (M4) | Level 11 |
 | 14 | Testing | 10 hours | ❌ Not started (M4) | Levels 6-13 |

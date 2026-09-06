@@ -3,7 +3,7 @@
 ## Vision
 To build an AI-powered Intelligent Cognitive Alarm Platform that helps users develop consistent wake-up habits by requiring them to solve personalized puzzles, riddles, memory challenges, logic problems, or math exercises before dismissing alarms. The platform adapts challenge difficulty based on user behavior, wake-up performance, snooze patterns, sleep schedules, and cognitive engagement levels to improve productivity, reduce oversleeping, and encourage healthy sleep routines.
 
-> **Document Status (2026-09-05)**: Sections below describe the intended product. The **Current Implementation Status** and **Known Gaps** sections at the end reflect actual codebase state from a deep analysis. See `HierarchicalRemediationPlan.md` for the prioritized fix roadmap.
+> **Document Status (2026-09-06, post-M2)**: Sections below describe the intended product. The **Current Implementation Status** and **Known Gaps** sections at the end reflect actual codebase state from a deep analysis. See `HierarchicalRemediationPlan.md` for the prioritized fix roadmap.
 
 ### Success Metrics
 - **Wake-up Improvement**: Reduce snooze frequency and improve successful wake-up rates.
@@ -155,10 +155,10 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 
 ## Release Milestones
 
-| Milestone | Duration | Key Deliverables | Actual Status (2026-09-05) |
+| Milestone | Duration | Key Deliverables | Actual Status (2026-09-06) |
 |---|---|---|---|
 | **M1: Foundation** | Weeks 1–2 | Project initialization, auth system, DB schema, user profiles, basic alarm scheduling | ✅ **Complete** — auth+RBAC, profiles/settings, tz-aware alarms, regenerated migration `732e5cb49bcf`, 22/22 smoke test |
-| **M2: Cognitive Engine** | Weeks 3–4 | Challenge engine operational, puzzle generation workflows, wake-up verification mechanisms, challenge evaluation | ⚠️ Partial — 7 types + adaptive selection work; answers leaked in payload; no submit endpoint; mobile dismiss broken |
+| **M2: Cognitive Engine** | Weeks 3–4 | Challenge engine operational, puzzle generation workflows, wake-up verification mechanisms, challenge evaluation | ✅ **Complete** — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, `smoke_m2.py` 28/28 |
 | **M3: Adaptive Intelligence** | Weeks 5–6 | Adaptive difficulty engine functional, habit scoring system operational, recommendation workflows completed, habit tracking dashboards | ⚠️ Partial — habit scoring works; adaptive difficulty falls back to rules (no model file); analytics has hardcoded placeholders |
 | **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | ❌ Not started — zero tests, no CI/CD, Docker up-test pending, web charts partially mocked, no admin UI |
 
@@ -172,7 +172,7 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 
 ---
 
-## Current Implementation Status (2026-09-05, post-M1)
+## Current Implementation Status (2026-09-06, post-M2)
 
 > Deep codebase analysis result, refreshed after Milestone 1. Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken
 
@@ -195,18 +195,18 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 
 | Concern | Status | Detail |
 |---|---|---|
-| Security | 🟡 M1-fixed / M2 gaps | Env-driven JWT secret + CORS, RBAC enforced. Remaining: challenge answers leaked, structured errors, rate limiting |
+| Security | 🟡 M1+M2-fixed | Env-driven JWT secret + CORS, RBAC enforced, answer leak fixed (M2). Remaining: structured errors, rate limiting |
 | Mobile integration | 🟡 M2-wired | Alarm-dismiss E2E now matches the backend contract (`/next` → `/submit` → `/dismiss`); profile/settings wired; offline caching still M4 |
 | Error handling | ⚠️ Partial | `{"detail"}` only; no `error_code`/`timestamp` envelope |
 | Database | ✅ Good | 8 tables; migration regenerated + verified; SQLite local dev, PostgreSQL via Docker |
-| Testing | ❌ None | Zero unit tests; `smoke_m1.py` (22 checks) is manual verification |
-| CI/CD | ❌ None | No pipeline; first remote push pending |
+| Testing | ❌ None | Zero unit tests; `smoke_m1.py` (22) + `smoke_m2.py` (28) are manual verification |
+| CI/CD | ❌ None | No pipeline; repo pushed to `origin/main` |
 
-### Estimated Overall Completion: **~52%**
+### Estimated Overall Completion: **~60%**
 
 ---
 
-## Known Gaps (from Deep Analysis — post-M1)
+## Known Gaps (from Deep Analysis — post-M2)
 
 1. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; challenge analytics are now real (per-type accuracy, avg solve time).
 2. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; pages silently substitute fake score 70 on API failure.
