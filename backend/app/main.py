@@ -1,6 +1,7 @@
 """Main FastAPI application for Intelligent Cognitive Alarm Platform."""
 
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import FastAPI
@@ -17,11 +18,23 @@ from .api.sync import router as sync_router
 from .api.dashboard import router as dashboard_router
 from .api.analytics import router as analytics_router
 from .api.users import router as users_router
+from .services.bootstrap import bootstrap_local_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Local mode only (SQLite, no DATABASE_URL): auto-create tables + seed so the
+    # app runs fully self-contained with no database server. Postgres (Docker/cloud)
+    # is left to `alembic upgrade head` and is never modified here.
+    bootstrap_local_db()
+    yield
+
 
 app = FastAPI(
     title="Intelligent Cognitive Alarm Platform API",
     description="AI-powered cognitive alarm platform with adaptive difficulty and habit formation",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # CORS configuration from env (comma-separated), with a local-dev fallback
