@@ -1,13 +1,12 @@
 """Adaptive difficulty service.
 
-Facade over the ML inference engine (`ml_inference`) exposing difficulty
-adaptation semantics. In P3 this becomes the public surface of the isolated
-`ai_engine` package; for now it keeps the ML/rules boundary explicit.
+Facade over the isolated `ai_engine` difficulty engine exposing difficulty
+adaptation semantics to the rest of the application.
 """
 
 from typing import Any
 
-from .ml_inference import MLInferenceService
+from ..ai_engine.difficulty import MLInferenceService
 
 
 class AdaptiveDifficultyService:
