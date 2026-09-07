@@ -89,7 +89,7 @@ Principle: **inference separated from training** (training = `scripts/train_diff
 |---|---|---|---|
 | PostgreSQL | users, alarms, habits, scores, attempts | ✅ | `Models.py`, `migrations/`, `docker-compose.yml` |
 | SQLite | local/offline dev mode | ✅ | `database.py` default + `services/bootstrap.py` |
-| Redis | session/cache/rate-limit | 🟥 | `services/cache.py` optional adapter, active only if `REDIS_URL` (planned) |
+| Redis | session/cache/rate-limit | 🟡 | `services/cache.py` optional adapter (active only if `REDIS_URL`); no-op otherwise (P4+) |
 | MongoDB | challenges/preferences/logs | 🟥 | no justified workload — planned |
 | Elasticsearch | search | 🟥 | no justified workload — planned |
 | Vector DB (FAISS/Pinecone) | embeddings/similarity | 🟥 | no justified workload — planned |
@@ -116,9 +116,9 @@ Data ownership (§17): each domain service owns its models; no cross-service DB 
 | CI/CD (ruff + pytest + smokes + web build) | ✅ | `.github/workflows/ci.yml` |
 | Security: env secrets, bcrypt, JWT, RBAC, CORS, Pydantic validation | ✅ | `app/`, `.env.example` |
 | Security: rate limiting | 🟡 | `gateway/` (P1+) |
-| Monitoring & error tracking | 🟥 | `infrastructure/monitoring.md` — planned |
-| Structured logging | 🟡 | `gateway/` (P1+) |
-| Backup & disaster recovery | 🟥 | `infrastructure/backup.md` — procedure documented (P4+), automation planned |
+| Monitoring & error tracking | 🟥 | `infrastructure/monitoring.md` — plan documented (P4+), implementation planned |
+| Structured logging | ✅ | `gateway/` (P1) + `infrastructure/logging.md` |
+| Backup & disaster recovery | 🟡 | `infrastructure/backup-dr.md` — procedure documented (P4), automation planned |
 
 ## 8. Async processing
 

@@ -109,3 +109,23 @@ def report_response(
         }
 
     return export_report(records, file_format, base_name, title)
+
+
+def build_report(
+    builder,
+    db: Session,
+    user_id: int,
+    days: int,
+    file_format: str,
+    report_type: str,
+    title: str,
+):
+    """Build records and produce the final report response for a given type.
+
+    `asynchronous` handling is delegated to the route; this helper centralizes
+    the record fetch + envelope/file assembly used by both sync and async paths.
+    """
+    records = builder(db, user_id, days)
+    today = datetime.utcnow().date()
+    base_name = f"{report_type}_report_{today}"
+    return report_response(records, file_format, base_name, title, report_type, days)
