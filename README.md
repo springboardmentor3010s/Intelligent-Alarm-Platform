@@ -22,12 +22,12 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 | Backend Security | Good | ~95% | Env-driven JWT secret + CORS, RBAC enforced, **structured error envelope**, **rate limiting + request-id/structured logging (P1)** |
 | Web Dashboard | Good | ~85% | Home/Dashboard/Reports wired to real history charts; admin UI page; **§21 grouped navigation (P6)**; settings persistence remains |
 | Mobile App | Partial | ~45% | Profile/settings wired; **alarm dismiss E2E (next→submit→dismiss) functional**; notifications/offline not wired (uses P5 register API when landed) |
-| Testing | Good | ~80% | **Backend pytest suite (32 tests, verified on Python 3.11 + 3.14)**; smoke_m1/smoke_m2 as regression gates; CI/CD via GitHub Actions |
+| Testing | Good | ~90% | **Backend pytest suite (32 tests, verified on Python 3.11 + 3.14)**; **web Vitest (8) + mobile jest-expo (14)**; smoke_m1/smoke_m2 as regression gates; CI/CD (ruff + pytest + smokes + web build+test + mobile test) via GitHub Actions |
 | Infrastructure/Docker | Good | ~85% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
 ### Known Critical Issues (remaining after M4)
 1. Mobile offline caching + notifications not wired (M4 backlog) — push-token registration API (`/api/v1/notifications/register`) exists since P5 and awaits the mobile consumer
-2. Mobile/web test coverage (vitest/jest-expo) not started (M4 backlog)
+2. Test coverage now exists for web (Vitest) + mobile (jest-expo) and backend (pytest); remaining: broader flow-level component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Settings persistence on web dashboard pending (M4 backlog)
 

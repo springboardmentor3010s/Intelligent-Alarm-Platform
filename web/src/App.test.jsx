@@ -1,0 +1,67 @@
+import React from 'react';
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import App from './App';
+
+vi.mock('react-chartjs-2', () => ({
+  Line: () => null,
+}));
+
+const habitScore = {
+  date: '2026-09-07',
+  wake_up_consistency: 80,
+  challenge_completion: 75,
+  snooze_reduction: 60,
+  sleep_schedule_adherence: 70,
+  overall_score: 72,
+};
+
+const history = [
+  { date: '2026-09-06', wake_up_consistency: 70, challenge_completion: 70, snooze_reduction: 55, sleep_schedule_adherence: 68, overall_score: 66 },
+  { date: '2026-09-07', wake_up_consistency: 80, challenge_completion: 75, snooze_reduction: 60, sleep_schedule_adherence: 70, overall_score: 72 },
+];
+
+function mockFetch(responseByPath) {
+  global.fetch = vi.fn((url) => {
+    const key = url.split('?')[0];
+    const payload = responseByPath[key] ?? {};
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(payload) });
+  });
+}
+
+describe('App navigation (§21 grouping)', () => {
+  beforeEach(() => {
+    localStorage.setItem('token', 'test-token');
+    localStorage.setItem('user', JSON.stringify({ email: 'demo@test.io', full_name: 'Demo' }));
+  });
+
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('renders Track / Plan / Account groups with all destinations', () => {
+    mockFetch({ '/api/v1/habits/score': habitScore });
+    render(<App />);
+
+    expect(screen.getByText('Track')).toBeInTheDocument();
+    expect(screen.getByText('Plan')).toBeInTheDocument();
+    expect(screen.getByText('Account')).toBeInTheDocument();
+
+    for (const label of ['Home', 'Analytics', 'Alarms', 'Challenges', 'Reports', 'Profile', 'Admin']) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+  });
+
+  it('home loads today progress once data arrives', async () => {
+    mockFetch({
+      '/api/v1/habits/score': habitScore,
+      '/api/v1/habits/score/history': history,
+    });
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("Today's Progress")).toBeInTheDocument());
+    expect(screen.getByText('72')).toBeInTheDocument();
+  });
+});

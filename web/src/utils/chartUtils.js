@@ -4,10 +4,10 @@
  */
 
 const chartConfigs = {
-  wakeUp: { label: 'Wake-up Consistency (%)', border: '#7c8cff', bg: 'rgba(124, 140, 255, 0.15)' },
-  challenge: { label: 'Challenge Completion (%)', border: '#5ce1a8', bg: 'rgba(92, 225, 168, 0.15)' },
-  snooze: { label: 'Snooze Reduction (%)', border: '#ffd579', bg: 'rgba(255, 213, 121, 0.15)' },
-  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#6ee7e0', bg: 'rgba(110, 231, 224, 0.15)' },
+  wakeUp: { label: 'Wake-up Consistency (%)', border: '#7c8cff', bg: 'rgba(124, 140, 255, 0.15)', dataKey: 'wake_up_consistency' },
+  challenge: { label: 'Challenge Completion (%)', border: '#5ce1a8', bg: 'rgba(92, 225, 168, 0.15)', dataKey: 'challenge_completion' },
+  snooze: { label: 'Snooze Reduction (%)', border: '#ffd579', bg: 'rgba(255, 213, 121, 0.15)', dataKey: 'snooze_reduction' },
+  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#6ee7e0', bg: 'rgba(110, 231, 224, 0.15)', dataKey: 'sleep_schedule_adherence' },
 };
 
 /**
@@ -28,7 +28,7 @@ export function buildHabitCharts(history = []) {
         datasets: [
           {
             label: cfg.label,
-            data: history.map((h) => h[key]),
+            data: history.map((h) => h[cfg.dataKey]),
             borderColor: cfg.border,
             backgroundColor: cfg.bg,
             tension: 0.4,
