@@ -19,7 +19,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.Models import Challenge, User, ChallengeAttempt
+from app.Models import Challenge, ChallengeAttempt
 
 
 class ChallengeService:
@@ -239,7 +239,7 @@ class ChallengeService:
         # --- Adaptive difficulty from user history (rule-based fallback) ---
         recent_attempts = (
             db.query(ChallengeAttempt)
-            .filter(ChallengeAttempt.user_id == user_id, ChallengeAttempt.completed == True)
+            .filter(ChallengeAttempt.user_id == user_id, ChallengeAttempt.completed.is_(True))
             .order_by(ChallengeAttempt.created_at.desc())
             .limit(5)
             .all()
@@ -280,7 +280,7 @@ class ChallengeService:
         if new_difficulty not in cls.DIFFICULTIES:
             new_difficulty = "Medium"
 
-        query = db.query(Challenge).filter(Challenge.is_active == True)
+        query = db.query(Challenge).filter(Challenge.is_active)
         if challenge_type in cls.CHALLENGE_TYPES:
             query = query.filter(Challenge.challenge_type == challenge_type)
         challenge = query.filter(Challenge.difficulty == new_difficulty).order_by(func.random()).first()

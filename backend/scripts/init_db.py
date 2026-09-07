@@ -49,7 +49,7 @@ def seed_challenges(db):
     """Seed the full 7-type x 5-difficulty challenge grid so /challenges/next always works."""
     existing = {
         (c.challenge_type, c.difficulty)
-        for c in db.query(Challenge).filter(Challenge.is_active == True).all()
+        for c in db.query(Challenge).filter(Challenge.is_active).all()
     }
     for ctype in CHALLENGE_TYPES:
         for diff in CHALLENGE_DIFFICULTIES:

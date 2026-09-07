@@ -7,6 +7,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
+import Admin from './pages/Admin';
 
 function App() {
   const [authed, setAuthed] = useState(!!localStorage.getItem('token'));
@@ -43,6 +44,7 @@ function App() {
         <NavLink to="/alarms" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Alarms</NavLink>
         <NavLink to="/challenges" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Challenges</NavLink>
         <NavLink to="/reports" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Reports</NavLink>
+        <NavLink to="/admin" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Admin</NavLink>
         <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Settings</NavLink>
         <div className="nav-spacer" />
         <span className="nav-user">Hi, {name}</span>
@@ -54,6 +56,7 @@ function App() {
         <Route path="/alarms" element={<Alarms />} />
         <Route path="/challenges" element={<Challenges />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

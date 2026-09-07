@@ -152,12 +152,12 @@ This document covers:
 
 | Requirement ID | Requirement Text | Priority | Notes |
 |---|---|---|---|
-| FR-REP-001 | The system shall generate habit reports (PDF) with daily/weekly/monthly trend analysis. | High | Export endpoint; uses WeasyPrint or Chrome headless for PDF generation. |
-| FR-REP-002 | The system shall generate wake-up reports (PDF/CSV) with wake-up timestamps, snooze counts, success rates. | High | Data from `alarms` and `challenge_attempts` tables. |
-| FR-REP-003 | The system shall generate challenge performance reports (PDF/CSV) with quiz analysis: types attempted, accuracy, difficulty progression. | Medium | Data from `challenges` and `challenge_attempts`. |
-| FR-REP-004 | The system shall generate productivity reports (PDF/CSV) correlating wake-up consistency with user-defined productivity goals. | Low | Optional; user-provided data. |
-| FR-REP-005 | The system shall generate sleep analytics reports (PDF) with bedtime/wake-time trends and sleep duration analysis. | High | Data from user-provided sleep schedule + computed adherence. |
-| FR-REP-005 | All reports shall be exportable in PDF and Excel (.xlsx) formats. | High | Backend rendering; frontend download button. |
+| FR-REP-001 | The system shall generate habit reports (PDF) with daily/weekly/monthly trend analysis. | High | ✅ **IMPLEMENTED (M4)** — `GET /dashboard/reports/habits?format=pdf` (reportlab). |
+| FR-REP-002 | The system shall generate wake-up reports (PDF/CSV) with wake-up timestamps, snooze counts, success rates. | High | ✅ **IMPLEMENTED (M4)** — `GET /dashboard/reports/wake-up?format=pdf`. |
+| FR-REP-003 | The system shall generate challenge performance reports (PDF/CSV) with quiz analysis: types attempted, accuracy, difficulty progression. | Medium | ✅ **IMPLEMENTED (M4)** — `GET /dashboard/reports/challenges?format=pdf`. |
+| FR-REP-004 | The system shall generate productivity reports (PDF/CSV) correlating wake-up consistency with user-defined productivity goals. | Low | ❌ Optional; user-provided data — not implemented. |
+| FR-REP-005 | The system shall generate sleep analytics reports (PDF) with bedtime/wake-time trends and sleep duration analysis. | High | ⚠️ Sleep trends available via `/dashboard/reports/wake-up`; standalone sleep report module not split out. |
+| FR-REP-005 | All reports shall be exportable in PDF and Excel (.xlsx) formats. | High | ✅ **IMPLEMENTED (M4)** — `format=csv\|json\|pdf\|excel` on all three report endpoints via `services/report_export.py`; web Reports page downloads CSV (PDF/Excel downloads available via API / admin context). |
 
 ### 2.11 Offline-First Sync Protocol
 
@@ -205,7 +205,7 @@ This document covers:
 |---|---|---|---|
 | NF-FT-001 | System must handle database connection pool exhaustion gracefully. | High | `503 Service Unavailable` with retry-after header if pool exhausted. |
 | NF-FT-002 | Sync failures must be retried with exponential backoff; max 3 attempts. | High | Failed records retained in local cache for next sync cycle. |
-| NF-FT-003 | API must return structured error responses: `{ "detail": "human readable error", "error_code": "ERR_XXX", "timestamp": "ISO8601" }`. | High | ⚠️ **PARTIAL in current implementation.** All errors return only `{"detail": "..."}` via `HTTPException`. `error_code` and `timestamp` fields not implemented — no global exception handler exists. |
+| NF-FT-003 | API must return structured error responses: `{ "detail": "human readable error", "error_code": "ERR_XXX", "timestamp": "ISO8601" }`. | High | ✅ **IMPLEMENTED (M4).** Global handlers in `app/main.py` return `{detail, error_code, timestamp, status_code}` (additive — `detail` unchanged, so existing clients keep working). 422 → `ERR_VALIDATION`, HTTP → `ERR_{status}`. |
 | NF-FT-004 | Backend must log authentication failures with structured logging (include JWT subject ID, mask token). | High | Audit trail for security monitoring. |
 | NF-FT-005 | Graceful degradation: if ML model inference fails, fall back to default (Easy difficulty) challenge. | Medium | Ensures alarm can still be dismissed; logged as error. |
 
@@ -474,12 +474,12 @@ class SyncRecordRes(BaseModel):
 |---|---|---|---|---|---|
 | List All Users (Admin) | GET | `/api/v1/dashboard/users` | Bearer (is_superuser) | — | `List[AdminUserRes]` |
 | Platform Analytics (Admin) | GET | `/api/v1/dashboard/analytics` | Bearer (is_superuser) | — | `AdminAnalyticsRes` |
-| Habit Report | GET | `/api/v1/dashboard/reports/habits` | Bearer (is_superuser) | `format=json/csv` | File / JSON |
-| Wake-Up Report | GET | `/api/v1/dashboard/reports/wake-up` | Bearer (is_superuser) | `format=json/csv` | File / JSON |
-| Challenge Report | GET | `/api/v1/dashboard/reports/challenges` | Bearer (is_superuser) | `format=json/csv` | File / JSON |
+| Habit Report | GET | `/api/v1/dashboard/reports/habits` | Bearer (is_superuser) | `format=json/csv/pdf/excel` | File / JSON |
+| Wake-Up Report | GET | `/api/v1/dashboard/reports/wake-up` | Bearer (is_superuser) | `format=json/csv/pdf/excel` | File / JSON |
+| Challenge Report | GET | `/api/v1/dashboard/reports/challenges` | Bearer (is_superuser) | `format=json/csv/pdf/excel` | File / JSON |
 | Update User Profile | PUT | `/api/v1/users/profile` | Bearer | `UserProfileUpdateReq` | `UserProfileRes` |
 
-> ✅ **NOTE:** `PUT /api/v1/users/profile` (plus `GET /api/v1/users/profile`, `GET/PUT /api/v1/users/settings`, `PUT /api/v1/users/{key}`) is **IMPLEMENTED as of M1** in `backend/app/api/users.py`. Remaining gap for FR-REP-005: PDF/Excel report export — only CSV/JSON exists.
+> ✅ **NOTE:** `PUT /api/v1/users/profile` (plus `GET /api/v1/users/profile`, `GET/PUT /api/v1/users/settings`, `PUT /api/v1/users/{key}`) is **IMPLEMENTED as of M1** in `backend/app/api/users.py`. FR-REP-005 (PDF + Excel export) is **IMPLEMENTED as of M4** — all three report endpoints accept `format=csv|json|pdf|excel` via `backend/app/services/report_export.py`.
 
 ##### 4.1.7.1 AdminUserRes (Pydantic v2)
 ```python
@@ -874,16 +874,16 @@ FUNCTION sync_pending_records(records):
 | ~~5~~ | 🔴 | ~~Mobile dismiss payload mismatch~~ | `mobile/src/screens/AlarmScreen.jsx` | **RESOLVED (M2):** mobile now runs `/next` → `/submit` → `/dismiss` with matching payload | — |
 | ~~12~~ | 🟠 | ~~Challenge template random-mismatch (Logic/Word/Pattern)~~ | `backend/app/services/challenge_service.py` | **RESOLVED (M2):** deterministic generators compute prompt + answer from the same data | — |
 | 16 | 🟡 | Mobile `overist_score` typo (should be `overall_score`) | `mobile/src/screens/HomeScreen.jsx` | **RESOLVED (M2)** — rendered as `overall_score`; was always 0 | — |
-| 13 | 🟡 | Web dashboard renders hardcoded mock chart data | `web/src/utils/chartUtils.js` | Real `/habits/score/history` not called on Home page (Dashboard now wired) | M3/L10 |
-| 14 | 🟡 | Web silently substitutes fake scores (70) on API failure | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | Masks real outages behind fabricated "healthy" UI | M3/L10 |
+| ~~13~~ | 🟡 | ~~Web dashboard renders hardcoded mock chart data~~ | `web/src/utils/chartUtils.js` | **RESOLVED (M3):** Home/Dashboard/Reports wired to live `/habits/score/history` | — |
+| ~~14~~ | 🟡 | ~~Web silently substitutes fake scores (70) on API failure~~ | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | **RESOLVED (M3):** `'—'` fallback removed; real API data only | — |
 | 18 | 🟢 | Triplicated divergent schema definitions | `schemas/__init__.py`, `schemas/all.py`, `schemas/auth.py` | Drift risk; consolidation required | Level 2 |
-| 19 | 🟢 | No test files exist; no CI/CD | entire repo | Nothing verifiable; no safety net | M4/L14–15 |
+| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4):** pytest suite (23 tests), ruff, GitHub Actions CI (ruff + pytest + smokes + web build) | — |
 
 ---
 
 ## 10. Implementation Status Matrix
 
-Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-06 post-M3)*
+Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-07 post-M4 — core)*
 
 ### Backend Modules
 
@@ -900,22 +900,24 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Recommendations | ✅ Complete (M3) | `GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted (FR-RE-001..004) | 95% |
 | ML Difficulty Inference | ✅ Complete (M3) | Trained `backend/ml_models/difficulty_model.pt`; `ml-status model_loaded=true`; rule-based fallback retained | 95% |
 | Offline Sync (server) | ⚠️ Partial | Idempotent upsert works; no mobile client calls it | 85% |
-| Dashboard + Reports | ⚠️ Partial | CSV/JSON export; PDF/Excel missing (M4); RBAC now enforced | 80% |
-| ML Inference | ⚠️ Partial | PyTorch model class + rule-based fallback; no trained model file | 60% |
+| Dashboard + Reports | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `format` param; RBAC enforced; admin UI added | 95% |
+| ML Inference | ✅ Complete (M3) | Trained `difficulty_model.pt` served; rule-based fallback in container (no torch) | 85% |
 | Database Models + Migrations | ✅ Complete | 8 tables with indexes; migration current (`1c584bd4a5b0`) | 95% |
-| Error Handling Standard | ❌ Not implemented | Bare `detail` only; no error_code/timestamp (Level 8) | 30% |
+| Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
+| Testing (pytest) | ✅ Complete (M4) | 23 tests (auth, alarms, challenges, analytics, sync, reports); verified Python 3.11 + 3.14 | 85% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build | 85% |
 
 ### Web Dashboard
 
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
 | Auth (login/register) | ✅ Complete | Works against API | 90% |
-| Home / Charts | ⚠️ Partial | Dashboard wired to real history; Home still mock + fallbacks (M3) | 55% |
+| Home / Charts | ✅ Complete (M3) | Home/Dashboard/Reports wired to live `/habits/score/history`; `'—'` fallback removed | 85% |
 | Alarm Management | ✅ Complete | Full form (time picker, type, challenge, difficulty, recurrence); CRUD works | 85% |
 | Challenge Generator | ✅ Complete | List + adaptive next | 80% |
-| Reports | ⚠️ Partial | CSV only; PDF/Excel missing (M4) | 55% |
+| Reports | ⚠️ Partial | CSV downloads wired; PDF/Excel downloads available via API `format=pdf|excel` (buttons pending) | 70% |
 | Settings (Profile) | ✅ Complete | API-backed persistence via `/users/profile` | 80% |
-| Admin Dashboard | ❌ Not implemented | No UI page; API ready (M4) | 0% |
+| Admin Dashboard | ✅ Complete (M4) | `web/src/pages/Admin.jsx` — metric cards, top challenge types, users table, RBAC 403 panel, `/admin` route | 85% |
 
 ### Mobile App
 

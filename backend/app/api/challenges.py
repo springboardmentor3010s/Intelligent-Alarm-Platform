@@ -1,13 +1,13 @@
 """Challenge routes for Intelligent Cognitive Alarm Platform."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..Models import User, Challenge, ChallengeAttempt
 from ..schemas import ChallengeListRes, ChallengeRes, ChallengeSubmitReq, ChallengeSubmitRes
 from ..services.challenge_service import ChallengeService
-from ..api.deps import oauth2_scheme, get_current_user
+from ..api.deps import get_current_user
 
 router = APIRouter(prefix="/challenges", tags=["challenges"])
 
@@ -20,7 +20,7 @@ def list_challenges(
     challenge_type: str = None,
 ):
     """List available challenges with optional filtering."""
-    challenges = db.query(Challenge).filter(Challenge.is_active == True).all()
+    challenges = db.query(Challenge).filter(Challenge.is_active).all()
 
     if difficulty:
         challenges = [c for c in challenges if c.difficulty == difficulty]

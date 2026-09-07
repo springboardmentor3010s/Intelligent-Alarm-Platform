@@ -4,14 +4,13 @@ Implements idempotent upsert with conflict resolution using server timestamps.
 Mobile clients cache data locally, then sync via background push/pull.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from ..database import get_db
 from ..Models import User, Alarm, ChallengeAttempt, HabitScore
-from ..schemas import SyncPendingReq, SyncRecordReq, SyncRes, SyncRecordRes
+from ..schemas import SyncPendingReq, SyncRes
 from ..api.deps import get_current_user
-from typing import List
 from datetime import datetime
 import hashlib
 import json
@@ -28,12 +27,12 @@ def _compute_etag(record_data: dict) -> str:
 def _upsert_alarm(db: Session, user_id: int, payload: dict, client_timestamp: datetime) -> tuple:
     """Idempotent upsert for alarm records. Returns (record, is_new)."""
     record_id = payload.get("server_id") or payload.get("id")
-    
+
     if record_id:
         existing = db.query(Alarm).filter(Alarm.id == record_id, Alarm.user_id == user_id).first()
     else:
         existing = None
-    
+
     if existing:
         # Update only if client data is newer
         if client_timestamp and existing.updated_at and client_timestamp > existing.updated_at:
@@ -65,7 +64,7 @@ def _upsert_alarm(db: Session, user_id: int, payload: dict, client_timestamp: da
 def _upsert_challenge_attempt(db: Session, user_id: int, payload: dict, client_timestamp: datetime) -> tuple:
     """Idempotent upsert for challenge attempt records."""
     record_id = payload.get("server_id") or payload.get("id")
-    
+
     if record_id:
         existing = db.query(ChallengeAttempt).filter(
             ChallengeAttempt.id == record_id,
@@ -73,7 +72,7 @@ def _upsert_challenge_attempt(db: Session, user_id: int, payload: dict, client_t
         ).first()
     else:
         existing = None
-    
+
     if existing:
         # Challenge attempts are append-only; update completion status only
         if payload.get("completed") and not existing.completed:
@@ -106,12 +105,12 @@ def _upsert_challenge_attempt(db: Session, user_id: int, payload: dict, client_t
 def _upsert_habit_score(db: Session, user_id: int, payload: dict, client_timestamp: datetime) -> tuple:
     """Idempotent upsert for habit score records (unique per user+date)."""
     date = payload.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
-    
+
     existing = db.query(HabitScore).filter(
         HabitScore.user_id == user_id,
         HabitScore.date == date,
     ).first()
-    
+
     if existing:
         # Merge: take higher scores (optimistic merge)
         existing.wake_up_consistency = max(existing.wake_up_consistency, payload.get("wake_up_consistency", 0))
@@ -151,34 +150,34 @@ def sync_pending(
     current_user: User = Depends(get_current_user),
 ):
     """Upload offline changes via idempotent upsert.
-    
+
     Each record is processed independently. Failures don't block other records.
     Returns counts of synced/failed records.
     """
     synced_count = 0
     failed_count = 0
     failed_record_ids = []
-    
+
     upsert_handlers = {
         "alarms": _upsert_alarm,
         "challenge_attempts": _upsert_challenge_attempt,
         "habit_scores": _upsert_habit_score,
     }
-    
+
     for record in request.records:
         handler = upsert_handlers.get(record.table_name)
         if not handler:
             failed_count += 1
             failed_record_ids.append(record.record_id)
             continue
-        
+
         try:
             record_obj, is_new = handler(db, current_user.id, record.payload, record.local_timestamp)
             synced_count += 1
-        except Exception as e:
+        except Exception:
             failed_count += 1
             failed_record_ids.append(record.record_id)
-    
+
     return SyncRes(
         synced_count=synced_count,
         failed_count=failed_count,
@@ -193,7 +192,7 @@ def sync_pull(
     current_user: User = Depends(get_current_user),
 ):
     """Download changes since a given timestamp.
-    
+
     If `since` is not provided, returns all records for the user.
     Used by mobile client to fetch latest server state after reconnecting.
     """
@@ -203,25 +202,25 @@ def sync_pull(
             since_dt = datetime.fromisoformat(since)
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid timestamp format. Use ISO 8601.")
-    
+
     # Pull alarms
     alarms_query = db.query(Alarm).filter(Alarm.user_id == current_user.id)
     if since_dt:
         alarms_query = alarms_query.filter(or_(Alarm.created_at >= since_dt, Alarm.updated_at >= since_dt))
     alarms = alarms_query.all()
-    
+
     # Pull challenge attempts
     attempts_query = db.query(ChallengeAttempt).filter(ChallengeAttempt.user_id == current_user.id)
     if since_dt:
         attempts_query = attempts_query.filter(ChallengeAttempt.created_at >= since_dt)
     attempts = attempts_query.all()
-    
+
     # Pull habit scores
     habits_query = db.query(HabitScore).filter(HabitScore.user_id == current_user.id)
     if since_dt:
         habits_query = habits_query.filter(HabitScore.created_at >= since_dt)
     habits = habits_query.all()
-    
+
     return {
         "alarms": [
             {

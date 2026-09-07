@@ -348,6 +348,32 @@ select option { background: var(--surface-2); color: var(--text); }
   color: var(--text-muted);
 }
 
+/* Data tables (Admin, Reports) */
+.table-wrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.table tbody tr:hover {
+  background: rgba(124, 140, 255, 0.06);
+}
+
 /* Auth page */
 .auth-shell {
   min-height: 100vh;

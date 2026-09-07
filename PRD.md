@@ -160,7 +160,7 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | **M1: Foundation** | Weeks 1–2 | Project initialization, auth system, DB schema, user profiles, basic alarm scheduling | ✅ **Complete** — auth+RBAC, profiles/settings, tz-aware alarms, regenerated migration `732e5cb49bcf`, 22/22 smoke test |
 | **M2: Cognitive Engine** | Weeks 3–4 | Challenge engine operational, puzzle generation workflows, wake-up verification mechanisms, challenge evaluation | ✅ **Complete** — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, `smoke_m2.py` 28/28 |
 | **M3: Adaptive Intelligence** | Weeks 5–6 | Adaptive difficulty engine functional, habit scoring system operational, recommendation workflows completed, habit tracking dashboards | ✅ **Complete** — analytics service refactor (real sleep/wake estimates), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (sleep/wake-up/habit/challenge), web real-data wiring; smokes 22/22 + 28/28 green |
-| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | ❌ Not started — zero tests, no CI/CD, Docker up-test pending, web charts partially mocked, no admin UI |
+| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | 🟡 **Core delivered (2026-09-07)** — pytest suite (23 tests, 3.11+3.14), error envelope, GitHub Actions CI, Docker up-tested, admin UI, PDF/Excel reports. Backlog: cloud deployment, mobile offline/notifications, final presentation |
 
 ---
 
@@ -186,9 +186,9 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | Sleep/Wake Telemetry | ✅ Complete (M3) | Adherence/snooze computation exists; sleep window estimated from alarm gaps; real trends + recent activity |
 | Habit Scoring Engine | ✅ Complete | 35/25/20/20 weighted composite + streak bonus (≤10% of component) from real attempt data |
 | Recommendation Engine | ✅ Complete (M3) | `GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted |
-| Dashboard & Analytics | ⚠️ Partial | Backend endpoints exist + RBAC enforced; web charts partially wired to real data; no admin UI page |
-| Notification & Reminder System | ❌ Not implemented | No push registration endpoint, no local scheduling, token never registered (M4) |
-| Reports & Export System | ⚠️ Partial | CSV export works; PDF/Excel not implemented (M4) |
+| Dashboard & Analytics | ✅ Complete (M4) | Backend endpoints + RBAC enforced; web charts wired to real data (M3); **admin UI page** (users table, platform metrics, RBAC-gated 403 panel) |
+| Notification & Reminder System | ❌ Not implemented | No push registration endpoint, no local scheduling, token never registered (M4 backlog) |
+| Reports & Export System | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `/dashboard/reports/{habits,wake-up,challenges}` |
 | Final Integration, Testing & Deployment | ❌ Not started | Zero tests, no CI/CD, Docker up-test pending (M4) |
 
 ### Cross-Cutting Status

@@ -18,23 +18,23 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
-| Backend Core Logic | Functional | ~88% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync, **server-authoritative challenge engine** all working & smoke-tested |
-| Backend Security | Good | ~80% | Env-driven JWT secret + CORS, RBAC enforced; remaining: structured errors, rate limiting |
-| Web Dashboard | Partial | ~60% | Dashboard wired to real history charts; Home still mock; no admin UI |
-| Mobile App | Partial | ~45% | Profile/settings wired; **alarm dismiss E2E (next→submit→dismiss) now functional**; notifications/offline not wired |
-| Testing | None | 0% | Zero unit tests, no CI/CD (`smoke_m1.py` + `smoke_m2.py` = manual verification only) |
-| Infrastructure/Docker | Partial | ~55% | Dockerfile CMD fixed, .dockerignore, migration current; full compose up-test pending |
+| Backend Core Logic | Functional | ~95% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync, **server-authoritative challenge engine** all working & smoke-tested |
+| Backend Security | Good | ~90% | Env-driven JWT secret + CORS, RBAC enforced, **structured error envelope**; remaining: rate limiting |
+| Web Dashboard | Good | ~80% | Home/Dashboard/Reports wired to real history charts; **admin UI page added**; settings persistence remains |
+| Mobile App | Partial | ~45% | Profile/settings wired; **alarm dismiss E2E (next→submit→dismiss) functional**; notifications/offline not wired |
+| Testing | Good | ~75% | **Backend pytest suite (23 tests, verified on Python 3.11 + 3.14)**; smoke_m1/smoke_m2 as regression gates; CI/CD via GitHub Actions |
+| Infrastructure/Docker | Good | ~85% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
-### Known Critical Issues (remaining after M2)
-1. Analytics sleep values still placeholder (`sleep_duration_avg = 7.5`) (M3)
-2. No trained ML model file — adaptive difficulty uses rule-based fallback (M3)
-3. Web dashboard Home page still renders mock chart data / silent fake fallbacks (M3)
-4. Zero unit tests and no CI/CD pipeline (M4)
-5. Admin dashboard page missing; PDF/Excel reports not implemented (M3/M4)
-6. Mobile offline caching + notifications not wired (M4)
+### Known Critical Issues (remaining after M4)
+1. Mobile offline caching + notifications not wired (M4 backlog)
+2. Mobile/web test coverage (vitest/jest-expo) not started (M4 backlog)
+3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
+4. Settings persistence on web dashboard pending (M4 backlog)
 
 > M1-resolved issues: hardcoded JWT secret, admin auth bypass, CORS `*`, stale migration, wrong Dockerfile CMD, `load_dotenv` override — all fixed in M1.
 > M2-resolved issues: challenge answer leak, template random-mismatch bugs, missing `/challenges/submit`, broken mobile dismiss flow, challenge analytics placeholders — all fixed in M2 (see `context.md` continuity log).
+> M3-resolved issues: placeholder analytics values, missing trained ML model, web mock chart data — all fixed in M3 (real analytics, `difficulty_model.pt`, real-data charts).
+> M4-resolved issues: zero tests/CI, Docker untested, missing error envelope, no admin UI, no PDF/Excel reports — all fixed in M4 (see `context.md` continuity log).
 
 Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 
@@ -150,7 +150,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 > `scripts/dev_up_all.ps1` exist for Android-emulator debugging; not required for the phone.
 > `mobile/.env` (`EXPO_PUBLIC_API_URL`) is an explicit override — leave it empty in dev.
 
-> ✅ **NOTE**: The Dockerfile now uses the correct `app.main:app` target and ships with a `.dockerignore`. Full container up-test is pending — requires Docker Desktop running.
+> ✅ **NOTE (M4)**: Docker deployment is verified end-to-end: root build context, lean runtime image (no torch — ML uses rule-based fallback in the container), `alembic upgrade head` entrypoint, Postgres + API healthchecks, PDF/Excel exports served. Run `docker compose up -d` (needs Docker Desktop) → API at `http://localhost:8000`.
 
 ### 5. Web Dashboard (React)
 ```bash
@@ -238,7 +238,7 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 | **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migrations, 22/22 smoke (`smoke_m1.py`) |
 | **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ✅ Complete — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, 28/28 smoke (`smoke_m2.py`) |
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ✅ Complete — analytics service (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories), web wired to live data |
-| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ❌ Not started — no tests, no CI, full container up-test pending |
+| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | 🟡 Core delivered — pytest (23 tests), error envelope, GitHub Actions CI, Docker up-tested, admin UI, PDF/Excel reports; backlog: offline sync/notifications, cloud deploy, mobile tests |
 
 Full milestone detail: see `Milestone.md`.
 
@@ -254,8 +254,8 @@ Full milestone detail: see `Milestone.md`.
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
 | `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
 | `python scripts/smoke_m2.py` | In-process M2 smoke test (28 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
-
-⚠️ **Note**: A real test suite (`pytest`) is not yet configured — this is remediation Level 14.
+| `python -m pytest tests/` | Backend unit test suite (23 tests: auth, alarms, challenges, analytics, sync, reports) — verified on Python 3.11 + 3.14 |
+| `ruff check app tests scripts` | Lint the backend (E/F/W pragmatic rule set, clean) |
 
 ### Web
 | Command | Description |

@@ -17,6 +17,10 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | psycopg2-binary | present | 1.1.33 | PostgreSQL driver |
 | | Pydantic | 2.13.4 | >=2.5.0 | v2 models everywhere |
 | | Alembic | 1.19.2 | >=1.13.0 (added M1) | Migrations regenerated & verified |
+| | reportlab | 5.0.1 | >=4.0.0 (added M4) | PDF report export |
+| | openpyxl | 3.1.5 | >=3.1.0 (added M4) | Excel report export |
+| | pytest | 9.1.1 | >=8.0.0 (added M4) | Test suite (`backend/tests/`, 23 tests) |
+| | ruff | 0.16.6 | >=0.8.0 (added M4) | Linter (`backend/pyproject.toml`, E/F/W) |
 | | PyTorch | present | >=2.3.x | ML / adaptive difficulty; **trained `backend/ml_models/difficulty_model.pt` (M3)** |
 | | scikit-learn | present | >=1.4.x | Unused in code |
 | | XGBoost | 3.4.1 | >=2.0.x | Unused in code |
@@ -223,9 +227,9 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 |---|---|---|---|
 | `/api/v1/dashboard/users` | GET | List all users (Admin) | ✅ Working — RBAC enforced (staff+); admin UI page still missing (M4) |
 | `/api/v1/dashboard/analytics` | GET | Platform-wide analytics (Admin) | ✅ Working — admin-only enforced; uptime=99.9 placeholder (M3) |
-| `/api/v1/dashboard/reports/habits` | GET | Habit report (CSV/JSON) | ✅ Working |
-| `/api/v1/dashboard/reports/wake-up` | GET | Wake-up report (CSV/JSON) | ✅ Working |
-| `/api/v1/dashboard/reports/challenges` | GET | Challenge report (CSV/JSON) | ✅ Working |
+| `/api/v1/dashboard/reports/habits` | GET | Habit report (`format=csv|json|pdf|excel`) | ✅ Working (M4) |
+| `/api/v1/dashboard/reports/wake-up` | GET | Wake-up report (`format=csv|json|pdf|excel`) | ✅ Working (M4) |
+| `/api/v1/dashboard/reports/challenges` | GET | Challenge report (`format=csv|json|pdf|excel`) | ✅ Working (M4) |
 
 ### Missing Endpoints (called by mobile, don't exist)
 | Path | Method | Called From | Issue |
@@ -233,7 +237,7 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 | ~~`/api/v1/habits/score`~~ | ~~PUT~~ | ~~`mobile/src/hooks/useHabitScore.jsx`~~ | ✅ Resolved (M2) — `useHabitScore` now uses GET; habit scoring is server-computed and read-only |
 
 ### Error Response Standard
-All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX", "timestamp": "ISO8601" }` — ⚠️ **currently only `detail` is returned; error_code/timestamp not implemented.**
+All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX", "timestamp": "ISO8601", "status_code": N }` — ✅ **implemented (M4)** via global `StarletteHTTPException` + `RequestValidationError` handlers in `app/main.py` (additive: `detail` preserved, so all existing clients/smokes keep working).
 
 ---
 
@@ -246,7 +250,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | **Milestone 1** | 1–2 | `complete` | — | Done 2026-09-05: auth+RBAC enforced, env-based secrets/CORS, profile/settings APIs, timezone-aware alarm scheduling; see WP-A→F in continuity log below |
 | **Milestone 2** | 3–4 | `complete` | — | Done 2026-09-06: server-authoritative challenge engine (no answer leak), `/challenges/submit`, wake-up verify dismiss gate, real challenge analytics, mobile E2E dismiss flow, `smoke_m2.py` 28/28 + `smoke_m1.py` 22/22. Next → Milestone 3 |
 | **Milestone 3** | 5–6 | `complete` | — | Done 2026-09-06: analytics service refactor (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories, priority-sorted), streak-factored habit scoring, web dashboard wired to live data. Next → Milestone 4 |
-| **Milestone 4** | 7–8 | `not started` | — | **No tests, no CI/CD, no deployment**; Dockerfile up-test pending; PDF/Excel reports; admin UI; mobile offline/notifications not implemented |
+| **Milestone 4** | 7–8 | `in progress` | — | ✅ Core delivered 2026-09-07: pytest suite (23 tests, verified on 3.11+3.14), error envelope, GitHub Actions CI, Docker deployment fixed+up-tested (Postgres, migrations entrypoint, lean runtime image), Admin UI page, PDF/Excel reports, Ruff clean. **Remaining M4 backlog**: mobile offline sync/notifications (Levels 12/13/16), mobile/web test coverage, real cloud deployment, final presentation |
 
 ### Session Continuity Log
 | Date (UTC) | Actor | Action | Outcome | References |
@@ -350,10 +354,10 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 |---|---|---|
 | FR-DD-001: User Dashboard | ⚠️ Partial | Dashboard page wired to real `/habits/score/history`; Home page still uses hardcoded mock data (`chartUtils.js`) — M3 |
 | FR-DD-002: Wellness Coach Dashboard | ❌ Not implemented | No coach cohort filtering/UI exists |
-| FR-DD-003: Admin Dashboard | ⚠️ Partial | Backend endpoints exist + RBAC enforced (M1); **no admin UI page** yet (M4) |
-| FR-REP-001: PDF habit reports | ⚠️ Partial | CSV/JSON export via `/dashboard/reports/habits`; **PDF not implemented** (M4) |
-| FR-REP-002: Wake-up reports PDF/CSV | ⚠️ Partial | CSV/JSON export via `/dashboard/reports/wake-up`; **PDF not implemented** (M4) |
-| FR-REP-005: All reports PDF + Excel | ⚠️ Partial | CSV + JSON exports; PDF/Excel not yet implemented (M4) |
+| FR-DD-003: Admin Dashboard | ✅ Complete (M4) | Backend endpoints + RBAC (M1) + **admin UI page** (`web/src/pages/Admin.jsx`) |
+| FR-REP-001: PDF habit reports | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `/dashboard/reports/habits?format=…` |
+| FR-REP-002: Wake-up reports PDF/CSV | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `/dashboard/reports/wake-up?format=…` |
+| FR-REP-005: All reports PDF + Excel | ✅ Complete (M4) | `/dashboard/reports/{habits,wake-up,challenges}` support `format=csv|json|pdf|excel` |
 
 ### Offline-First Sync Protocol
 | Requirement | Status | Notes |
@@ -366,7 +370,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 ### Error Handling & Standards
 | Requirement | Status | Notes |
 |---|---|---|
-| NF-FT-003: Structured error responses | ⚠️ Partial | HTTPException with detail message; missing error_code/timestamp |
+| NF-FT-003: Structured error responses | ✅ Complete (M4) | Global handlers return `{detail, error_code, timestamp, status_code}` |
 | NF-SEC-005: CORS configuration | ⚠️ `*` in dev | `allow_origins=["*"]` in `main.py`; TODO to replace with env |
 | NF-SEC-007: Encryption at rest | ⚠️ Not implemented | No pgcrypto; dev uses SQLite |
 
@@ -379,7 +383,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | **Milestone 1** | 1–2 | `complete` | — | ✅ Delivered 2026-09-05 (WP-A→F): env JWT/CORS, RBAC enforced, profile/settings endpoints, tz-aware alarms, migration regen, seed+smoke scripts, web+mobile M1 wiring, initial git commit `bc31e9f` |
 | **Milestone 2** | 3–4 | `complete` | — | ✅ Delivered 2026-09-06: server-authoritative challenge verification, `/challenges/submit`, no-answer-leak `/next`, E2E mobile dismiss, real challenge analytics; `smoke_m2.py` 28/28, M1 regression 22/22 |
 | **Milestone 3** | 5–6 | `complete` | — | ✅ Delivered 2026-09-06: analytics service refactor, trained ML model + ml-status verification, recommendation engine (4 categories), streak-factored habit scoring, web real-data wiring (Home/Dashboard/Reports); smokes 22/22 + 28/28 green |
-| **Milestone 4** | 7–8 | `not started` | — | Add test suite (pytest/vitest/jest-expo), CI/CD pipeline, fix Docker deployment, add notifications/offline sync |
+| **Milestone 4** | 7–8 | `in progress` | — | ✅ Core delivered 2026-09-07: pytest suite (23 tests), error envelope, GitHub Actions CI, Docker up-test (Postgres + migrations + lean runtime image), Admin UI page, PDF/Excel reports, Ruff clean. **Backlog**: mobile offline sync/notifications, mobile/web test coverage, real cloud deployment, final presentation |
 
 ### Session Continuity Log (2026-09-05 update)
 | Date (UTC) | Actor | Action | Outcome | References |
@@ -394,6 +398,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | 2026-09-06 | architect | **Moved to physical-phone dev (emulator/adb abandoned)**: root cause of all mobile failures = API base hard-coded to emulator-only addresses (`localhost:8090` in `.env` + `10.0.2.2` candidates) — `localhost` means the device itself on a real phone → `ConnectException`, and Wi-Fi IP churn broke every fixed IP. `api.js` now derives backend host from `Constants.expoConfig.hostUri` (the LAN IP Expo Go used) → `http://<LAN-IP>:8000` primary, `:8090` relay fallback, env override blanked in `.env`. Metro running LAN mode on :8081; LAN-IP curl verified (packager `running`, backend 401). Firewall admin rules for 8000/8081 passed to user (UAC automation not possible from harness). | Done 2026-09-06; final phone verify pending user | `mobile/src/utils/api.js`, `mobile/.env`, `README.md` §4, this file |
 | 2026-09-06 | architect | **Phone E2E bugfix (auth + habit score)**: physical phone reached backend over LAN (`[api] backend reachable at http://10.22.124.136:8000`) but Home showed `Invalid authentication credentials`. Root causes: (1) `useAuth` trusted any stored AsyncStorage token without validation → expired 60-min JWT → auto-login to Home → every authed call 401; (2) dev SQLite DB (`cerebrokognit.db`) predated M2 — `challenge_attempts` lacked `puzzle_payload`/`expected_answers`/`user_answers` → **any** attempt query 500'd (`habits/score` = Internal Server Error even with valid token). Fixes: `api.js` adds `onAuthExpired` 401 event bus; `useAuth` validates stored token via `/api/v1/auth/me` on startup (clears on 401, keeps on network error) + logs out on any 401; backend rebuilt with `scripts/init_db.py --reset` (fresh schema incl. M2 columns + reseed) and uvicorn restarted; verified `habits/score`→200 (63), history→200, alarms→1, challenges/next→200. | Done 2026-09-06 — phone re-login pending user | `mobile/src/hooks/useAuth.jsx`, `mobile/src/utils/api.js`, `backend/scripts/init_db.py`, `CONTEXT.md` |
 | 2026-09-06 | architect | **M3 execution**: refactored analytics into `services/analytics_service.py` (sleep estimate from alarm gaps, tz-safe datetimes, 5-point band trend, per-type recent activity, streak-factored challenge completion capped at 10% of component, IntegrityError-guarded score writes); trained `backend/ml_models/difficulty_model.pt` via `scripts/train_difficulty_model.py` (synthetic rule-based dataset, 93.7% val acc; `ml-status` `model_loaded=true`); added `services/recommendation_service.py` + `RecommendationRes` + `GET /api/v1/analytics/recommendations` (sleep/wake-up/habit/challenge, priority-sorted, 4 categories verified); wired web to real data (`Home.jsx` + history charts via `buildHabitCharts`, removed static `chartUtils` series + hardcoded fallbacks, Dashboard recommendations panel, Reports `'—'` fallback removed); web `npm run build` clean; smoke_m1 22/22 + smoke_m2 28/28 green | Success 2026-09-06 | `backend/app/services/{analytics_service,recommendation_service}.py`, `backend/app/api/{analytics,habits,alarms}.py`, `backend/app/schemas/__init__.py`, `backend/scripts/train_difficulty_model.py`, `backend/ml_models/difficulty_model.pt`, `web/src/pages/{Home,Reports,Dashboard}.jsx`, `web/src/utils/chartUtils.js`, `Milestone.md`, `CONTEXT.md` |
+| 2026-09-07 | architect | **M4 execution (backend/testing/deployment core)**: bumped `pytest>=8.0.0` w/ `pytest.ini`; wrote `backend/tests/` (conftest + auth/alarms/challenges/analytics) — **23 tests**; added global exception handlers in `app/main.py` → structured error envelope `{detail, error_code, timestamp, status_code}` (additive, `detail` preserved); created `.github/workflows/ci.yml` (ruff + pytest + smoke_m1 + smoke_m2 + web build); fixed Docker: root build context, `requirements-runtime.txt` (lean image, torch excluded → rule-based ML fallback), `docker-entrypoint.sh` runs `alembic upgrade head` before uvicorn, api healthcheck, root `.dockerignore`; **found & fixed latent Python-3.14-only bug** — `schemas/auth.py` defined `UserProfileRes` after `AuthRes` (PEP 749 deferred annotations on 3.14 mask it; 3.11 container crashed), reordered definitively; built + compose up-tested: Postgres healthy, migrations applied, register→login→challenge→habit→analytics→recommendations E2E 200s over HTTP, PDF (`%PDF`) + XLSX (`PK`) exports verified in container; full pytest suite verified on **Python 3.11 in container** (22→23 tests) + 3.14 locally; admin UI page `web/src/pages/Admin.jsx` (platform metrics, top challenge types, users table, RBAC-gated 403 panel) + `/admin` route + table CSS; PDF/Excel report export via `services/report_export.py` + `format=csv|json|pdf|excel` on `/dashboard/reports/{habits,wake-up,challenges}`; Ruff clean via `backend/pyproject.toml` (E/F/W pragmatic select) — 122 issues → 0 (removed dead code incl. dead `acc` var; E712 `==True/False` → `.filter(col)`/`.is_(True)`); reportlab 5.0.1 + openpyxl 3.1.5 added (venv + requirements); all regressions green | Success 2026-09-07 | `backend/tests/{conftest,test_auth,test_alarms,test_challenges,test_analytics}.py`, `backend/app/main.py`, `backend/app/services/report_export.py`, `backend/app/schemas/auth.py`, `backend/{Dockerfile,requirements-runtime.txt,docker-entrypoint.sh,pyproject.toml,pytest.ini}`, `.github/workflows/ci.yml`, `docker-compose.yml`, `.dockerignore`, `migrations/env.py`, `web/src/pages/Admin.jsx`, `web/src/App.jsx`, `web/src/index.css`, `Milestone.md`, `CONTEXT.md` |
 
 ### Implementation Priority Order
 1. **Level 0 — Repository Foundation** — `.gitignore`, `.gitattributes`, cleanup, initial commit
@@ -403,15 +408,15 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 5. **Level 4 — RBAC** — real `_require_admin()`, role assignment on registration
 6. **Level 5 — Challenge Engine** — remove answer leak, fix template bugs, add `/challenges/submit` ✅ **DONE (M2)**
 7. **Level 6 — Alarm Dismiss Flow** — fix `create_alarm` challenge fields, align mobile contract, timezone handling, add `/users/profile` ✅ **DONE (M1 + M2)**
-8. **Level 7 — Analytics & Reports** — real challenge analytics ✅ partial (M2); PDF/Excel export still pending (M4)
-9. **Level 8 — Error Handling** — structured errors `{detail, error_code, timestamp}`, logging
-10. **Level 9 — Docker** — fix CMD, `load_dotenv` override, `.dockerignore`, compose healthchecks
-11. **Level 10 — Web Dashboard** — remove mock data, wire history charts, admin UI, settings persistence
-12. **Level 11 — Mobile Core Flow** — fix dismiss flow, challenge wiring, add registration/alarm-creation screens
-13. **Level 12 — Notifications** — local scheduling, push registration, app assets
-14. **Level 13 — Offline Sync** — SQLite cache, sync engine, screen wiring
-15. **Level 14 — Testing** — pytest + httpx, vitest, jest-expo (70%+ coverage target)
-16. **Level 15 — Linting & CI/CD** — Ruff, ESLint, mypy, GitHub Actions, pre-commit hooks
+8. **Level 7 — Analytics & Reports** — real challenge analytics ✅ partial (M2) + recommendations ✅ (M3); **PDF/Excel export ✅ DONE (M4)**
+9. **Level 8 — Error Handling** — structured errors `{detail, error_code, timestamp}` ✅ **DONE (M4)**; logging/observability not added (> Level 16)
+10. **Level 9 — Docker** — fix CMD, `load_dotenv` override, `.dockerignore`, compose healthchecks ✅ **DONE (M4)**: root build context, lean runtime image (no torch), migrations entrypoint, api healthcheck, compose up-tested
+11. **Level 10 — Web Dashboard** — remove mock data, wire history charts ✅ (M3); **admin UI page ✅ DONE (M4)**; settings persistence pending
+12. **Level 11 — Mobile Core Flow** — fix dismiss flow, challenge wiring, add registration/alarm-creation screens ✅ (M2) — screens exist; polish pending
+13. **Level 12 — Notifications** — local scheduling, push registration, app assets ⚠️ M4 backlog
+14. **Level 13 — Offline Sync** — SQLite cache, sync engine, screen wiring ⚠️ M4 backlog
+15. **Level 14 — Testing** — pytest + httpx ✅ backend (23 tests, 3.11+3.14 verified); vitest/jest-expo ⚠️ backlog
+16. **Level 15 — Linting & CI/CD** — Ruff ✅ (pyproject pragmatic E/F/W config, `ruff check app tests scripts` clean); ESLint/mypy ⚠️; **GitHub Actions ✅ DONE (M4)** (`ci.yml`: ruff + pytest + smokes + web build)
 17. **Level 16 — Production Hardening** — monitoring, rate limiting, Sentry, performance fixes
 
 > Full detail for every level: see **`HierarchicalRemediationPlan.md`**.

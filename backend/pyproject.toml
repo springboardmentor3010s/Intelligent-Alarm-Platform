@@ -1,0 +1,13 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["app", "tests", "scripts"]
+
+[tool.ruff.lint]
+# Pragmatic set: real bugs & dead code (pyflakes + core pycodestyle).
+# Purposely omits UP/B/I/RUF so the existing codebase style is not disrupted.
+select = ["E", "F", "W"]
+ignore = ["E501", "E402"]
+
+[tool.ruff.lint.per-file-ignores]
+"app/main.py" = ["E402"]

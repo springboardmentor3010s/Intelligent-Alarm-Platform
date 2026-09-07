@@ -9,7 +9,6 @@ Input features: success_rate, avg_time, snooze_count, streak_length
 Output: difficulty_level (0=Beginner, 1=Easy, 2=Medium, 3=Hard, 4=Expert)
 """
 
-import os
 import logging
 from typing import Optional, Tuple
 from pathlib import Path

@@ -21,10 +21,14 @@ import sys
 import os
 
 # Add the backend directory to sys.path so we can import the models
-# __file__ is migrations/env.py, so go up one level to project root, then into backend
-backend_path = os.path.join(os.path.dirname(__file__), '..', 'backend')
+# __file__ is migrations/env.py, so go up one level to project root, then into backend.
+# In the Docker image the app package lives directly next to migrations (../app),
+# so fall back to the parent dir when ../backend does not exist.
+backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+if not os.path.isdir(backend_path):
+    backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if backend_path not in sys.path:
-    sys.path.insert(0, os.path.abspath(backend_path))
+    sys.path.insert(0, backend_path)
 
 from app.Models import Base
 target_metadata = Base.metadata

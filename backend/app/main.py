@@ -1,9 +1,13 @@
 """Main FastAPI application for Intelligent Cognitive Alarm Platform."""
 
 import os
+from datetime import datetime, timezone
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .api.auth import router as auth_router
 from .api.alarms import router as alarms_router
@@ -36,7 +40,6 @@ app.add_middleware(
 
 # OAuth2 password bearer token for JWT authentication
 # Defined in deps module and imported here for use in protected endpoints
-from .api.deps import oauth2_scheme
 
 # Include API routers
 app.include_router(auth_router, prefix="/api/v1", tags=["auth"])
@@ -47,6 +50,37 @@ app.include_router(sync_router, prefix="/api/v1", tags=["sync"])
 app.include_router(dashboard_router, prefix="/api/v1", tags=["dashboard"])
 app.include_router(analytics_router, prefix="/api/v1", tags=["analytics"])
 app.include_router(users_router, prefix="/api/v1", tags=["users"])
+
+# ---------------------------------------------------------------------------
+# Structured error envelope (Level 8): {detail, error_code, timestamp}
+# `detail` is preserved from the original exception for backward compatibility,
+# so existing clients (web/mobile) and smoke assertions keep working.
+# ---------------------------------------------------------------------------
+
+
+def _error_body(detail, error_code, status):
+    return {
+        "detail": detail,
+        "error_code": error_code,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "status_code": status,
+    }
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=_error_body(str(exc.detail), f"ERR_{exc.status_code}", exc.status_code),
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content=_error_body("Request validation failed", "ERR_VALIDATION", 422),
+    )
 
 
 @app.get("/", include_in_schema=False)

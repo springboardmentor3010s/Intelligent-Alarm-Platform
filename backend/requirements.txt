@@ -15,7 +15,13 @@ scikit-learn>=1.4.0
 xgboost>=2.0.0
 pandas>=2.2.0
 numpy>=1.26.0
+reportlab>=4.0.0  # PDF report export
+openpyxl>=3.1.0  # Excel report export
 python-multipart>=0.0.6  # for file uploads
 email-validator>=2.1.0  # for JWT email validation
 aioredis>=2.0.0  # optional Redis for caching
 alembic>=1.13.0  # database migrations
+
+# Testing
+pytest>=8.0.0
+ruff>=0.8.0  # linter (run: ruff check app tests scripts)

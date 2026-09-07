@@ -564,14 +564,14 @@ LEVEL 1 (Security & Config) --> LEVEL 2 (Schema Consolidation)
 | 4 | RBAC & Authorization | 2 hours | ✅ Done (M1) | Level 3 |
 | 5 | Challenge Engine Fixes | 3 hours | ✅ Done (M2) | Level 2 |
 | 6 | Alarm Dismiss Flow | 4 hours | ✅ Done (M1+M2) | Levels 4, 5 |
-| 7 | Analytics & Reporting | 3 hours | 🟡 Partial (challenge analytics real in M2; PDF/Excel + ML model pending M3/M4) | Level 3 |
-| 8 | Error Handling | 2 hours | ❌ Not started | Level 2 |
-| 9 | Docker & Infrastructure | 3 hours | 🟡 Partial (up-test pending) | Levels 1, 3 |
-| 10 | Web Dashboard Fixes | 6 hours | 🟡 Partial (Home/admin/mocks left) | Levels 6, 7 |
+| 7 | Analytics & Reporting | 3 hours | ✅ Done (challenge analytics M2; recommendations + real values M3; PDF/Excel M4) | Level 3 |
+| 8 | Error Handling | 2 hours | ✅ Done (M4) — global envelope `{detail,error_code,timestamp,status_code}` | Level 2 |
+| 9 | Docker & Infrastructure | 3 hours | ✅ Done (M4) — lean runtime image, migrations entrypoint, compose up-tested | Levels 1, 3 |
+| 10 | Web Dashboard Fixes | 6 hours | 🟡 Partial (Home/Dashboard/Reports live-data M3; admin UI M4; settings persistence left) | Levels 6, 7 |
 | 11 | Mobile Core Flow Fixes | 8 hours | 🟡 Partial (dismiss E2E done; registration/alarm-creation screens left) | Levels 5, 6 |
-| 12 | Alarm Scheduling & Notifications | 6 hours | ❌ Not started (M4) | Level 11 |
-| 13 | Offline Sync | 8 hours | ❌ Not started (M4) | Level 11 |
-| 14 | Testing | 10 hours | ❌ Not started (M4) | Levels 6-13 |
-| 15 | Linting & CI/CD | 4 hours | ❌ Not started (M4) | Level 14 |
+| 12 | Alarm Scheduling & Notifications | 6 hours | ❌ Not started (M4 backlog) | Level 11 |
+| 13 | Offline Sync | 8 hours | ❌ Not started (M4 backlog) | Level 11 |
+| 14 | Testing | 10 hours | 🟡 Partial — backend pytest suite (23 tests, 3.11+3.14) done; vitest/jest-expo left | Levels 6-13 |
+| 15 | Linting & CI/CD | 4 hours | 🟡 Partial — Ruff clean + GitHub Actions CI done; ESLint/mypy/pre-commit left | Level 14 |
 | 16 | Production Hardening | 6 hours | ❌ Not started | Level 15 |
-| | **TOTAL remaining** | **~60 hours** | | |
+| | **TOTAL remaining** | **~28 hours** | | |

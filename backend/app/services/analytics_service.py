@@ -13,7 +13,7 @@ else. Response keys are backward compatible (additive only).
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -197,7 +197,7 @@ def _compute_sleep_adherence(db: Session, user_id: int, target_date: str) -> int
         Alarm.user_id == user_id,
         Alarm.next_trigger >= week_ago,
         Alarm.next_trigger < day_end,
-        Alarm.is_enabled == True,
+        Alarm.is_enabled,
     ).all()
 
     if not week_alarms:
@@ -335,7 +335,7 @@ def compute_recent_activity(
         db.query(ChallengeAttempt)
         .filter(
             ChallengeAttempt.user_id == user_id,
-            ChallengeAttempt.completed == True,
+            ChallengeAttempt.completed.is_(True),
             ChallengeAttempt.created_at >= recent_cutoff,
         )
         .count()
@@ -389,7 +389,7 @@ def get_user_analytics_summary(db: Session, user_id: int) -> Dict[str, Any]:
         db.query(ChallengeAttempt)
         .filter(
             ChallengeAttempt.user_id == user_id,
-            ChallengeAttempt.completed == True,
+            ChallengeAttempt.completed.is_(True),
         )
         .all()
     )

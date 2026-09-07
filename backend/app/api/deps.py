@@ -4,7 +4,6 @@ Centralizes JWT auth (`get_current_user`), the OAuth2 bearer scheme, and
 RBAC guards (`require_roles`, `get_or_create_role`).
 """
 
-import jwt
 from jwt import PyJWTError
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer

@@ -26,16 +26,16 @@ def get_habit_score(
 ):
     """Get user's habit score with weighted composite: 35/25/20/20."""
     user_id = current_user.id
-    
+
     if not date:
         date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    
+
     # Check for existing habit score first
     existing = db.query(HabitScore).filter(
         HabitScore.user_id == user_id,
         HabitScore.date == date,
     ).first()
-    
+
     if existing:
         return {
             "date": existing.date,
@@ -45,16 +45,16 @@ def get_habit_score(
             "sleep_schedule_adherence": existing.sleep_schedule_adherence,
             "overall_score": existing.overall_score,
         }
-    
+
     # Compute each component from actual data
     wake_up = _compute_wake_up_consistency(db, user_id, date)
     challenge = _compute_challenge_completion(db, user_id, date)
     snooze = _compute_snooze_reduction(db, user_id, date)
     sleep = _compute_sleep_adherence(db, user_id, date)
-    
+
     # Weighted composite: 35/25/20/20
     overall = compute_habit_composite(wake_up, challenge, snooze, sleep)
-    
+
     habit_score = HabitScore(
         user_id=user_id,
         date=date,
@@ -99,7 +99,7 @@ def get_habit_score_history(
     """Get habit score history for the last N days."""
     user_id = current_user.id
     today = datetime.now(timezone.utc).date()
-    
+
     scores = []
     for i in range(days):
         target_date = (today - timedelta(days=i)).strftime("%Y-%m-%d")
@@ -107,7 +107,7 @@ def get_habit_score_history(
             HabitScore.user_id == user_id,
             HabitScore.date == target_date,
         ).first()
-        
+
         if habit_score:
             scores.append({
                 "date": habit_score.date,
@@ -126,5 +126,5 @@ def get_habit_score_history(
                 "snooze_reduction": None,
                 "sleep_schedule_adherence": None,
             })
-    
+
     return scores

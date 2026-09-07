@@ -19,15 +19,6 @@ class AuthLoginReq(BaseModel):
     password: str = Field(..., description="Plaintext password for verification")
 
 
-class AuthRes(BaseModel):
-    """Response schema for auth endpoints."""
-    access_token: str = Field(description="JWT access token")
-    refresh_token: str = Field(description="JWT refresh token")
-    token_type: str = Field(default="bearer", description="Token type")
-    expires_in: int = Field(description="Seconds until access token expiry")
-    user: UserProfileRes
-
-
 class UserProfileRes(BaseModel):
     """Response schema for user profile."""
     id: int
@@ -40,3 +31,12 @@ class UserProfileRes(BaseModel):
     created_at: str  # datetime ISO format
 
     model_config = {"from_attributes": True}
+
+
+class AuthRes(BaseModel):
+    """Response schema for auth endpoints."""
+    access_token: str = Field(description="JWT access token")
+    refresh_token: str = Field(description="JWT refresh token")
+    token_type: str = Field(default="bearer", description="Token type")
+    expires_in: int = Field(description="Seconds until access token expiry")
+    user: UserProfileRes

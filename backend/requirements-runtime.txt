@@ -1,0 +1,19 @@
+# Minimal runtime dependencies for the Docker image.
+# Deliberately excludes the ML/data stack (torch, torchvision, scikit-learn,
+# xgboost, pandas, numpy, aioredis): ml_inference falls back to its documented
+# rule-based path when torch is unavailable, and nothing in app/ imports
+# pandas/sklearn/xgboost. Keeping this lean keeps image builds fast.
+
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.9
+pydantic>=2.5.0
+pyjwt[crypto]>=2.8.0
+python-dotenv>=1.0.0
+bcrypt>=4.0.0
+python-multipart>=0.0.6
+email-validator>=2.1.0
+alembic>=1.13.0
+reportlab>=4.0.0
+openpyxl>=3.1.0

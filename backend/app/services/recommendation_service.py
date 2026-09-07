@@ -40,7 +40,7 @@ def _attempt_matrix(db: Session, user_id: int) -> dict:
         .all()
     )
     challenges = {
-        c.id: c for c in db.query(Challenge).filter(Challenge.is_active == True).all()
+        c.id: c for c in db.query(Challenge).filter(Challenge.is_active).all()
     }
 
     type_stats: dict = {}
@@ -52,7 +52,6 @@ def _attempt_matrix(db: Session, user_id: int) -> dict:
         dkey = ch.difficulty if ch else "Unknown"
         attempted_types.add(key)
         if a.total_questions and a.total_questions > 0:
-            acc = a.correct_answers / a.total_questions
             t = type_stats.setdefault(key, {"attempts": 0, "correct": 0.0, "total": 0, "times": []})
             t["attempts"] += 1
             t["correct"] += a.correct_answers
@@ -96,8 +95,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
                 f"recommended {RECOMMENDED_SLEEP_MIN:.0f}-{RECOMMENDED_SLEEP_MAX:.0f}h."
             ),
             "suggested_action": (
-                f"Move your latest wake-up alarm 15 minutes later (or set an earlier "
-                f"bedtime by 15 minutes) and keep the schedule for a week."
+                "Move your latest wake-up alarm 15 minutes later (or set an earlier "
+                "bedtime by 15 minutes) and keep the schedule for a week."
             ),
             "metrics": {"sleep_duration_avg": round(avg_sleep, 1), "target_range": [RECOMMENDED_SLEEP_MIN, RECOMMENDED_SLEEP_MAX]},
         })

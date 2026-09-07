@@ -1,6 +1,6 @@
 """Alarm routes for Intelligent Cognitive Alarm Platform."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, time as dtime, timezone
 from zoneinfo import ZoneInfo
@@ -245,7 +245,7 @@ def dismiss_alarm(
     current_user: User = Depends(get_current_user),
 ):
     """Dismiss an alarm by verifying challenge completion.
-    
+
     Flow:
     1. Verify alarm belongs to current user and is enabled
     2. Verify challenge attempt exists and was completed successfully
@@ -259,26 +259,26 @@ def dismiss_alarm(
     ).first()
     if not alarm:
         raise HTTPException(status_code=404, detail="Alarm not found")
-    
+
     if not alarm.is_enabled:
         raise HTTPException(status_code=400, detail="Alarm already dismissed")
-    
+
     # 2. Find and verify the challenge attempt
     attempt = db.query(ChallengeAttempt).filter(
         ChallengeAttempt.id == request.challenge_attempt_id,
         ChallengeAttempt.user_id == current_user.id,
     ).first()
-    
+
     if not attempt:
         raise HTTPException(status_code=404, detail="Challenge attempt not found")
-    
+
     # Verify the challenge was completed correctly (all questions correct)
     if not attempt.completed or attempt.correct_answers < attempt.total_questions:
         raise HTTPException(
             status_code=400,
             detail="Challenge not completed successfully. All questions must be answered correctly.",
         )
-    
+
     # 3. Mark alarm as dismissed (disabled)
     alarm.is_enabled = False
 
@@ -292,7 +292,7 @@ def dismiss_alarm(
         alarm.next_trigger = next_trigger
         alarm.is_enabled = True
     # OneTime alarms stay disabled
-    
+
     # 4. Update habit score using the proper weighted computation
     from ..services.analytics_service import (
         _compute_wake_up_consistency,
@@ -301,22 +301,22 @@ def dismiss_alarm(
         _compute_sleep_adherence,
         compute_habit_composite,
     )
-    
+
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    
+
     # Check for existing habit score
     habit_score = db.query(HabitScore).filter(
         HabitScore.user_id == current_user.id,
         HabitScore.date == today,
     ).first()
-    
+
     # Recompute all components from actual data
     wake_up = _compute_wake_up_consistency(db, current_user.id, today)
     challenge = _compute_challenge_completion(db, current_user.id, today)
     snooze = _compute_snooze_reduction(db, current_user.id, today)
     sleep = _compute_sleep_adherence(db, current_user.id, today)
     overall = compute_habit_composite(wake_up, challenge, snooze, sleep)
-    
+
     if habit_score:
         habit_score.wake_up_consistency = wake_up
         habit_score.challenge_completion = challenge
@@ -334,9 +334,9 @@ def dismiss_alarm(
             overall_score=overall,
         )
         db.add(habit_score)
-    
+
     db.commit()
-    
+
     return DismissRes(
         alarm_id=alarm.id,
         successfully_dismissed=True,

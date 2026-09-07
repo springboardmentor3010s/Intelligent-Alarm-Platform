@@ -7,7 +7,7 @@ from ..database import get_db
 from ..services.auth import AuthService
 from ..schemas.auth import AuthRegisterReq, AuthLoginReq, AuthRes, UserProfileRes
 from ..Models import User, UserRole
-from ..api.deps import oauth2_scheme, get_current_user, get_or_create_role
+from ..api.deps import get_current_user, get_or_create_role
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -21,7 +21,7 @@ async def register(
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     hashed_pw = AuthService._hash_password(payload.password)
     user = User(
         email=payload.email,
@@ -42,7 +42,7 @@ async def register(
     # Create tokens
     access_token = AuthService._create_access_token(subject=str(user.id))
     refresh_token = AuthService._create_refresh_token(subject=str(user.id))
-    
+
     user_profile = UserProfileRes(
         id=user.id,
         email=user.email,
@@ -53,7 +53,7 @@ async def register(
         is_verified=user.is_verified,
         created_at=user.created_at.isoformat() if user.created_at else "",
     )
-    
+
     return AuthRes(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -76,10 +76,10 @@ async def login(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     access_token = AuthService._create_access_token(subject=str(user.id))
     refresh_token = AuthService._create_refresh_token(subject=str(user.id))
-    
+
     user_profile = UserProfileRes(
         id=user.id,
         email=user.email,
@@ -90,7 +90,7 @@ async def login(
         is_verified=user.is_verified,
         created_at=user.created_at.isoformat() if user.created_at else "",
     )
-    
+
     return AuthRes(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -106,7 +106,7 @@ async def me(
 ):
     """Get current user profile."""
     from ..schemas.auth import UserProfileRes
-    
+
     user_profile = UserProfileRes(
         id=current_user.id,
         email=current_user.email,
@@ -117,5 +117,5 @@ async def me(
         is_verified=current_user.is_verified,
         created_at=current_user.created_at.isoformat() if current_user.created_at else "",
     )
-    
+
     return user_profile
