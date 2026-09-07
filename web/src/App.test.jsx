@@ -41,11 +41,11 @@ describe('App navigation (§21 grouping)', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders Track / Plan / Account groups with all destinations', () => {
+  it('renders Track / Plan / Account groups with all destinations', async () => {
     mockFetch({ '/api/v1/habits/score': habitScore });
     render(<App />);
 
-    expect(screen.getByText('Track')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Track')).toBeInTheDocument());
     expect(screen.getByText('Plan')).toBeInTheDocument();
     expect(screen.getByText('Account')).toBeInTheDocument();
 
@@ -63,5 +63,15 @@ describe('App navigation (§21 grouping)', () => {
 
     await waitFor(() => expect(screen.getByText("Today's Progress")).toBeInTheDocument());
     expect(screen.getByText('72')).toBeInTheDocument();
+  });
+
+  it('logs out when the stored token is invalid/expired (401)', async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: false, status: 401, json: () => Promise.resolve({ detail: 'Invalid auth' }) })
+    );
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText('Win your mornings with a smarter alarm.')).toBeInTheDocument());
+    expect(localStorage.getItem('token')).toBeNull();
   });
 });

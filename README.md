@@ -95,6 +95,16 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 
 ## Local Setup Instructions
 
+> 🚀 **Quick start (recommended):** `.\dev.ps1` launches backend (`:8000`) + web (`:5173`)
+> in one shot, using the **pinned** `backend\.venv` interpreter. Options: `-BackendOnly`, `-WebOnly`,
+> `-Mobile` (also starts Metro `:8081`). The script waits for each service to bind a port and reports
+> status. Run `npm install` / `pip install -r backend\requirements.txt` once first (see below).
+>
+> ⚠️ **Don't** start uvicorn via `activate` + bare `uvicorn` from the repo root — that can resolve to a
+> stray Python (e.g. a global 3.11) missing the project deps, so the backend crashes at import and
+> every `/api/v1/*` call from the web proxy fails with `ECONNREFUSED`. Always pin the interpreter:
+> `backend\.venv\Scripts\python.exe -m uvicorn app.main:app ...` (from `backend/`). `dev.ps1` does this for you.
+
 ### 1. Python Virtual Environment (Backend)
 ```bash
 cd backend
