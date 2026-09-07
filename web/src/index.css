@@ -221,6 +221,17 @@ select option { background: var(--surface-2); color: var(--text); }
 .nav-link:hover { color: var(--text); background: rgba(124,140,255,0.08); }
 .nav-link.active { color: var(--accent); background: rgba(124,140,255,0.14); }
 
+.nav-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.34);
+  margin-left: 0.4rem;
+  margin-right: 0.15rem;
+  white-space: nowrap;
+  user-select: none;
+}
+
 .nav-spacer { flex: 1; }
 .nav-user {
   font-size: 0.85rem;

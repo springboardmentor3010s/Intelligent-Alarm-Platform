@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Alarms from './pages/AlarmManagement';
@@ -8,6 +8,35 @@ import Settings from './pages/Settings';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Admin from './pages/Admin';
+
+// §21 navigation hierarchy. Every destination reuses an existing page; items
+// without a dedicated page (Habits Score/Tracking, Sleep, Recommendations,
+// Challenge Performance) are surfaced by the page each link points to, as
+// described in the `title` tooltip.
+const NAV_SECTIONS = [
+  {
+    label: 'Track',
+    links: [
+      { to: '/', label: 'Home', title: "Today's progress" },
+      { to: '/dashboard', label: 'Analytics', title: 'Habits (score · tracking) · Sleep · Analytics · Recommendations' },
+    ],
+  },
+  {
+    label: 'Plan',
+    links: [
+      { to: '/alarms', label: 'Alarms', title: 'Active · History · Create' },
+      { to: '/challenges', label: 'Challenges', title: 'Generator · History · Performance' },
+    ],
+  },
+  {
+    label: 'Account',
+    links: [
+      { to: '/reports', label: 'Reports', title: 'Habit · Wake-up · Challenge exports' },
+      { to: '/settings', label: 'Profile', title: 'Profile & preferences' },
+      { to: '/admin', label: 'Admin', title: 'Users · Reports · Configuration (staff)' },
+    ],
+  },
+];
 
 function App() {
   const [authed, setAuthed] = useState(!!localStorage.getItem('token'));
@@ -39,13 +68,22 @@ function App() {
         <span className="brand">
           <span className="brand-mark">🧠</span> CerebroKognit
         </span>
-        <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Home</NavLink>
-        <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Dashboard</NavLink>
-        <NavLink to="/alarms" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Alarms</NavLink>
-        <NavLink to="/challenges" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Challenges</NavLink>
-        <NavLink to="/reports" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Reports</NavLink>
-        <NavLink to="/admin" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Admin</NavLink>
-        <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Settings</NavLink>
+        {NAV_SECTIONS.map(section => (
+          <Fragment key={section.label}>
+            <span className="nav-label">{section.label}</span>
+            {section.links.map(link => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === '/'}
+                title={link.title}
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </Fragment>
+        ))}
         <div className="nav-spacer" />
         <span className="nav-user">Hi, {name}</span>
         <button onClick={handleLogout} className="nav-logout">Logout</button>
