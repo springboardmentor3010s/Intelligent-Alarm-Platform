@@ -16,11 +16,12 @@ All notable changes to this project are tracked here. Format follows [Keep a Cha
 - **P6 Frontend navigation (§21)**: `web/src/App.jsx` nav reorganized into Track / Plan / Account groups with tooltips; every destination reuses an existing page; Admin self-guards via RBAC.
 - **Test coverage (frontend/mobile)**: `web` — Vitest + Testing Library (1 unit file `chartUtils` + `App`/`Dashboard` component tests, 8 tests), `vite.config.js` `test` block + `src/test/setup.js`; **found & fixed real `buildHabitCharts` bug** (keyed series by camelCase instead of the snake_case API contract → all four dashboard charts were empty). `mobile` — jest-expo (`preset: jest-expo`, SDK 57 peer-deps resolved via `overrides` `@react-native/jest-preset@0.86.0`), api utils + `useHabitScore` hook tests (14 tests). CI: web job now runs `npm test`, new `mobile` job runs `npm test -- --ci`.
 - **Mobile offline-first sync + push notifications (M4 backlog)**: `notifications/registerPush.js` (acquireAndRegister/registerPushToken — Expo-Go guarded) wired into `useAuth` → POSTs the Expo token to `/api/v1/notifications/register` (P5) on login; `sync/{syncEngine,offlineStore,useSync,syncRequest}` — AsyncStorage-backed table cache (alarms/habit_scores/challenge_attempts) with `synced` flag, idempotent push to `/sync/pending` + pull via `/sync/pull`, triggered on Home focus with an offline banner + cached-data fallback; ChallengeScreen caches challenge payload + completed attempt locally. 17 new jest tests (mobile suite 31). Metro `expo export` bundles cleanly.
+- **Final capstone presentation (M4 backlog)**: `presentation/CerebroKognit_Final.pptx` (15 slides, full speaker notes) generated reproducibly by `presentation/build_presentation.py` (python-pptx). Pyramid-ordered deck covering problem, cognitive-verification loop, architecture, milestones, backend/mobile/ML/web features, validation (32+31+8 tests), challenges, impact, and roadmap.
 
 ### Planned (backlog)
 - Broader flow-level test coverage (alarm-dismiss flow components).
 - FCM/APNs delivery provider + local alarm scheduling on-device.
-- Real cloud deployment, monitoring/alerting, final presentation.
+- Real cloud deployment + monitoring/alerting (final presentation ✅ delivered 2026-09-07).
 ---
 
 ## [M4 core — 2026-09-07]

@@ -289,6 +289,8 @@ Full milestone detail: see `Milestone.md`.
 | `context.md` | System Memory & State Anchor — session continuity, discrepancy matrix |
 | `Milestone.md` | Milestone definitions, tasks, outcomes, evaluation criteria |
 | `HierarchicalRemediationPlan.md` | Prioritized remediation roadmap — Levels 0–16 with effort estimates |
+| `presentation/CerebroKognit_Final.pptx` | Final capstone presentation (15 slides + speaker notes) |
+| `presentation/build_presentation.py` | Reproducible generator for the final deck (python-pptx) |
 
 ---
 
