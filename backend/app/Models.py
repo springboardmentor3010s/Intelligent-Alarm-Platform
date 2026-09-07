@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     JSON,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import declarative_base, relationship
@@ -49,6 +50,8 @@ class User(Base):
     challenge_attempts = relationship("ChallengeAttempt", back_populates="user", cascade="all, delete-orphan")
     # Relationship to habit scores
     habit_scores = relationship("HabitScore", back_populates="user", cascade="all, delete-orphan")
+    # Relationship to push notification tokens
+    push_tokens = relationship("PushToken", back_populates="user", cascade="all, delete-orphan")
     __table_args__ = (Index("ix_users_email_lower", func.lower(email)),)
 
 
@@ -144,6 +147,22 @@ class HabitScore(Base):
     __table_args__ = (
         Index("ix_habit_scores_user_date", "user_id", "date"),
         Index("ix_habit_scores_date", "date"),
+    )
+
+
+class PushToken(Base):
+    __tablename__ = "push_tokens"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token = Column(String(512), nullable=False)
+    platform = Column(String(50), nullable=False, default="android")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Relationships
+    user = relationship("User", back_populates="push_tokens")
+    __table_args__ = (
+        Index("ix_push_tokens_user_id", "user_id"),
+        Index("ix_push_tokens_token", "token"),
+        UniqueConstraint("token", name="uq_push_tokens_token"),
     )
 
 

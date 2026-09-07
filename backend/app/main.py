@@ -18,6 +18,7 @@ from .api.sync import router as sync_router
 from .api.dashboard import router as dashboard_router
 from .api.analytics import router as analytics_router
 from .api.users import router as users_router
+from .api.notifications import router as notifications_router
 from .gateway import GatewayMiddleware, configure_logging
 from .services.bootstrap import bootstrap_local_db
 
@@ -69,6 +70,7 @@ app.include_router(sync_router, prefix="/api/v1", tags=["sync"])
 app.include_router(dashboard_router, prefix="/api/v1", tags=["dashboard"])
 app.include_router(analytics_router, prefix="/api/v1", tags=["analytics"])
 app.include_router(users_router, prefix="/api/v1", tags=["users"])
+app.include_router(notifications_router, prefix="/api/v1", tags=["notifications"])
 
 # ---------------------------------------------------------------------------
 # Structured error envelope (Level 8): {detail, error_code, timestamp}
