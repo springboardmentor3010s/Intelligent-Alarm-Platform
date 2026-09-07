@@ -24,8 +24,16 @@ from sqlalchemy.orm import sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
 
 from app.database import get_db  # noqa: E402
+from app.gateway import reset_limiters  # noqa: E402
 from app.Models import Base  # noqa: E402
 from app.main import app  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiters():
+    """Deterministic test isolation: clear gateway rate-limit state."""
+    reset_limiters()
+    yield
 
 test_engine = create_engine(
     "sqlite://",

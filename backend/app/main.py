@@ -18,6 +18,7 @@ from .api.sync import router as sync_router
 from .api.dashboard import router as dashboard_router
 from .api.analytics import router as analytics_router
 from .api.users import router as users_router
+from .gateway import GatewayMiddleware, configure_logging
 from .services.bootstrap import bootstrap_local_db
 
 
@@ -29,6 +30,8 @@ async def lifespan(app: FastAPI):
     bootstrap_local_db()
     yield
 
+
+configure_logging()
 
 app = FastAPI(
     title="Intelligent Cognitive Alarm Platform API",
@@ -50,6 +53,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Gateway middleware: request/trace IDs, rate limiting, structured logging.
+app.add_middleware(GatewayMiddleware)
 
 # OAuth2 password bearer token for JWT authentication
 # Defined in deps module and imported here for use in protected endpoints
