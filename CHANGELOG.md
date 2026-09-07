@@ -15,12 +15,12 @@ All notable changes to this project are tracked here. Format follows [Keep a Cha
 - **P5 Notification service + push-token API**: `PushToken` model (unique token, user cascade), `POST|DELETE /api/v1/notifications/register`, `GET /api/v1/notifications/tokens`, idempotent re-register with ownership reassignment, `integrations/messaging.py` MessagingProvider protocol + NoopProvider (FCM/APNs planned), migration `992b0ec03dba` (push_tokens + restores `ix_users_email_lower` from Models/context that was never in the migration chain), 9 pytest tests (32 total).
 - **P6 Frontend navigation (§21)**: `web/src/App.jsx` nav reorganized into Track / Plan / Account groups with tooltips; every destination reuses an existing page; Admin self-guards via RBAC.
 - **Test coverage (frontend/mobile)**: `web` — Vitest + Testing Library (1 unit file `chartUtils` + `App`/`Dashboard` component tests, 8 tests), `vite.config.js` `test` block + `src/test/setup.js`; **found & fixed real `buildHabitCharts` bug** (keyed series by camelCase instead of the snake_case API contract → all four dashboard charts were empty). `mobile` — jest-expo (`preset: jest-expo`, SDK 57 peer-deps resolved via `overrides` `@react-native/jest-preset@0.86.0`), api utils + `useHabitScore` hook tests (14 tests). CI: web job now runs `npm test`, new `mobile` job runs `npm test -- --ci`.
+- **Mobile offline-first sync + push notifications (M4 backlog)**: `notifications/registerPush.js` (acquireAndRegister/registerPushToken — Expo-Go guarded) wired into `useAuth` → POSTs the Expo token to `/api/v1/notifications/register` (P5) on login; `sync/{syncEngine,offlineStore,useSync,syncRequest}` — AsyncStorage-backed table cache (alarms/habit_scores/challenge_attempts) with `synced` flag, idempotent push to `/sync/pending` + pull via `/sync/pull`, triggered on Home focus with an offline banner + cached-data fallback; ChallengeScreen caches challenge payload + completed attempt locally. 17 new jest tests (mobile suite 31). Metro `expo export` bundles cleanly.
 
-### Planned (backlog, post-alignment)
-- Mobile offline sync + notifications (uses P5 register endpoint).
-- Mobile/web test coverage (jest-expo + Vitest) wired into CI.
-- Real cloud deployment, monitoring/alerting, FCM/APNs delivery, final presentation.
-
+### Planned (backlog)
+- Broader flow-level test coverage (alarm-dismiss flow components).
+- FCM/APNs delivery provider + local alarm scheduling on-device.
+- Real cloud deployment, monitoring/alerting, final presentation.
 ---
 
 ## [M4 core — 2026-09-07]

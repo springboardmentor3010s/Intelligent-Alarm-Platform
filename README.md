@@ -21,15 +21,16 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 | Backend Core Logic | Functional | ~95% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync, **server-authoritative challenge engine** all working & smoke-tested |
 | Backend Security | Good | ~95% | Env-driven JWT secret + CORS, RBAC enforced, **structured error envelope**, **rate limiting + request-id/structured logging (P1)** |
 | Web Dashboard | Good | ~85% | Home/Dashboard/Reports wired to real history charts; admin UI page; **§21 grouped navigation (P6)**; settings persistence remains |
-| Mobile App | Partial | ~45% | Profile/settings wired; **alarm dismiss E2E (next→submit→dismiss) functional**; notifications/offline not wired (uses P5 register API when landed) |
-| Testing | Good | ~90% | **Backend pytest suite (32 tests, verified on Python 3.11 + 3.14)**; **web Vitest (8) + mobile jest-expo (14)**; smoke_m1/smoke_m2 as regression gates; CI/CD (ruff + pytest + smokes + web build+test + mobile test) via GitHub Actions |
+| Mobile App | Partial | ~50% | Profile/settings wired; **alarm dismiss E2E (next→submit→dismiss) functional**; **offline-first sync engine + Expo push-token registration wired (2026-09-07)**; on-device E2E + native push still pending |
+| Testing | Good | ~90% | **Backend pytest suite (32 tests, verified on Python 3.11 + 3.14)**; **web Vitest (8) + mobile jest-expo (31)**; smoke_m1/smoke_m2 as regression gates; CI/CD (ruff + pytest + smokes + web build+test + mobile test) via GitHub Actions |
 | Infrastructure/Docker | Good | ~85% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
 ### Known Critical Issues (remaining after M4)
-1. Mobile offline caching + notifications not wired (M4 backlog) — push-token registration API (`/api/v1/notifications/register`) exists since P5 and awaits the mobile consumer
-2. Test coverage now exists for web (Vitest) + mobile (jest-expo) and backend (pytest); remaining: broader flow-level component coverage
+1. Mobile offline-first sync + push-token registration now wired (2026-09-07, jest 31/31 + Metro bundle clean) but **not yet on-device E2E-verified** (needs a dev build for Expo push; Expo Go disables it)
+2. Test coverage now exists for web (Vitest) + mobile (jest-expo 31) and backend (pytest 32); remaining: broader flow-level alarm-dismiss component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Settings persistence on web dashboard pending (M4 backlog)
+5. Local alarm scheduling + FCM/APNs delivery provider not yet implemented (M4 backlog)
 
 > M1-resolved issues: hardcoded JWT secret, admin auth bypass, CORS `*`, stale migration, wrong Dockerfile CMD, `load_dotenv` override — all fixed in M1.
 > M2-resolved issues: challenge answer leak, template random-mismatch bugs, missing `/challenges/submit`, broken mobile dismiss flow, challenge analytics placeholders — all fixed in M2 (see `context.md` continuity log).
@@ -259,7 +260,7 @@ Full milestone detail: see `Milestone.md`.
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
 | `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
 | `python scripts/smoke_m2.py` | In-process M2 smoke test (28 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
-| `python -m pytest tests/` | Backend unit test suite (23 tests: auth, alarms, challenges, analytics, sync, reports) — verified on Python 3.11 + 3.14 |
+| `python -m pytest tests/` | Backend unit test suite (32 tests: auth, alarms, challenges, analytics, sync, reports) — verified on Python 3.11 + 3.14 |
 | `ruff check app tests scripts` | Lint the backend (E/F/W pragmatic rule set, clean) |
 
 ### Web
@@ -267,14 +268,14 @@ Full milestone detail: see `Milestone.md`.
 |---|---|
 | `npm run dev` | Start Vite dev server |
 | `npm run build` | Build for production |
-
-⚠️ **Note**: `npm run lint` and `npm run test` are not yet configured — remediation Level 15.
+| `npm test` | Run Vitest frontend unit tests (8) |
 
 ### Mobile
 | Command | Description |
 |---|---|
 | `npx expo start` | Start Expo dev server |
 | `npx expo start --android` | Launch Android emulator |
+| `npx jest --ci` | Run jest-expo mobile tests (31) |
 
 ---
 
