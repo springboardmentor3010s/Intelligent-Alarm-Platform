@@ -13,20 +13,20 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 ## Project Status
 
-> **Current Stage**: Functional Prototype — **Milestones 1–2 complete** (auth, RBAC, profiles, timezone-aware alarms, habit scoring, server-authoritative challenge engine, E2E alarm dismiss, migrations, smoke-tested)
-> Status updated: 2026-09-06. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap.
+> **Current Stage**: Functional Prototype — **Milestones 1–3 complete, M4 core delivered**, plus **architecture alignment P1–P7 landed** (2026-09-07)
+> Status updated: 2026-09-07. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap and `ARCHITECTURE.md` for the implemented-vs-planned mapping.
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
 | Backend Core Logic | Functional | ~95% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync, **server-authoritative challenge engine** all working & smoke-tested |
-| Backend Security | Good | ~90% | Env-driven JWT secret + CORS, RBAC enforced, **structured error envelope**; remaining: rate limiting |
-| Web Dashboard | Good | ~80% | Home/Dashboard/Reports wired to real history charts; **admin UI page added**; settings persistence remains |
-| Mobile App | Partial | ~45% | Profile/settings wired; **alarm dismiss E2E (next→submit→dismiss) functional**; notifications/offline not wired |
-| Testing | Good | ~75% | **Backend pytest suite (23 tests, verified on Python 3.11 + 3.14)**; smoke_m1/smoke_m2 as regression gates; CI/CD via GitHub Actions |
+| Backend Security | Good | ~95% | Env-driven JWT secret + CORS, RBAC enforced, **structured error envelope**, **rate limiting + request-id/structured logging (P1)** |
+| Web Dashboard | Good | ~85% | Home/Dashboard/Reports wired to real history charts; admin UI page; **§21 grouped navigation (P6)**; settings persistence remains |
+| Mobile App | Partial | ~45% | Profile/settings wired; **alarm dismiss E2E (next→submit→dismiss) functional**; notifications/offline not wired (uses P5 register API when landed) |
+| Testing | Good | ~80% | **Backend pytest suite (32 tests, verified on Python 3.11 + 3.14)**; smoke_m1/smoke_m2 as regression gates; CI/CD via GitHub Actions |
 | Infrastructure/Docker | Good | ~85% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
 ### Known Critical Issues (remaining after M4)
-1. Mobile offline caching + notifications not wired (M4 backlog)
+1. Mobile offline caching + notifications not wired (M4 backlog) — push-token registration API (`/api/v1/notifications/register`) exists since P5 and awaits the mobile consumer
 2. Mobile/web test coverage (vitest/jest-expo) not started (M4 backlog)
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Settings persistence on web dashboard pending (M4 backlog)
@@ -63,11 +63,13 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
                                       +---------------+
 ```
 > Redis, MongoDB, and the ML model cache are **planned components** — not implemented in the current codebase.
+>
+> The mapping of this diagram to the implemented (single-deployable) architecture is documented in **`ARCHITECTURE.md`** (source of truth: ✅ implemented · 🟡 scaffold · 🟥 planned).
 
-**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 27 REST endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard.
-**Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores.
-**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); offline caching + notifications pending (M4).
-**Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 8 ORM tables with performance indexes.
+**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 30 REST endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications (P5).
+**Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **§21 grouped navigation**.
+**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); offline caching + notifications pending (M4 backlog — P5 register API ready).
+**Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 9 ORM tables with performance indexes.
 
 ---
 

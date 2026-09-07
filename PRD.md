@@ -160,7 +160,7 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | **M1: Foundation** | Weeks 1–2 | Project initialization, auth system, DB schema, user profiles, basic alarm scheduling | ✅ **Complete** — auth+RBAC, profiles/settings, tz-aware alarms, regenerated migration `732e5cb49bcf`, 22/22 smoke test |
 | **M2: Cognitive Engine** | Weeks 3–4 | Challenge engine operational, puzzle generation workflows, wake-up verification mechanisms, challenge evaluation | ✅ **Complete** — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, `smoke_m2.py` 28/28 |
 | **M3: Adaptive Intelligence** | Weeks 5–6 | Adaptive difficulty engine functional, habit scoring system operational, recommendation workflows completed, habit tracking dashboards | ✅ **Complete** — analytics service refactor (real sleep/wake estimates), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (sleep/wake-up/habit/challenge), web real-data wiring; smokes 22/22 + 28/28 green |
-| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | 🟡 **Core delivered (2026-09-07)** — pytest suite (23 tests, 3.11+3.14), error envelope, GitHub Actions CI, Docker up-tested, admin UI, PDF/Excel reports. Backlog: cloud deployment, mobile offline/notifications, final presentation |
+| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | ✅ **Core delivered (2026-09-07)** — pytest suite (23→32 tests, 3.11+3.14), error envelope, GitHub Actions CI, Docker up-tested, admin UI, PDF/Excel reports, **architecture alignment P1–P7 landed** (gateway hardening, service modularization, `ai_engine`, infra scaffolds, push-token notification API, §21 web nav). Backlog: cloud deployment, mobile offline/notifications, final presentation |
 
 ---
 
@@ -187,22 +187,25 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | Habit Scoring Engine | ✅ Complete | 35/25/20/20 weighted composite + streak bonus (≤10% of component) from real attempt data |
 | Recommendation Engine | ✅ Complete (M3) | `GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted |
 | Dashboard & Analytics | ✅ Complete (M4) | Backend endpoints + RBAC enforced; web charts wired to real data (M3); **admin UI page** (users table, platform metrics, RBAC-gated 403 panel) |
-| Notification & Reminder System | ❌ Not implemented | No push registration endpoint, no local scheduling, token never registered (M4 backlog) |
-| Reports & Export System | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `/dashboard/reports/{habits,wake-up,challenges}` |
-| Final Integration, Testing & Deployment | ❌ Not started | Zero tests, no CI/CD, Docker up-test pending (M4) |
+| Notification & Reminder System | 🟡 P5 channel ready | **Push-token registration API + `push_tokens` table (P5)**; delivery (FCM/APNs) via `integrations/messaging.py` planned; mobile wiring remains M4 backlog |
+| Reports & Export System | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `/dashboard/reports/{habits,wake-up,challenges}`; async `?async=1` + status endpoint (P4) |
+| Final Integration, Testing & Deployment | 🟡 M4 core | pytest (32) + CI + Docker up-tested; cloud deployment + final presentation pending |
 
 ### Cross-Cutting Status
 
 | Concern | Status | Detail |
 |---|---|---|
-| Security | 🟡 M1+M2-fixed | Env-driven JWT secret + CORS, RBAC enforced, answer leak fixed (M2). Remaining: structured errors, rate limiting |
+| Security | 🟡 M1+M2+P1-fixed | Env-driven JWT secret + CORS, RBAC enforced, answer leak fixed (M2), **rate limiting + request-id/logging (P1)** |
 | Mobile integration | 🟡 M2-wired | Alarm-dismiss E2E now matches the backend contract (`/next` → `/submit` → `/dismiss`); profile/settings wired; offline caching still M4 |
-| Error handling | ⚠️ Partial | `{"detail"}` only; no `error_code`/`timestamp` envelope |
-| Database | ✅ Good | 8 tables; migration regenerated + verified; SQLite local dev, PostgreSQL via Docker |
-| Testing | ❌ None | Zero unit tests; `smoke_m1.py` (22) + `smoke_m2.py` (28) are manual verification |
-| CI/CD | ❌ None | No pipeline; repo pushed to `origin/main` |
+| Error handling | ✅ Complete (M4) | Global envelope `{detail, error_code, timestamp, status_code}` |
+| Database | ✅ Good | 9 tables (+`push_tokens`); migration chain 0→head verified on fresh DB; SQLite local dev, PostgreSQL via Docker |
+| Testing | 🟡 M4 | pytest (23→32) + smoke_m1 (22) + smoke_m2 (28) gates; mobile/web test coverage pending |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build; pushed to `origin/main` |
 
-### Estimated Overall Completion: **~60%**
+### Architecture alignment (P1–P7, approved `plan.md`, landed 2026-09-07)
+Gateway hardening · 12 domain service modules · `ai_engine/` package · optional Redis/worker scaffolds · push-token notification API · §21 grouped web nav · docs audit. Full mapping: **`ARCHITECTURE.md`** (✅ implemented · 🟡 scaffold · 🟥 planned).
+
+### Estimated Overall Completion: **~80%**
 
 ---
 
@@ -213,7 +216,7 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 3. **No trained ML model file (M3)** — adaptive difficulty uses the rule-based fallback of `ml_inference.py`.
 4. **Zero tests and no CI/CD (M4)** — nothing catches regressions; only `smoke_m1.py`/`smoke_m2.py` manual verification.
 5. **Docker container up-test pending (M4)** — compose config + Dockerfile validate; full `docker compose up` not yet verified end-to-end.
-6. **Offline sync & notifications (M4)** — sync endpoints exist server-side but mobile never calls them; push token fetched but never registered.
-10. **Notifications & offline sync not wired (M4)** — FCM token fetched but never registered; offline cache is type-schema only.
+6. **Offline sync & notifications (M4)** — sync endpoints exist server-side but mobile never calls them; push-token **registration API now exists (P5)** but the mobile app never registers its Expo token.
+10. **Notifications & offline sync not wired (M4)** — see #6; mobile wiring of the P5 endpoint is the remaining gap.
 
 > ⚠️ **Resolved in M1:** hardcoded JWT secret; admin auth bypass; CORS `*`; `load_dotenv` overriding Docker `DATABASE_URL`; wrong Dockerfile CMD — plus missing `PUT /users/profile` / `PUT /users/{key}` / settings endpoints now exist and are wired in the mobile app.

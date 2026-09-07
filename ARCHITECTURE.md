@@ -22,19 +22,21 @@ Communication model: **synchronous** HTTP/HTTPS REST (solid arrows) · **asynchr
 ```
 backend/app/
 ├── main.py            → API Gateway assembly: routers, CORS, error envelope, lifespan, /health, OpenAPI
-├── gateway/           → request-id/trace middleware, structured logging, rate limiting          [P1+]
-├── api/               → routers (routing layer, thin) — auth·users·alarms·challenges·habits·sync·dashboard·analytics
-├── services/          → domain service layer (microservice responsibilities in one process)
-├── ai_engine/         → AI/ML & intelligence engine (interfaces + components)                   [P3+]
+├── gateway/           → request-id/trace middleware, structured logging, in-memory rate limiting        [P1]
+├── api/               → routers (routing layer, thin) — auth·users·alarms·challenges·habits·sync·dashboard·analytics·notifications [P5+]
+├── services/          → domain service layer (microservice responsibilities in one process)            [P2]
+├── ai_engine/         → AI/ML & intelligence engine (interfaces + components)                           [P3]
+├── integrations/      → external-provider adapters (messaging protocol; FCM/APNs planned)              [P5]
+├── workers/           → background-job interface (in-process registry + BackgroundTasks)                [P4]
 ├── schemas/           → Pydantic v2 request/response contracts
 ├── Models.py          → SQLAlchemy data layer (PostgreSQL local default; SQLite dev/offline)
 └── database.py        → engine/session management
 
-web/                   → React web dashboard (UI layer)
+web/                   → React web dashboard (UI layer) — §21 grouped nav                               [P6]
 mobile/                → React Native (Expo) app (UI layer)
-migrations/            → Alembic migrations          tests/  → pytest suite (23)
+migrations/            → Alembic migrations          tests/  → pytest suite (32)
 ml_models/             → trained difficulty_model.pt
-infrastructure/        → Docker, monitoring/logging/backup/security docs                         [P4+]
+infrastructure/        → Docker, monitoring/logging/backup/security docs                                 [P4]
 ```
 
 ## 3. Layer / component matrix
@@ -45,15 +47,15 @@ infrastructure/        → Docker, monitoring/logging/backup/security docs      
 | 2 | User interfaces (web dashboard, analytics, reports) | ✅ | `web/src/pages/*` |
 | 3 | API Gateway — FastAPI | ✅ | `backend/app/main.py` |
 | 4 | — API versioning `/api/v1/*` | ✅ | routers prefix |
-| 5 | — Authentication (JWT) | ✅ | `api/deps.py`, `services/auth.py` |
+| 5 | — Authentication (JWT) | ✅ | `api/deps.py`, `services/user_service.py` (AuthService; `services/auth.py` facade) |
 | 6 | — Authorization / RBAC | ✅ | `require_roles()` |
 | 7 | — Request/response validation (Pydantic v2) | ✅ | `schemas/` |
 | 8 | — Error handling envelope `{detail,error_code,timestamp,status_code}` | ✅ | `main.py` |
 | 9 | — CORS (env) | ✅ | `main.py` |
 | 10 | — Health checks `/health` | ✅ | `main.py` |
 | 11 | — OpenAPI docs | ✅ | FastAPI auto |
-| 12 | — Structured logging + trace IDs | 🟡 | `gateway/` (P1+) |
-| 13 | — Rate limiting | 🟡 | `gateway/` in-memory (P1+) |
+| 12 | — Structured logging + trace IDs | ✅ | `gateway/` (request-id + structured logging) |
+| 13 | — Rate limiting | ✅ | `gateway/` in-memory sliding window + `Retry-After` (P1) |
 | 14 | — Load balancing | 🟥 | via Docker/cloud orchestrator (planned) |
 | 15 | User Service | ✅ | `services/user_service.py` (auth/users/roles/profile) |
 | 16 | Alarm Service | ✅ | `services/alarm_service.py` |
@@ -63,7 +65,7 @@ infrastructure/        → Docker, monitoring/logging/backup/security docs      
 | 20 | Behavior Analytics Service | ✅ | `services/behavior_analytics_service.py` |
 | 21 | Habit Scoring Service | ✅ | `services/habit_scoring_service.py` |
 | 22 | Recommendation Service | ✅ | `services/recommendation_service.py` + `ai_engine/recommendations.py` |
-| 23 | Notification Service | 🟡 | `services/notification_service.py` interface + register API (P5+) |
+| 23 | Notification Service | ✅ | `services/notification_service.py` (register/deregister/list + send boundary) + `api/notifications.py`; delivery provider planned (P5) |
 | 24 | Analytics Service | ✅ | `services/analytics_service.py` |
 | 25 | Report Service (PDF/Excel/CSV/JSON) | ✅ | `services/report_service.py` |
 | 26 | Admin Service | ✅ | `services/admin_service.py` + `web/src/pages/Admin.jsx` |
@@ -76,7 +78,7 @@ infrastructure/        → Docker, monitoring/logging/backup/security docs      
 | Difficulty Adaptation Model (trained `difficulty_model.pt` + rule fallback) | ✅ | `ai_engine/difficulty.py`, `ml_models/`, `scripts/train_difficulty_model.py` |
 | Recommendation Engine | ✅ | `ai_engine/recommendations.py` |
 | Challenge Generation Model (deterministic generator) | ✅ | `ai_engine/challenge_generation.py` (wraps `challenge_service`) |
-| Behavior Analysis Model | 🟥 | interface only — planned |
+| Behavior Analysis Model | 🟡 | `ai_engine/behavior_analysis.py` adapter over `behavior_analytics_service` (P3) — learned model planned |
 | Habit Scoring Model (formula-driven) | 🟡 | via `habit_scoring_service` — planned model layer |
 | Performance Prediction Model | 🟥 | interface only — planned |
 | Anomaly Detection (snooze patterns) | 🟥 | interface only — planned |
@@ -101,7 +103,7 @@ Data ownership (§17): each domain service owns its models; no cross-service DB 
 
 | Integration | Status | Where |
 |---|---|---|
-| Cloud messaging FCM / APNs | 🟥 | `integrations/messaging.py` interface (P5+) — Expo token capture exists on mobile |
+| Cloud messaging FCM / APNs | 🟡 | `integrations/messaging.py` MessagingProvider protocol + NoopProvider (P5); Expo push token registered via `POST /api/v1/notifications/register`; delivery planned |
 | Sleep/health APIs (HealthKit, Google Fit) | 🟥 | `integrations/health.py` — planned |
 | Puzzle/content providers | 🟥 | `integrations/content.py` — planned |
 | Analytics/BI | 🟥 | `integrations/analytics_bi.py` — planned |
@@ -115,8 +117,8 @@ Data ownership (§17): each domain service owns its models; no cross-service DB 
 | Docker (compose, Dockerfile, entrypoint, healthchecks) | ✅ | root, `backend/` |
 | CI/CD (ruff + pytest + smokes + web build) | ✅ | `.github/workflows/ci.yml` |
 | Security: env secrets, bcrypt, JWT, RBAC, CORS, Pydantic validation | ✅ | `app/`, `.env.example` |
-| Security: rate limiting | 🟡 | `gateway/` (P1+) |
-| Monitoring & error tracking | 🟥 | `infrastructure/monitoring.md` — plan documented (P4+), implementation planned |
+| Security: rate limiting | ✅ | `gateway/` in-memory (P1) |
+| Monitoring & error tracking | 🟥 | `infrastructure/monitoring.md` — plan documented (P4), implementation planned |
 | Structured logging | ✅ | `gateway/` (P1) + `infrastructure/logging.md` |
 | Backup & disaster recovery | 🟡 | `infrastructure/backup-dr.md` — procedure documented (P4), automation planned |
 
@@ -124,11 +126,11 @@ Data ownership (§17): each domain service owns its models; no cross-service DB 
 
 | Task | Status |
 |---|---|
-| Report/PDF/Excel generation (background) | 🟡 — `workers/` interface + FastAPI BackgroundTasks (P4+) |
+| Report/PDF/Excel generation (background) | 🟡 — `workers/` interface + FastAPI BackgroundTasks (P4); `?async=1` + `/dashboard/reports/status/{job_id}` |
 | Alarm scheduling / notification delivery / analytics aggregation / ML jobs | 🟥 — message queue/full workers planned |
 
 ## 9. Validation
 
-Continuously validated by: `./scripts/smoke_m1.py` (22) · `./scripts/smoke_m2.py` (28) · `pytest` (23) · `ruff` · `npm run build` · `docker compose up` healthcheck. Full §27 checklist run in P7.
+Continuously validated by: `./scripts/smoke_m1.py` (22) · `./scripts/smoke_m2.py` (28) · `pytest` (32; 23 baseline + 9 P5 notification tests) · `ruff` · `npm run build` · `docker compose up` healthcheck. Full §27 checklist run in P7.
 
-*Last updated: 2026-09-07 (P0 baseline; superscript [Pn+] rows land in that phase).*
+*Last updated: 2026-09-07 (P7 docs sync — P1–P6 all landed; remaining 🟥 rows are intentional-planned).*

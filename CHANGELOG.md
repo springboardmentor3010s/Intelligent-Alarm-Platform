@@ -2,21 +2,23 @@
 
 All notable changes to this project are tracked here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased] — Architecture Alignment (2026-09-07, in progress)
+## [Unreleased] — Architecture Alignment (2026-09-07)
 
 ### Added
 - `plan.md` — approved architecture-alignment plan (phases P0–P7 + backlog).
 - `ARCHITECTURE.md` — source-of-truth doc mapping implemented ↔ planned architecture.
 - `CHANGELOG.md` — this file.
+- **P1 Gateway hardening** (`gateway/`): request-id/trace middleware, structured logging, in-memory sliding-window rate limiting (`ERR_RATE_LIMIT` + `Retry-After`), `GET /api/v1/auth/register` (verify) + `GET /api/v1/auth/login` (inspector), CORS moved to env-config. Verified: 401/403/404/429/422 envelope smoke, `pytest` 23, smokes.
+- **P2 Service modularization** — 12 domain modules (`user_service` incl. AuthService, `alarm_service`, `challenge_service`, `adaptive_difficulty_service`, `verification_service`, `behavior_analytics_service`, `habit_scoring_service`, `recommendation_service`, `analytics_service`, `report_service`, `admin_service`, `notification_service`); `api/*` routers now thin delegates; shims preserve public imports.
+- **P3 AI/ML engine package** (`ai_engine/`): `interfaces.py` Protocols + `ENGINE_REGISTRY` + `engine_status`; `difficulty.py` (canonical ML engine), `recommendations.py`/`challenge_generation.py`/`behavior_analysis.py` (real adapters), `anomaly.py`/`performance_prediction.py` (planned stubs); `services/ml_inference.py` torch-tolerant facade so lean Docker runtime keeps rule-based fallback.
+- **P4 Infra scaffolds**: optional Redis cache adapter (`services/cache.py`, active only if `REDIS_URL`), background-job interface (`workers/`), async report generation (`?async=1` + `GET /dashboard/reports/status/{job_id}`), `infrastructure/` docs (monitoring/logging/backup-dr/security-checklist).
+- **P5 Notification service + push-token API**: `PushToken` model (unique token, user cascade), `POST|DELETE /api/v1/notifications/register`, `GET /api/v1/notifications/tokens`, idempotent re-register with ownership reassignment, `integrations/messaging.py` MessagingProvider protocol + NoopProvider (FCM/APNs planned), migration `992b0ec03dba` (push_tokens + restores `ix_users_email_lower` from Models/context that was never in the migration chain), 9 pytest tests (32 total).
+- **P6 Frontend navigation (§21)**: `web/src/App.jsx` nav reorganized into Track / Plan / Account groups with tooltips; every destination reuses an existing page; Admin self-guards via RBAC.
 
-### Planned (from `plan.md`)
-- P1 Gateway hardening: request-id/trace middleware, structured logging, in-memory rate limiting.
-- P2 Service modularization into 12 domain service modules (shims, no logic change).
-- P3 AI/ML engine package (`backend/ai_engine/`) with clean interfaces + component facades/stubs.
-- P4 Data/infra scaffolds: optional Redis adapter, background report generation, infrastructure docs.
-- P5 Notification service + push-token registration API + integration adapters.
-- P6 Web navigation hierarchy per architecture §21.
-- P7 Docs sync + full architecture-consistency audit.
+### Planned (backlog, post-alignment)
+- Mobile offline sync + notifications (uses P5 register endpoint).
+- Mobile/web test coverage (jest-expo + Vitest) wired into CI.
+- Real cloud deployment, monitoring/alerting, FCM/APNs delivery, final presentation.
 
 ---
 

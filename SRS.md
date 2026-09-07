@@ -141,12 +141,14 @@ This document covers:
 
 ### 2.9 Notification & Reminder System
 
+> ✅ **Registration channel IMPLEMENTED (P5, 2026-09-07)**: `push_tokens` table, `POST|DELETE /api/v1/notifications/register`, `GET /api/v1/notifications/tokens`, idempotent re-register with ownership reassignment; `integrations/messaging.py` provider protocol. Delivery (FCM/APNs) remains **planned**.
+
 | Requirement ID | Requirement Text | Priority | Notes |
 |---|---|---|---|
-| FR-NT-001 | The system shall support bedtime reminders: configurable countdown to target bedtime. | High | Configurable trigger time (e.g., 1 hour before target bedtime). |
-| FR-NT-002 | The system shall support wake-up reminders with customizable alarm tones and snooze behavior prompts. | Medium | Stored in `alarms`; played via mobile OS notification APIs. |
-| FR-NT-003 | The system shall send habit alerts: streak notifications, snooze increase warnings, milestone celebrations. | Medium | Fired via Firebase Cloud Messaging or native push. |
-| FR-NT-004 | The system shall send challenge reminders: if alarm dismissed without challenge (e.g., snoozed), prompt on next ring. | Medium | Ensures cognitive engagement per alarm cycle. |
+| FR-NT-001 | The system shall support bedtime reminders: configurable countdown to target bedtime. | High | ⚠️ Configurable trigger time planned; delivery channel pending provider. |
+| FR-NT-002 | The system shall support wake-up reminders with customizable alarm tones and snooze behavior prompts. | Medium | Stored in `alarms`; played via mobile OS notification APIs (planned). |
+| FR-NT-003 | The system shall send habit alerts: streak notifications, snooze increase warnings, milestone celebrations. | Medium | Delivery via FCM/native push — **planned**; token registration ready (P5). |
+| FR-NT-004 | The system shall send challenge reminders: if alarm dismissed without challenge (e.g., snoozed), prompt on next ring. | Medium | Ensures cognitive engagement per alarm cycle; scheduling planned. |
 
 ### 2.10 Reports & Export System
 
@@ -198,6 +200,7 @@ This document covers:
 | NF-SEC-006 | SQL injection must be prevented via SQLAlchemy parameterized queries (ORM). | Critical | No raw SQL string concatenation in data access layer. |
 | NF-SEC-007 | Sensitive telemetry data (sleep patterns, habit scores) must be encrypted at rest in PostgreSQL. | High | Use `pgcrypto` or application-level encryption for PII. |
 | NF-SEC-008 | Session revocation must be supported: invalidate JWTs on password change or admin revocation. | Medium | Optional: use JWT blacklist in Redis with `exp` check. |
+| NF-SEC-009 | API must rate-limit repeated requests to prevent abuse/brute force. | High | ✅ **IMPLEMENTED (P1, 2026-09-07).** In-memory sliding-window limiter in `gateway/`; exceeded requests get `429` with `Retry-After` + `ERR_RATE_LIMIT`. |
 
 ### 3.3 Fault Tolerance Requirements
 
@@ -305,6 +308,24 @@ class UserProfileRes(BaseModel):
 ```
 
 #### 4.1.3 Alarms Endpoints
+
+> Backend additions since P1: `GET /api/v1/auth/register` (verification stub) and `GET /api/v1/auth/login` (token inspector) — diagnostics; no auth, intended for debug/smoke use.
+
+#### 4.1.3.1 Notification Endpoints (P5, 2026-09-07)
+
+| Endpoint | Method | Path | Auth | Request | Response |
+|---|---|---|---|---|---|
+| Register push token | POST | `/api/v1/notifications/register` | Bearer | `PushRegisterReq` | `PushRegisterRes` |
+| Deregister push token | DELETE | `/api/v1/notifications/register` | Bearer | `PushRegisterReq` | `PushDeregisterRes` |
+| List push tokens | GET | `/api/v1/notifications/tokens` | Bearer | — | `List[PushTokenRes]` |
+
+`POST register` is idempotent: re-registering the same token reassigns it to the authenticating user (ownership transfer between accounts). Delivery provider (FCM/APNs) is **planned** behind `integrations/messaging.py` (MessagingProvider protocol); `NotificationService.send()` raises `NotImplementedError` until wired.
+
+#### 4.1.3.2 Async Report Endpoints (P4, 2026-09-07)
+
+The habit/wake-up/challenge report endpoints accept `?format=csv|json|pdf|excel` (sync, M4) and additionally `?async=1` (P4): the request is queued via `workers/` and a `job_id` returned; poll `GET /api/v1/dashboard/reports/status/{job_id}` for `{status: queued|running|completed|failed}` + result download once completed.
+
+#### 4.1.4 Challenges Endpoints
 
 | Endpoint | Method | Path | Auth | Request | Response |
 |---|---|---|---|---|---|

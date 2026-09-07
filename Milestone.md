@@ -85,7 +85,16 @@
 ---
 
 ## Milestone 4: Analytics, Testing & Deployment
-**Weeks 7–8** · **Status: ✅ TESTING & DEPLOYMENT CORE DELIVERED (2026-09-07)** — backend pytest suite (23 tests), structured error envelope, GitHub Actions CI (ruf + pytest + smokes + web build), Docker deployment fixed and up-tested (Postgres + migrations entrypoint + lean runtime image), admin UI page, PDF/Excel report export; remaining M4 backlog: mobile offline sync/notifications, deployment to real cloud, mobile test coverage
+**Weeks 7–8** · **Status: ✅ TESTING & DEPLOYMENT CORE DELIVERED (2026-09-07)** — backend pytest suite (23→32 tests), structured error envelope, GitHub Actions CI (ruff + pytest + smokes + web build), Docker deployment fixed and up-tested (Postgres + migrations entrypoint + lean runtime image), admin UI page, PDF/Excel report export, **architecture alignment P1–P6 landed** (gateway hardening, service modularization, `ai_engine` package, infra scaffolds, push-token notification API, §21 web navigation); remaining M4 backlog: mobile offline sync/notifications, deployment to real cloud, mobile test coverage
+
+### P1–P7 architecture alignment (2026-09-07, approved `plan.md`)
+- **P1 Gateway hardening** ✅ — request-id/trace middleware, structured logging, in-memory rate limiting (`ERR_RATE_LIMIT` + `Retry-After`).
+- **P2 Service modularization** ✅ — 12 domain service modules with shim facades; `api/*` routers are thin delegates; no logic change.
+- **P3 AI/ML engine** ✅ — `ai_engine/` package with Protocols + `ENGINE_REGISTRY`; canonical difficulty engine (`ai_engine/difficulty.py`), real adapters (recommendations/challenge-generation/behavior-analysis), planned stubs explicit (anomaly/performance).
+- **P4 Infra scaffolds** ✅ — optional Redis adapter (no-op unless `REDIS_URL`), in-process background jobs, async report generation (`?async=1` + status endpoint), infra docs (monitoring/logging/backup-dr/security-checklist).
+- **P5 Notifications** ✅ — `push_tokens` table + migration, `POST|DELETE /api/v1/notifications/register`, `GET /api/v1/notifications/tokens`, idempotent ownership reassignment, messaging provider protocol (FCM/APNs delivery planned), 9 pytest tests.
+- **P6 Frontend nav (§21)** ✅ — `web/src/App.jsx` grouped Track/Plan/Account hierarchy reusing existing pages.
+- **P7 Docs + §27 audit** in progress — docs synced (see CHANGELOG).
 
 ### Tasks
 - Build executive dashboards ✅ (admin UI page; platform analytics + user list, RBAC-gated)
