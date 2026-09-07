@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { isRunningInExpoGo } from 'expo';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch, parseApiError, describeFetchError, authHeaders, onAuthExpired } from '../utils/api';
+import { getExpoPushToken, registerPushToken } from '../notifications/registerPush';
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -77,8 +78,8 @@ export function useAuth() {
       await AsyncStorage.setItem('cerebro_user', JSON.stringify(data.user));
       setIsLoggedIn(true);
 
-      // Request notifications
-      await registerForPushNotifications();
+      // Request notifications (pass the fresh token explicitly)
+      await registerForPushNotifications(data.access_token);
 
       return { success: true };
     } catch (error) {
@@ -116,27 +117,32 @@ export function useAuth() {
     }
   };
 
-  const registerForPushNotifications = async () => {
-    if (isRunningInExpoGo()) return; // expo-notifications push is removed from Expo Go (SDK 53+); M4 uses dev builds
-    const { default: Notifications } = await import('expo-notifications');
-    try {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
+  const registerForPushNotifications = useCallback(
+    async (explicitToken = token) => {
+      // Expo Go (SDK 53+) disables expo-notifications push; dev/physical builds use EAS.
+      if (isRunningInExpoGo()) {
+        console.log('Push registration skipped (Expo Go): remote push requires a development build.');
+        return { registered: false, reason: 'expo-go' };
       }
-      
-      if (finalStatus !== 'granted') return;
-
-      const pushToken = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log('Push token:', pushToken);
-      
-    } catch (error) {
-      console.error('Push notification registration error:', error);
-    }
-  };
+      const authToken = explicitToken || token;
+      try {
+        const pushToken = await getExpoPushToken();
+        if (!pushToken) {
+          return { registered: false, reason: 'denied-or-unavailable' };
+        }
+        return await registerPushToken({
+          token: pushToken,
+          apiFetch,
+          platform: Platform.OS,
+          headers: authToken ? authHeaders(authToken) : undefined,
+        });
+      } catch (error) {
+        console.error('Push notification registration error:', error);
+        return { registered: false, reason: 'error' };
+      }
+    },
+    [token]
+  );
 
   return {
     user,

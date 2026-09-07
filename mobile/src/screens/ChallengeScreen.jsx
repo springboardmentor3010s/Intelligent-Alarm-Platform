@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView,
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { useChallenge } from '../hooks/useChallenge';
+import { offlineStore } from '../sync/offlineStore';
 
 const normalizeType = (raw) => {
   if (!raw) return undefined;
@@ -25,6 +26,13 @@ export default function ChallengeScreen({ route, navigation }) {
       const challenge = await fetchChallenge({ challengeType: normalizeType(type) });
       const total = challenge.puzzle_payload.total_questions || 1;
       setAnswers(Array(total).fill(''));
+      // Cache the challenge payload for offline retry.
+      await offlineStore.upsertLocal('challenge_attempts', {
+        record_id: `challenge-${challenge.id}`,
+        payload: challenge,
+        synced: true,
+        local_timestamp: new Date().toISOString(),
+      });
     } catch (e) {
       Alert.alert('Error', e.message || 'Failed to load challenge');
     }
@@ -45,6 +53,21 @@ export default function ChallengeScreen({ route, navigation }) {
     setSubmitting(true);
     try {
       const res = await submitChallenge(answers);
+      // Cache the completed attempt locally (unsynced) so the server scores it
+      // via the offline sync engine if we lose connectivity later.
+      await offlineStore.upsertLocal('challenge_attempts', {
+        record_id: `attempt-${res.challenge_attempt_id || Date.now()}`,
+        payload: {
+          server_id: res.challenge_attempt_id,
+          challenge_id: current?.id,
+          completed: !!res.completed,
+          correct_answers: res.correct_answers,
+          total_questions: res.total_questions,
+          time_taken_seconds: res.time_taken_seconds || 0,
+        },
+        synced: true,
+        local_timestamp: new Date().toISOString(),
+      });
       setResult({ correct: res.completed && res.correct, correctAnswers: res.correct_answers, total: res.total_questions });
       if (res.completed && res.correct) {
         setTimeout(() => navigation.goBack(), 1500);
