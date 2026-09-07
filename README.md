@@ -291,6 +291,11 @@ Full milestone detail: see `Milestone.md`.
 | `HierarchicalRemediationPlan.md` | Prioritized remediation roadmap — Levels 0–16 with effort estimates |
 | `presentation/CerebroKognit_Final.pptx` | Final capstone presentation (15 slides + speaker notes) |
 | `presentation/build_presentation.py` | Reproducible generator for the final deck (python-pptx) |
+| `Completed Milestones/Milestone - 1.docx` | Milestone 1 presentation notes (foundation, auth, alarms) |
+| `Completed Milestones/Milestone - 2.docx` | Milestone 2 presentation notes (cognitive challenge engine) |
+| `Completed Milestones/Milestone - 3.docx` | Milestone 3 presentation notes (adaptive ML + recommendations) |
+| `Completed Milestones/Milestone - 4.docx` | Milestone 4 presentation notes (analytics, testing, deployment) |
+| `presentation/build_milestone_docs.py` | Reproducible generator for the milestone DOCX notes |
 
 ---
 
