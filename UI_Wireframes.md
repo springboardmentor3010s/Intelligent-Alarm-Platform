@@ -245,12 +245,13 @@ Habit score recomputed live (35% wake-up, 25% challenge, 20% snooze, 20% sleep a
 GET /habits/score + /habits/score/history?days=7 ──► Web Dashboard charts
 ```
 
-### 4.4 Offline / Sync (documented, backend-ready)
+### 4.4 Offline / Sync (implemented 2026-09-07 — matches wireframe)
 
 ```
 Mobile offline cache ──► background sync ──► POST /api/v1/sync/pending (idempotent upsert)
                                               GET  /api/v1/sync/pull (delta download)
 ```
+- Implemented: `mobile/src/sync/offlineStore.js` (AsyncStorage) + `syncEngine.js` + `useSync` hook; Home caches alarms + habit score, Challenge caches payload + attempt; sync on focus + offline banner. On-device E2E transition pending (dev build).
 
 ---
 

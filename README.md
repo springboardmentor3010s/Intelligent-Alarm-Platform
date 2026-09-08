@@ -13,24 +13,24 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 ## Project Status
 
-> **Current Stage**: Functional Prototype — **Milestones 1–3 complete, M4 core delivered**, plus **architecture alignment P1–P7 landed** (2026-09-07)
-> Status updated: 2026-09-07. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap and `ARCHITECTURE.md` for the implemented-vs-planned mapping.
+> **Current Stage**: Functional Prototype — **Milestones 1–4 delivered** + **M4 backlog (offline sync, mobile push registration, web/mobile tests, UI app-shell pass, presentation) landed** (2026-09-07/08)
+> Status updated: 2026-09-08. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap and `ARCHITECTURE.md` for the implemented-vs-planned mapping.
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
 | Backend Core Logic | Functional | ~95% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync, **server-authoritative challenge engine** all working & smoke-tested |
 | Backend Security | Good | ~95% | Env-driven JWT secret + CORS, RBAC enforced, **structured error envelope**, **rate limiting + request-id/structured logging (P1)** |
-| Web Dashboard | Good | ~85% | Home/Dashboard/Reports wired to real history charts; admin UI page; **§21 grouped navigation (P6)**; settings persistence remains |
-| Mobile App | Partial | ~50% | Profile/settings wired; **alarm dismiss E2E (next→submit→dismiss) functional**; **offline-first sync engine + Expo push-token registration wired (2026-09-07)**; on-device E2E + native push still pending |
-| Testing | Good | ~90% | **Backend pytest suite (32 tests, verified on Python 3.11 + 3.14)**; **web Vitest (8) + mobile jest-expo (31)**; smoke_m1/smoke_m2 as regression gates; CI/CD (ruff + pytest + smokes + web build+test + mobile test) via GitHub Actions |
-| Infrastructure/Docker | Good | ~85% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
+| Web Dashboard | Good | ~95% | Home/Dashboard/Reports wired to real history charts; admin UI page; **§21 sidebar + global theme + Profile page (app-shell pass 2026-09-08)** |
+| Mobile App | Good | ~75% | **alarm dismiss E2E (next→submit→dismiss) functional**; **offline-first sync engine + Expo push-token registration wired**; **shared-auth AuthProvider (login-stuck fix)**; on-device E2E + native push still pending (dev build) |
+| Testing | Good | ~95% | **Backend pytest suite (32, verified 3.11 + 3.14)**; **web Vitest (18) + mobile jest-expo (31)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
+| Infrastructure/Docker | Good | ~90% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
 ### Known Critical Issues (remaining after M4)
-1. Mobile offline-first sync + push-token registration now wired (2026-09-07, jest 31/31 + Metro bundle clean) but **not yet on-device E2E-verified** (needs a dev build for Expo push; Expo Go disables it)
-2. Test coverage now exists for web (Vitest) + mobile (jest-expo 31) and backend (pytest 32); remaining: broader flow-level alarm-dismiss component coverage
+1. Mobile offline-first sync + push-token registration are wired and jest-tested (31) but **not yet on-device E2E-verified** — remote push needs an Expo **dev build** (Expo Go disables it)
+2. Test coverage now exists for backend (pytest 32), web (Vitest 18) and mobile (jest 31); remaining: broader flow-level alarm-dismiss component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
-4. Settings persistence on web dashboard pending (M4 backlog)
-5. Local alarm scheduling + FCM/APNs delivery provider not yet implemented (M4 backlog)
+4. Web settings are saved to `/users/settings` + `/users/{key}` (theme, notifications, auto-dismiss, vibrate) — completed 2026-09-08
+5. Local alarm scheduling + FCM/APNs delivery provider not yet implemented (needs dev build; M4 backlog)
 
 > M1-resolved issues: hardcoded JWT secret, admin auth bypass, CORS `*`, stale migration, wrong Dockerfile CMD, `load_dotenv` override — all fixed in M1.
 > M2-resolved issues: challenge answer leak, template random-mismatch bugs, missing `/challenges/submit`, broken mobile dismiss flow, challenge analytics placeholders — all fixed in M2 (see `context.md` continuity log).
@@ -259,9 +259,9 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 | Milestone | Weeks | Deliverables | Status |
 |---|---|---|---|
 | **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migrations, 22/22 smoke (`smoke_m1.py`) |
-| **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ✅ Complete — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, 28/28 smoke (`smoke_m2.py`) |
+| **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ✅ Complete — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, 25/25 smoke (`smoke_m2.py`) |
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ✅ Complete — analytics service (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories), web wired to live data |
-| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | 🟡 Core delivered — pytest (23 tests), error envelope, GitHub Actions CI, Docker up-tested, admin UI, PDF/Excel reports; backlog: offline sync/notifications, cloud deploy, mobile tests |
+| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — pytest (32), error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration (jest 31), web Vitest (18), sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; remaining: real cloud deploy |
 
 Full milestone detail: see `Milestone.md`.
 
@@ -276,7 +276,7 @@ Full milestone detail: see `Milestone.md`.
 | `alembic upgrade head` | Apply pending DB migrations |
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
 | `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
-| `python scripts/smoke_m2.py` | In-process M2 smoke test (28 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
+| `python scripts/smoke_m2.py` | In-process M2 smoke test (25 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
 | `python -m pytest tests/` | Backend unit test suite (32 tests: auth, alarms, challenges, analytics, sync, reports) — verified on Python 3.11 + 3.14 |
 | `ruff check app tests scripts` | Lint the backend (E/F/W pragmatic rule set, clean) |
 

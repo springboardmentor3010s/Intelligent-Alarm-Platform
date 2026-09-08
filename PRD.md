@@ -158,23 +158,25 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | Milestone | Duration | Key Deliverables | Actual Status (2026-09-06) |
 |---|---|---|---|
 | **M1: Foundation** | Weeks 1–2 | Project initialization, auth system, DB schema, user profiles, basic alarm scheduling | ✅ **Complete** — auth+RBAC, profiles/settings, tz-aware alarms, regenerated migration `732e5cb49bcf`, 22/22 smoke test |
-| **M2: Cognitive Engine** | Weeks 3–4 | Challenge engine operational, puzzle generation workflows, wake-up verification mechanisms, challenge evaluation | ✅ **Complete** — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, `smoke_m2.py` 28/28 |
-| **M3: Adaptive Intelligence** | Weeks 5–6 | Adaptive difficulty engine functional, habit scoring system operational, recommendation workflows completed, habit tracking dashboards | ✅ **Complete** — analytics service refactor (real sleep/wake estimates), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (sleep/wake-up/habit/challenge), web real-data wiring; smokes 22/22 + 28/28 green |
-| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | ✅ **Core delivered (2026-09-07)** — pytest suite (23→32 tests, 3.11+3.14), error envelope, GitHub Actions CI, Docker up-tested, admin UI, PDF/Excel reports, **architecture alignment P1–P7 landed** (gateway hardening, service modularization, `ai_engine`, infra scaffolds, push-token notification API, §21 web nav). Backlog: cloud deployment, mobile offline/notifications, final presentation |
+| **M2: Cognitive Engine** | Weeks 3–4 | Challenge engine operational, puzzle generation workflows, wake-up verification mechanisms, challenge evaluation | ✅ **Complete** — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, `smoke_m2.py` 25/25 |
+| **M3: Adaptive Intelligence** | Weeks 5–6 | Adaptive difficulty engine functional, habit scoring system operational, recommendation workflows completed, habit tracking dashboards | ✅ **Complete** — analytics service refactor (real sleep/wake estimates), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (sleep/wake-up/habit/challenge), web real-data wiring; smokes 22/22 + 25/25 green |
+| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | ✅ **Core delivered (2026-09-07)** — pytest suite (32 tests, 3.11+3.14), error envelope, GitHub Actions CI, Docker up-tested, admin UI, PDF/Excel reports, **architecture alignment P1–P7 landed** (gateway hardening, service modularization, `ai_engine`, infra scaffolds, push-token notification API, §21 web nav). **M4 backlog delivered (2026-09-07/08)**: mobile offline sync + push registration, web Vitest (18) + mobile jest (31) coverage, web sidebar/theme UI pass, Profile page, shared-auth mobile fix, `run_all` one-terminal launcher, final presentation + Milestone 3/4 notes. Remaining: cloud deployment, on-device E2E (native push) |
 
 ---
 
 ## Offline-First Strategy
-- **Local Caching**: All cognitive challenges cached on mobile device via Expo SQLite/AsyncStorage. ⚠️ **Not implemented** — `offline-cache-schemas.ts` defines types only; no storage engine wired.
-- **Idempotent Sync**: Background telemetry sync uses PostgreSQL `ON CONFLICT (upsert)` to handle duplicate records. ⚠️ **Server side implemented** (`/sync/pending`, `/sync/pull`); **mobile never calls these endpoints**.
-- **Offline Functionality**: App usable offline; challenges downloaded on demand; results uploaded on reconnect. ❌ **Not implemented** — app requires network for all flows.
-- **Conflict Resolution**: Server-first policy for versioned data; local changes merged only if server has no newer version. ❌ **Not implemented**.
+- **Local Caching**: All cognitive challenges cached on mobile device via Expo SQLite/AsyncStorage. ✅ **Implemented (2026-09-07)** — `mobile/src/sync/offlineStore.js` (AsyncStorage table store) + `mobile/src/sync/syncEngine.js`; Home caches alarms + habit score, Challenge caches challenge payload + completed attempt.
+- **Idempotent Sync**: Background telemetry sync uses PostgreSQL `ON CONFLICT (upsert)` to handle duplicate records. ✅ **Implemented** — `POST /sync/pending` (idempotent upsert) + `GET /sync/pull`; mobile calls them via `syncEngine.js` on screen focus / reconnect.
+- **Offline Functionality**: App usable offline; challenges downloaded on demand; results uploaded on reconnect. ✅ **Implemented** — offline cache fallback with an offline banner on Home; pending records queued with `synced` flag.
+- **Conflict Resolution**: Server-first policy for versioned data; local changes merged only if server has no newer version. ✅ **Implemented** — server-side upsert resolves duplicates by timestamp; sync marks accepted rows synced.
+
+> ⚠️ **On-device E2E pending**: offline + push flows are jest-tested (31) and Metro-bundled, but a native **dev build** is required to exercise remote push (Expo Go disables FCM) and on-device offline transition.
 
 ---
 
-## Current Implementation Status (2026-09-06, post-M3)
+## Current Implementation Status (2026-09-08, post-M4)
 
-> Deep codebase analysis result, refreshed after Milestone 1. Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken
+> Deep codebase analysis result, refreshed after each milestone. Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken
 
 ### Core Modules
 
@@ -182,41 +184,50 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 |---|---|---|
 | Cognitive Alarm Engine | ✅ Complete (M2) | 7 challenge types × 5 difficulties, deterministic templates, on-demand Challenge creation, server-authoritative verification, multi-step + timeouts |
 | Difficulty Adaptation Engine | ✅ Complete (M3) | Trained `difficulty_model.pt` loaded via `MLInferenceService` (`ml-status model_loaded=true`); rule-based fallback retained for robustness |
-| Offline Puzzle Solver | ❌ Not implemented | Schemas only; no caching, no sync engine (M4) |
+| Offline Puzzle Solver | ✅ Implemented (2026-09-07) | AsyncStorage table store + idempotent sync engine wired to `/sync/pending`/`/sync/pull`; Home/Challenge cache + offline banner; jest-tested |
 | Sleep/Wake Telemetry | ✅ Complete (M3) | Adherence/snooze computation exists; sleep window estimated from alarm gaps; real trends + recent activity |
 | Habit Scoring Engine | ✅ Complete | 35/25/20/20 weighted composite + streak bonus (≤10% of component) from real attempt data |
 | Recommendation Engine | ✅ Complete (M3) | `GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted |
 | Dashboard & Analytics | ✅ Complete (M4) | Backend endpoints + RBAC enforced; web charts wired to real data (M3); **admin UI page** (users table, platform metrics, RBAC-gated 403 panel) |
-| Notification & Reminder System | 🟡 P5 channel ready | **Push-token registration API + `push_tokens` table (P5)**; delivery (FCM/APNs) via `integrations/messaging.py` planned; mobile wiring remains M4 backlog |
+| Notification & Reminder System | ✅ P5 channel + mobile wired | **Push-token registration API + `push_tokens` table (P5)**; mobile registers Expo token on login (`notifications/registerPush.js`); FCM/APNs delivery via `integrations/messaging.py` provider (NoopProvider) still needs a native dev build |
 | Reports & Export System | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `/dashboard/reports/{habits,wake-up,challenges}`; async `?async=1` + status endpoint (P4) |
-| Final Integration, Testing & Deployment | 🟡 M4 core | pytest (32) + CI + Docker up-tested; cloud deployment + final presentation pending |
+| Final Integration, Testing & Deployment | 🟡 M4 core+backlog | pytest (32) + CI + Docker up-tested; mobile offline/notifications + web/mobile tests + presentation + docs all delivered; **cloud deployment + on-device E2E pending** |
 
 ### Cross-Cutting Status
 
 | Concern | Status | Detail |
 |---|---|---|
 | Security | 🟡 M1+M2+P1-fixed | Env-driven JWT secret + CORS, RBAC enforced, answer leak fixed (M2), **rate limiting + request-id/logging (P1)** |
-| Mobile integration | 🟡 M2-wired | Alarm-dismiss E2E now matches the backend contract (`/next` → `/submit` → `/dismiss`); profile/settings wired; offline caching still M4 |
+| Mobile integration | 🟡 M2-wired + M4-backlog | Alarm-dismiss E2E matches backend contract (`/next` → `/submit` → `/dismiss`); profile/settings wired; **offline cache + sync + push registration wired (2026-09-07)**; shared-auth `AuthProvider` fixes login-stuck (2026-09-08); on-device E2E pending |
 | Error handling | ✅ Complete (M4) | Global envelope `{detail, error_code, timestamp, status_code}` |
 | Database | ✅ Good | 9 tables (+`push_tokens`); migration chain 0→head verified on fresh DB; SQLite local dev, PostgreSQL via Docker |
-| Testing | 🟡 M4 | pytest (23→32) + smoke_m1 (22) + smoke_m2 (28) gates; mobile/web test coverage pending |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build; pushed to `origin/main` |
+| Testing | ✅ M4-backed | pytest (32) + smoke_m1 (22) + smoke_m2 (25) + **web Vitest (18) + mobile jest (31)** gates |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web test (Vitest) + web build + mobile jest; pushed to `origin/main` |
 
 ### Architecture alignment (P1–P7, approved `plan.md`, landed 2026-09-07)
 Gateway hardening · 12 domain service modules · `ai_engine/` package · optional Redis/worker scaffolds · push-token notification API · §21 grouped web nav · docs audit. Full mapping: **`ARCHITECTURE.md`** (✅ implemented · 🟡 scaffold · 🟥 planned).
 
-### Estimated Overall Completion: **~80%**
+### UI & app-shell pass (web, 2026-09-07/08)
+Sidebar navigation (collapsible 248/76px) with §21 groups · global Light/Dark theme (`theme.js` → `data-theme` + `ck-theme`, cross-tab sync) · auth design system (`components/auth/*`) · `login-bg.svg` hero · new **Profile** page (`PUT /users/profile`) · honest/theme-aware charts (`makeChartOptions`).
+
+### Estimated Overall Completion: **~92%**
 
 ---
 
 ## Known Gaps (from Deep Analysis — post-M2)
 
-1. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; challenge analytics are now real (per-type accuracy, avg solve time).
-2. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; pages silently substitute fake score 70 on API failure.
-3. **No trained ML model file (M3)** — adaptive difficulty uses the rule-based fallback of `ml_inference.py`.
-4. **Zero tests and no CI/CD (M4)** — nothing catches regressions; only `smoke_m1.py`/`smoke_m2.py` manual verification.
-5. **Docker container up-test pending (M4)** — compose config + Dockerfile validate; full `docker compose up` not yet verified end-to-end.
-6. **Offline sync & notifications (M4)** — sync endpoints exist server-side but mobile never calls them; push-token **registration API now exists (P5)** but the mobile app never registers its Expo token.
-10. **Notifications & offline sync not wired (M4)** — see #6; mobile wiring of the P5 endpoint is the remaining gap.
+1. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; ✅ resolved — M3 analytics service returns real sleep/wake estimates + trends.
+2. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; ✅ resolved — M3 wired real data; 2026-09-07 pass removed remaining hardcoded series.
+3. **No trained ML model file (M3)** — ✅ resolved — `difficulty_model.pt` trained + loaded (`ml-status model_loaded=true`).
+4. **Zero tests and no CI/CD (M4)** — ✅ resolved — pytest 32 + Vitest 18 + jest 31 + GitHub Actions.
+5. **Docker container up-test pending (M4)** — ✅ resolved — compose up-tested end-to-end (Postgres + migrations + lean image, PDF/Excel verified in container).
+6. **Offline sync & notifications (M4)** — ✅ resolved 2026-09-07 — mobile sync engine + push-token registration wired and jest-tested.
+10. **Notifications & offline sync not wired (M4)** — ✅ resolved — see #6.
+
+### Remaining gaps (post-M4)
+1. **Cloud deployment** — Docker compose works locally; no real cloud host yet.
+2. **On-device E2E (native push)** — requires an Expo development build; Expo Go disables remote push and local alarm scheduling.
+3. **FCM/APNs delivery provider** — `integrations/messaging.py` ships a NoopProvider protocol; real provider adoption pending.
+4. **Settings persistence** on web dashboard is implemented via `/users/settings` + `/users/{key}`; iPhone local alarm scheduling remains native work.
 
 > ⚠️ **Resolved in M1:** hardcoded JWT secret; admin auth bypass; CORS `*`; `load_dotenv` overriding Docker `DATABASE_URL`; wrong Dockerfile CMD — plus missing `PUT /users/profile` / `PUT /users/{key}` / settings endpoints now exist and are wired in the mobile app.

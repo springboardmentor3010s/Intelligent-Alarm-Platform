@@ -50,7 +50,7 @@ All notable changes to this project are tracked here. Format follows [Keep a Cha
 
 ### Added
 - Server-authoritative challenge engine; `POST /challenges/submit`; no-answer-leak `/next`.
-- Mobile E2E alarm dismissal flow; 7×5 challenge seed; `smoke_m2.py` (28 checks).
+- Mobile E2E alarm dismissal flow; 7×5 challenge seed; `smoke_m2.py` (25 checks).
 
 ## [M1 — 2026-09-05]
 

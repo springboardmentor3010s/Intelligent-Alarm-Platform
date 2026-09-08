@@ -32,8 +32,8 @@ backend/app/
 ├── Models.py          → SQLAlchemy data layer (PostgreSQL local default; SQLite dev/offline)
 └── database.py        → engine/session management
 
-web/                   → React web dashboard (UI layer) — §21 grouped nav                               [P6]
-mobile/                → React Native (Expo) app (UI layer)
+web/                   → React web dashboard (UI layer) — sidebar app-shell, global theme, §21 groups    [P6 + 2026-09-08 UI pass]
+mobile/                → React Native (Expo) app (UI layer) — AuthProvider context, offline sync, push
 migrations/            → Alembic migrations          tests/  → pytest suite (32)
 ml_models/             → trained difficulty_model.pt
 infrastructure/        → Docker, monitoring/logging/backup/security docs                                 [P4]
@@ -65,10 +65,12 @@ infrastructure/        → Docker, monitoring/logging/backup/security docs      
 | 20 | Behavior Analytics Service | ✅ | `services/behavior_analytics_service.py` |
 | 21 | Habit Scoring Service | ✅ | `services/habit_scoring_service.py` |
 | 22 | Recommendation Service | ✅ | `services/recommendation_service.py` + `ai_engine/recommendations.py` |
-| 23 | Notification Service | ✅ | `services/notification_service.py` (register/deregister/list + send boundary) + `api/notifications.py`; delivery provider planned (P5) |
+| 23 | Notification Service | ✅ | `services/notification_service.py` (register/deregister/list + send boundary) + `api/notifications.py` + mobile Expo-token registration on login (`registerPush.js`); FCM/APNs delivery provider planned (P5, needs dev build) |
 | 24 | Analytics Service | ✅ | `services/analytics_service.py` |
 | 25 | Report Service (PDF/Excel/CSV/JSON) | ✅ | `services/report_service.py` |
 | 26 | Admin Service | ✅ | `services/admin_service.py` + `web/src/pages/Admin.jsx` |
+| 27 | Offline-first sync (mobile) | ✅ | `mobile/src/sync/{offlineStore,syncEngine,useSync}.js` → `/sync/pending` `/sync/pull` |
+| 28 | Web app-shell (sidebar + theme + Profile) | ✅ | `web/src/components/`, `web/src/theme.js`, `web/src/navSections.js`, `web/src/pages/Profile.jsx` |
 
 ## 4. AI / ML & Intelligence Engine
 
@@ -115,7 +117,7 @@ Data ownership (§17): each domain service owns its models; no cross-service DB 
 | Area | Status | Where |
 |---|---|---|
 | Docker (compose, Dockerfile, entrypoint, healthchecks) | ✅ | root, `backend/` |
-| CI/CD (ruff + pytest + smokes + web build) | ✅ | `.github/workflows/ci.yml` |
+| CI/CD (ruff + pytest + smokes + web test/build + mobile jest) | ✅ | `.github/workflows/ci.yml` |
 | Security: env secrets, bcrypt, JWT, RBAC, CORS, Pydantic validation | ✅ | `app/`, `.env.example` |
 | Security: rate limiting | ✅ | `gateway/` in-memory (P1) |
 | Monitoring & error tracking | 🟥 | `infrastructure/monitoring.md` — plan documented (P4), implementation planned |
@@ -131,6 +133,6 @@ Data ownership (§17): each domain service owns its models; no cross-service DB 
 
 ## 9. Validation
 
-Continuously validated by: `./scripts/smoke_m1.py` (22) · `./scripts/smoke_m2.py` (28) · `pytest` (32; 23 baseline + 9 P5 notification tests) · `ruff` · `npm run build` · `docker compose up` healthcheck. Full §27 checklist run in P7.
+Continuously validated by: `./scripts/smoke_m1.py` (22) · `./scripts/smoke_m2.py` (25) · `pytest` (32) · `ruff` · web `npm test` (Vitest 18) + `npm run build` · mobile `npx jest --ci` (31) + `expo export` bundle · `docker compose up` healthcheck. Full §27 checklist run in P7. Re-verified end-to-end 2026-09-08 (working tree UI pass committed: 18/18 web · 31/31 mobile · 22+25 smokes · 32 pytest · ruff clean · build clean).
 
-*Last updated: 2026-09-07 (P7 docs sync — P1–P6 all landed; remaining 🟥 rows are intentional-planned).*
+*Last updated: 2026-09-08 (P7 docs sync + M4 backlog: offline sync, push registration, web/mobile tests, UI app-shell pass, milestone notes; remaining 🟥 rows are intentional-planned).*

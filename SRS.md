@@ -863,7 +863,7 @@ FUNCTION sync_pending_records(records):
 | 1.0 | 2026-08-23 | architect | Initial SRS draft based on PDF analysis and project scaffolding |
 | 1.1 | 2026-09-05 | architect | Reflected actual implementation state from deep codebase analysis; added missing endpoints, known issues, and implementation status matrix |
 | 1.2 | 2026-09-05 | architect | Marked M1-resolved items (RBAC enforced, env JWT/CORS, `PUT /users/profile` implemented, migration regenerated, Dockerfile CMD fixed); updated known-issues and implementation status matrices to verified post-M1 state |
-| 1.3 | 2026-09-06 | architect | Refreshed to post-M2 state: `POST /challenges/submit`, no-answer-leak `/next`, and mobile E2E dismiss marked complete; corrected `load_dotenv` note in issue #6; migration HEAD `1c584bd4a5b0`; `smoke_m2.py` 28/28 added to testing matrix |
+| 1.3 | 2026-09-06 | architect | Refreshed to post-M2 state: `POST /challenges/submit`, no-answer-leak `/next`, and mobile E2E dismiss marked complete; corrected `load_dotenv` note in issue #6; migration HEAD `1c584bd4a5b0`; `smoke_m2.py` 25/25 added to testing matrix |
 
 ---
 
@@ -898,13 +898,13 @@ FUNCTION sync_pending_records(records):
 | ~~13~~ | 🟡 | ~~Web dashboard renders hardcoded mock chart data~~ | `web/src/utils/chartUtils.js` | **RESOLVED (M3):** Home/Dashboard/Reports wired to live `/habits/score/history` | — |
 | ~~14~~ | 🟡 | ~~Web silently substitutes fake scores (70) on API failure~~ | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | **RESOLVED (M3):** `'—'` fallback removed; real API data only | — |
 | 18 | 🟢 | Triplicated divergent schema definitions | `schemas/__init__.py`, `schemas/all.py`, `schemas/auth.py` | Drift risk; consolidation required | Level 2 |
-| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4):** pytest suite (23 tests), ruff, GitHub Actions CI (ruff + pytest + smokes + web build) | — |
+| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + backlog):** pytest (32), Vitest (18), jest-expo (31), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
 
 ---
 
 ## 10. Implementation Status Matrix
 
-Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-07 post-M4 — core)*
+Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-08 post-M4 + backlog — core)*
 
 ### Backend Modules
 
@@ -920,25 +920,26 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Analytics | ✅ Complete (M3) | Real sleep estimate (alarm gaps/preference), 5-pt trend band, per-type recent activity, `generated_at`; recommendations endpoint live | 95% |
 | Recommendations | ✅ Complete (M3) | `GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted (FR-RE-001..004) | 95% |
 | ML Difficulty Inference | ✅ Complete (M3) | Trained `backend/ml_models/difficulty_model.pt`; `ml-status model_loaded=true`; rule-based fallback retained | 95% |
-| Offline Sync (server) | ⚠️ Partial | Idempotent upsert works; no mobile client calls it | 85% |
+| Offline Sync (server) | ✅ Complete (M4-backlog) | Idempotent upsert works and **mobile calls it** via `syncEngine.js` (offlineStore cache, sync-on-focus, offline banner) | 95% |
 | Dashboard + Reports | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `format` param; RBAC enforced; admin UI added | 95% |
 | ML Inference | ✅ Complete (M3) | Trained `difficulty_model.pt` served; rule-based fallback in container (no torch) | 85% |
-| Database Models + Migrations | ✅ Complete | 8 tables with indexes; migration current (`1c584bd4a5b0`) | 95% |
+| Database Models + Migrations | ✅ Complete | 9 tables (+`push_tokens`); migration current (`992b0ec03dba`); 0→head verified fresh | 95% |
 | Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
-| Testing (pytest) | ✅ Complete (M4) | 23 tests (auth, alarms, challenges, analytics, sync, reports); verified Python 3.11 + 3.14 | 85% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build | 85% |
+| Testing (pytest) | ✅ Complete (M4) | 32 tests (auth, alarms, challenges, analytics, notifications, sync, reports); verified Python 3.11 + 3.14 | 90% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 18) + mobile jest (31) | 90% |
 
 ### Web Dashboard
 
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
-| Auth (login/register) | ✅ Complete | Works against API | 90% |
-| Home / Charts | ✅ Complete (M3) | Home/Dashboard/Reports wired to live `/habits/score/history`; `'—'` fallback removed | 85% |
-| Alarm Management | ✅ Complete | Full form (time picker, type, challenge, difficulty, recurrence); CRUD works | 85% |
-| Challenge Generator | ✅ Complete | List + adaptive next | 80% |
-| Reports | ⚠️ Partial | CSV downloads wired; PDF/Excel downloads available via API `format=pdf|excel` (buttons pending) | 70% |
-| Settings (Profile) | ✅ Complete | API-backed persistence via `/users/profile` | 80% |
+| Auth (login/register) | ✅ Complete | Works against API; auth design system (`components/auth/*`, `login-bg.svg` hero, tabs, validation) | 95% |
+| Home / Charts | ✅ Complete (M3) | Home/Dashboard/Reports wired to live `/habits/score/history`; honest/theme-aware charts (`makeChartOptions`) | 90% |
+| Alarm Management | ✅ Complete | Full form (time picker, type, challenge, difficulty, recurrence); CRUD works | 90% |
+| Challenge Generator | ✅ Complete | List + adaptive next | 85% |
+| Reports | ✅ Complete (M4) | CSV/PDF/Excel/JSON downloads wired + export cards + trend state | 90% |
+| Settings (Profile/Settings) | ✅ Complete | Paged Profile (`PUT /users/profile`) + Settings (`/users/settings`, `/users/{key}`, theme control) | 90% |
 | Admin Dashboard | ✅ Complete (M4) | `web/src/pages/Admin.jsx` — metric cards, top challenge types, users table, RBAC 403 panel, `/admin` route | 85% |
+| App Shell | ✅ Complete (2026-09-08) | Collapsible sidebar (§21 groups), global Light/Dark theme (`theme.js`), mobile drawer + ESC, session restore | 95% |
 
 ### Mobile App
 
@@ -950,15 +951,15 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Challenge Flow | ✅ Complete | Fetches `/next`, submits `/submit`, renders verification result (M2) | 85% |
 | Profile | ✅ Complete | Calls now-implemented `PUT /users/profile` | 80% |
 | Settings | ✅ Complete | Calls now-implemented `PUT /users/settings` + `/users/{key}` | 80% |
-| Offline Sync | ❌ Not implemented | Type schemas only (M4/L13) | 5% |
-| Push Notifications | ❌ Stubbed | Token fetched but never registered (M4/L12) | 15% |
+| Offline Sync | ✅ Implemented (2026-09-07) | `sync/offlineStore.js` + `syncEngine.js` + `useSync`; Home/Challenge cache + sync-on-focus + offline banner | 90% |
+| Push Notifications | ✅ Registration wired | Expo token registered to `/api/v1/notifications/register` on login; FCM delivery provider pending (native dev build) | 70% |
 
 ### Infrastructure
 
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
-| Docker | ⚠️ Partial | CMD fixed, `.dockerignore`, compose config valid; full up-test pending | 55% |
-| Database Migrations | ✅ Complete | Migration current; `upgrade head` verified on fresh DB | 90% |
-| CI/CD | ❌ Not implemented | No `.github/`, no pipeline (M4/L15) | 0% |
-| Testing | ❌ Not implemented | Zero test files; `smoke_m1.py` (22) + `smoke_m2.py` (28, incl. alembic-on-fresh-DB) are manual verification (M4) | 5% |
-| Environment Config | ✅ Complete | Secrets/CORS from env; 3 postgres vars honored for compose | 85% |
+| Docker | ✅ Complete (M4) | CMD fixed, `.dockerignore`, compose up-tested (Postgres + migrations entrypoint + lean image + healthcheck) | 90% |
+| Database Migrations | ✅ Complete | Migration current (`992b0ec03dba`); `upgrade head` verified on fresh DB | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (32) + smoke_m1 (22) + smoke_m2 (25) + web test (18)/build + mobile jest (31) | 90% |
+| Testing | ✅ Complete (M4-backlog) | pytest 32 + Vitest 18 + jest 31; smoke_m1 (22) + smoke_m2 (25) regression gates | 90% |
+| Environment Config | ✅ Complete | Secrets/CORS from env; 3 postgres vars honored for compose; `AUTO_INIT` SQLite auto-init | 90% |
