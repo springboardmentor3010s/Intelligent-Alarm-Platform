@@ -3,9 +3,15 @@
 .gitattributes
 .github
 .opencode
+.idea/
+.expo/
 **/__pycache__/
 *.pyc
 *.db
+*.zip
+*.csv
+*.pptx
+package-lock.json
 backend/.venv/
 backend/.env
 backend/tests/
@@ -16,5 +22,10 @@ backend/*.egg-info/
 .ruff_cache/
 web/node_modules/
 web/dist/
+web/coverage/
 mobile/node_modules/
 mobile/.expo/
+mobile/coverage/
+presentation/
+Completed Milestones/
+infrastructure/

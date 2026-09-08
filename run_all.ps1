@@ -82,7 +82,35 @@ if ($NoDb) {
   if ($LASTEXITCODE -eq 0) {
     Write-Host "[database] docker compose up -d db" -ForegroundColor $color.database
     & docker compose -f (Join-Path $root 'docker-compose.yml') up -d db 2>&1 | ForEach-Object { Write-Host "[database] $_" -ForegroundColor $color.database }
-    Write-Host "[database] done (Postgres on localhost:5432, container cerebrokognit-db)" -ForegroundColor Green
+    # Wait until Postgres is actually ready (pg_isready inside the container).
+    $composeFile = Join-Path $root 'docker-compose.yml'
+    $pgReady = $false
+    for ($t = 0; $t -lt 30; $t++) {
+      & docker compose -f $composeFile exec -T db pg_isready -U cerebro_user -d cerebro_kognit 2>&1 | Out-Null
+      if ($LASTEXITCODE -eq 0) { $pgReady = $true; break }
+      Start-Sleep -Milliseconds 1000
+    }
+    if ($pgReady) {
+      Write-Host "[database] Postgres ready (container cerebrokognit-db on localhost:5432)" -ForegroundColor Green
+      # A fresh volume has no tables; bootstrap.py only auto-inits SQLite, so
+      # migrate Postgres explicitly. Same URL the compose api service uses.
+      if (Test-Path $py) {
+        Write-Host "[database] applying migrations (alembic upgrade head)..." -ForegroundColor $color.database
+        Push-Location $root
+        try {
+          $env:DATABASE_URL = 'postgresql+psycopg2://cerebro_user:change_me@localhost:5432/cerebro_kognit'
+          & $py -m alembic upgrade head 2>&1 | ForEach-Object { Write-Host "[database] $_" -ForegroundColor $color.database }
+          if ($LASTEXITCODE -eq 0) { Write-Host "[database] migrations applied" -ForegroundColor Green }
+          else { Write-Host "[database] !! alembic upgrade head failed - run it manually (README §3) before using Postgres" -ForegroundColor Red }
+        } finally {
+          Pop-Location
+        }
+      } else {
+        Write-Host "[database] venv missing - skipping migrations (see backend setup in README)" -ForegroundColor Yellow
+      }
+    } else {
+      Write-Host "[database] !! Postgres did not become ready in 30s - backend may fail on fresh DB (run alembic upgrade head manually)" -ForegroundColor Red
+    }
   } else {
     Write-Host "[database] Docker daemon not running - falling back to local SQLite (backend auto-inits it)" -ForegroundColor Yellow
   }

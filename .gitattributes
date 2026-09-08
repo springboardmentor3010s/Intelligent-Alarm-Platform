@@ -14,6 +14,7 @@
 *.sql   text eol=lf
 *.css   text eol=lf
 *.html  text eol=lf
+*.svg   text eol=lf
 *.bat   text eol=crlf
 *.cfg   text eol=lf
 *.ini   text eol=lf
@@ -43,6 +44,7 @@ Dockerfile text eol=lf
 *.pickle binary
 *.xlsx  binary
 *.docx  binary
+*.pptx  binary
 
 # Text files that should never be diffed
 package-lock.json -diff linguist-generated

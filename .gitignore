@@ -11,6 +11,7 @@ venv/
 env/
 mypy.ini
 .pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 
@@ -30,13 +31,18 @@ web/dist/
 .cache/
 .turbo/
 
+# Test coverage
+coverage/
+web/coverage/
+mobile/coverage/
+frontend/coverage/
+
 # Expo / Mobile
 .expo/
 mobile/.expo/
 web-build/
 expo-env.d.ts
 *.orig.*
-web-build/
 
 # IDE
 .idea/
