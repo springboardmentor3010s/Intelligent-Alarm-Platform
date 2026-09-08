@@ -1,51 +1,33 @@
-import React, { Fragment, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Alarms from './pages/AlarmManagement';
 import Challenges from './pages/ChallengeGenerator';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Admin from './pages/Admin';
+import Sidebar from './components/layout/Sidebar';
+import { BrandMark, MenuIcon } from './components/ui';
 
-// §21 navigation hierarchy. Every destination reuses an existing page; items
-// without a dedicated page (Habits Score/Tracking, Sleep, Recommendations,
-// Challenge Performance) are surfaced by the page each link points to, as
-// described in the `title` tooltip.
-const NAV_SECTIONS = [
-  {
-    label: 'Track',
-    links: [
-      { to: '/', label: 'Home', title: "Today's progress" },
-      { to: '/dashboard', label: 'Analytics', title: 'Habits (score · tracking) · Sleep · Analytics · Recommendations' },
-    ],
-  },
-  {
-    label: 'Plan',
-    links: [
-      { to: '/alarms', label: 'Alarms', title: 'Active · History · Create' },
-      { to: '/challenges', label: 'Challenges', title: 'Generator · History · Performance' },
-    ],
-  },
-  {
-    label: 'Account',
-    links: [
-      { to: '/reports', label: 'Reports', title: 'Habit · Wake-up · Challenge exports' },
-      { to: '/settings', label: 'Profile', title: 'Profile & preferences' },
-      { to: '/admin', label: 'Admin', title: 'Users · Reports · Configuration (staff)' },
-    ],
-  },
-];
+function initialsOf(user) {
+  const source = user.full_name || user.email || 'User';
+  const clean = source.split(/[@\s_]+/).filter(Boolean);
+  const chars = clean.length >= 2 ? [clean[0], clean[1]] : [clean[0].slice(0, 2)];
+  return chars.map(c => c[0]?.toUpperCase() || '').join('').slice(0, 2);
+}
 
 function App() {
   const [authed, setAuthed] = useState(!!localStorage.getItem('token'));
   const [restoring, setRestoring] = useState(() => !!localStorage.getItem('token'));
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('ck-sidebar-collapsed') === '1');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Validate a stored token on startup so an expired/invalid JWT doesn't leave
-  // the user stuck on a broken dashboard (every authed call 401s -> "Could not
-  // load"). Mirrors the mobile useAuth fix. Fails fast on 401/403; keeps the
-  // session (with a full list refresh) on a merely transient network error.
+  // the user stuck on a broken dashboard (every authed call 401s). Fails fast
+  // on 401/403; keeps the session on a merely transient network error.
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -77,15 +59,41 @@ function App() {
     return () => { cancelled = true; };
   }, []);
 
+  // Close the mobile drawer on Escape.
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const onKey = e => {
+      if (e.key === 'Escape') setMobileNavOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileNavOpen]);
+
   const handleAuth = () => setAuthed(true);
 
   const handleLogout = () => {
+    setMobileNavOpen(false);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setAuthed(false);
   };
 
-  if (restoring) return <div className="page">Loading session…</div>;
+  const toggleCollapsed = () => {
+    setCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('ck-sidebar-collapsed', next ? '1' : '0');
+      return next;
+    });
+  };
+
+  if (restoring) {
+    return (
+      <div className="session-loading" role="status">
+        <span className="spinner" aria-hidden="true" />
+        <span>Loading session…</span>
+      </div>
+    );
+  }
 
   if (!authed) {
     return (
@@ -99,43 +107,69 @@ function App() {
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const name = user.full_name || user.email?.split('@')[0] || 'User';
+  const email = user.email || '';
+  const initials = initialsOf(user);
+
+  const shellClass = [
+    'app-shell',
+    collapsed ? 'app-shell--collapsed' : '',
+    mobileNavOpen ? 'app-shell--drawer-open' : '',
+  ].filter(Boolean).join(' ');
 
   return (
     <Router>
-      <nav className="app-nav">
-        <span className="brand">
-          <span className="brand-mark">🧠</span> CerebroKognit
-        </span>
-        {NAV_SECTIONS.map(section => (
-          <Fragment key={section.label}>
-            <span className="nav-label">{section.label}</span>
-            {section.links.map(link => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                end={link.to === '/'}
-                title={link.title}
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              >
-                {link.label}
-              </NavLink>
-            ))}
-          </Fragment>
-        ))}
-        <div className="nav-spacer" />
-        <span className="nav-user">Hi, {name}</span>
-        <button onClick={handleLogout} className="nav-logout">Logout</button>
-      </nav>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/alarms" element={<Alarms />} />
-        <Route path="/challenges" element={<Challenges />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+      <div className={shellClass}>
+        <Sidebar
+          name={name}
+          email={email}
+          initials={initials}
+          collapsed={collapsed}
+          onToggleCollapsed={toggleCollapsed}
+          onNavigate={() => setMobileNavOpen(false)}
+          onLogout={handleLogout}
+        />
+
+        {mobileNavOpen && (
+          <button
+            type="button"
+            className="sidebar-overlay"
+            aria-label="Close navigation menu"
+            onClick={() => setMobileNavOpen(false)}
+          />
+        )}
+
+        <div className="app-main">
+          <header className="app-topbar">
+            <button
+              type="button"
+              className="nav-menu-toggle"
+              onClick={() => setMobileNavOpen(v => !v)}
+              aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'}
+              aria-expanded={mobileNavOpen}
+            >
+              <MenuIcon size={20} />
+            </button>
+            <span className="brand app-topbar__brand">
+              <BrandMark size={26} />
+              CerebroKognit
+            </span>
+          </header>
+
+          <main className="app-content">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/alarms" element={<Alarms />} />
+              <Route path="/challenges" element={<Challenges />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </main>
+        </div>
+      </div>
     </Router>
   );
 }

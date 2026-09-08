@@ -1,80 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Grid } from '../styles';
+import { Toggle, SunIcon, MoonIcon } from '../components/ui';
+import { getTheme, setTheme as applyTheme } from '../theme';
+
+const SETTING_KEYS = ['notifications', 'auto_dismiss', 'vibrate'];
+
+const SETTING_META = {
+  notifications: { label: 'Alarm notifications', desc: 'Receive alerts for scheduled alarms' },
+  auto_dismiss: { label: 'Auto-dismiss on challenge', desc: 'Dismiss the alarm once the challenge is solved' },
+  vibrate: { label: 'Haptic feedback', desc: 'Vibrate when the alarm triggers' },
+};
 
 export default function Settings() {
-  const [notifications, setNotifications] = useState(true);
-  const [autoDismiss, setAutoDismiss] = useState(false);
-  const [vibrate, setVibrate] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
+  const [settings, setSettings] = useState({ notifications: true, auto_dismiss: false, vibrate: true });
+  const [theme, setThemeState] = useState(getTheme);
 
-  const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
-  const [profile, setProfile] = useState({
-    full_name: storedUser?.full_name || '',
-    timezone: storedUser?.timezone || 'UTC',
-    difficulty_preference: storedUser?.difficulty_preference || 'Medium',
-  });
-  const [profileMsg, setProfileMsg] = useState(null);
-  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch('/api/v1/users/settings', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data) setSettings({ notifications: !!data.notifications, auto_dismiss: !!data.auto_dismiss, vibrate: !!data.vibrate });
+      })
+      .catch(console.error);
+  }, []);
 
-  const token = localStorage.getItem('token');
-
-  const saveProfile = async (e) => {
-    e.preventDefault();
-    setProfileMsg(null);
-    setSaving(true);
-    try {
-      const res = await fetch('/api/v1/users/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(profile),
-      });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || 'update failed'); }
-      const updated = await res.json();
-      localStorage.setItem('user', JSON.stringify(updated));
-      setProfileMsg({ type: 'success', text: 'Profile saved' });
-    } catch (err) {
-      setProfileMsg({ type: 'error', text: err.message });
-    } finally {
-      setSaving(false);
-    }
+  const setTheme = value => {
+    setThemeState(value);
+    applyTheme(value);
   };
 
-  const Toggle = ({ label, desc, checked, onChange }) => (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', padding: '0.9rem 0', borderBottom: '1px solid var(--border)' }}>
-      <div>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem' }}>{label}</div>
-        {desc && <div className="text-sm text-muted-600" style={{ marginTop: '0.15rem' }}>{desc}</div>}
-      </div>
-      <label style={{ position: 'relative', cursor: 'pointer' }}>
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={onChange}
-          style={{ opacity: 0, position: 'absolute', inset: 0, cursor: 'pointer' }}
-        />
-        <span style={{
-          display: 'inline-block',
-          width: '3rem',
-          height: '1.7rem',
-          borderRadius: '999px',
-          background: checked ? 'var(--accent)' : 'var(--surface-3)',
-          position: 'relative',
-          transition: 'background 0.25s',
-        }}>
-          <span style={{
-            position: 'absolute',
-            top: '0.2rem',
-            left: checked ? '1.5rem' : '0.2rem',
-            width: '1.3rem',
-            height: '1.3rem',
-            borderRadius: '50%',
-            background: '#fff',
-            transition: 'left 0.25s',
-          }} />
-        </span>
-      </label>
-    </div>
-  );
+  const toggleSetting = key => {
+    const next = !settings[key];
+    setSettings(s => ({ ...s, [key]: next }));
+    const token = localStorage.getItem('token');
+    fetch(`/api/v1/users/${key}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ [key]: next }),
+    }).catch(err => console.warn(`Could not persist ${key}`, err));
+  };
 
   return (
     <div className="page">
@@ -85,55 +50,66 @@ export default function Settings() {
         </div>
       </div>
 
-      <Grid>
-        <Card className="p-4">
-          <div className="card-label mb-2">Profile</div>
-          <form onSubmit={saveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
-            <div>
-              <label className="auth-label">Full name</label>
-              <input value={profile.full_name} onChange={e => setProfile({ ...profile, full_name: e.target.value })} placeholder="e.g. Alex Morgan" />
-            </div>
-            <div>
-              <label className="auth-label">Timezone</label>
-              <select value={profile.timezone} onChange={e => setProfile({ ...profile, timezone: e.target.value })}>
-                <option value="UTC">UTC</option>
-                <option value="America/New_York">America/New York</option>
-                <option value="America/Los_Angeles">America/Los Angeles</option>
-                <option value="Europe/London">Europe/London</option>
-                <option value="Asia/Kolkata">Asia/Kolkata</option>
-              </select>
-            </div>
-            <div>
-              <label className="auth-label">Preferred difficulty</label>
-              <select value={profile.difficulty_preference} onChange={e => setProfile({ ...profile, difficulty_preference: e.target.value })}>
-                <option value="Beginner">Beginner</option>
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
-                <option value="Expert">Expert</option>
-              </select>
-            </div>
-            {profileMsg && (
-              <div className={`banner ${profileMsg.type === 'error' ? 'banner-error' : 'banner-success'}`}>
-                {profileMsg.type === 'error' ? '⚠️' : '✓'} {profileMsg.text}
-              </div>
-            )}
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving…' : 'Save Changes'}
-            </button>
-          </form>
-        </Card>
-
+      <Grid className="grid-cards--3">
         <Card className="p-4">
           <div className="card-label mb-2">Alarm Behavior</div>
-          <Toggle label="Alarm notifications" desc="Receive alerts for scheduled alarms" checked={notifications} onChange={() => setNotifications(!notifications)} />
-          <Toggle label="Auto-dismiss on challenge" desc="Dismiss the alarm once the challenge is solved" checked={autoDismiss} onChange={() => setAutoDismiss(!autoDismiss)} />
-          <Toggle label="Haptic feedback" desc="Vibrate when the alarm triggers" checked={vibrate} onChange={() => setVibrate(!vibrate)} />
+          <div className="settings-list">
+            {SETTING_KEYS.map(key => (
+              <Toggle
+                key={key}
+                checked={settings[key]}
+                onChange={() => toggleSetting(key)}
+                label={SETTING_META[key].label}
+                desc={SETTING_META[key].desc}
+              />
+            ))}
+          </div>
         </Card>
 
         <Card className="p-4">
-          <div className="card-label mb-2">Appearance</div>
-          <Toggle label="Dark theme" desc="Midnight interface (recommended)" checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
+          <div className="card-label mb-3">Appearance</div>
+          <div className="text-sm text-muted-600 mb-4">Choose how CerebroKognit looks. Applied instantly across the app.</div>
+          <div className="segmented" role="radiogroup" aria-label="Theme">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={theme === 'dark'}
+              className={`segmented__option ${theme === 'dark' ? 'is-active' : ''}`}
+              onClick={() => setTheme('dark')}
+            >
+              <MoonIcon size={15} /> Dark
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={theme === 'light'}
+              className={`segmented__option ${theme === 'light' ? 'is-active' : ''}`}
+              onClick={() => setTheme('light')}
+            >
+              <SunIcon size={15} /> Light
+            </button>
+          </div>
+          <div className="text-xs text-muted-600 mt-4">
+            Theme is stored locally on this device.
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="card-label mb-2">About</div>
+          <div className="settings-list">
+            <div className="settings-row">
+              <div className="settings-row__label">Application</div>
+              <div className="text-sm text-muted-600">CerebroKognit</div>
+            </div>
+            <div className="settings-row">
+              <div className="settings-row__label">Version</div>
+              <div className="text-sm text-muted-600">{import.meta.env.VITE_APP_VERSION || '1.0.0'}</div>
+            </div>
+            <div className="settings-row">
+              <div className="settings-row__label">Data</div>
+              <div className="text-sm text-muted-600">Synced to your account</div>
+            </div>
+          </div>
         </Card>
       </Grid>
     </div>

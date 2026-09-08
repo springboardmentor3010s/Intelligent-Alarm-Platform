@@ -1,45 +1,122 @@
 /**
- * Chart.js utility data and configuration for CerebroKognit dashboard.
- * Uses the midnight + aurora design palette.
+ * Chart.js utility data and configuration for CerebroKognit.
+ * Charts are honest: they render exactly the data points the API returns —
+ * nothing is padded or fabricated for visual completeness.
  */
 
 const chartConfigs = {
-  wakeUp: { label: 'Wake-up Consistency (%)', border: '#7c8cff', bg: 'rgba(124, 140, 255, 0.15)', dataKey: 'wake_up_consistency' },
-  challenge: { label: 'Challenge Completion (%)', border: '#5ce1a8', bg: 'rgba(92, 225, 168, 0.15)', dataKey: 'challenge_completion' },
-  snooze: { label: 'Snooze Reduction (%)', border: '#ffd579', bg: 'rgba(255, 213, 121, 0.15)', dataKey: 'snooze_reduction' },
-  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#6ee7e0', bg: 'rgba(110, 231, 224, 0.15)', dataKey: 'sleep_schedule_adherence' },
+  wakeUp: { label: 'Wake-up Consistency (%)', border: '#7b8fff', bg: 'rgba(123, 143, 255, 0.12)', dataKey: 'wake_up_consistency' },
+  challenge: { label: 'Challenge Completion (%)', border: '#42d6a4', bg: 'rgba(66, 214, 164, 0.12)', dataKey: 'challenge_completion' },
+  snooze: { label: 'Snooze Reduction (%)', border: '#f5c75a', bg: 'rgba(245, 199, 90, 0.12)', dataKey: 'snooze_reduction' },
+  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#63d8de', bg: 'rgba(99, 216, 222, 0.12)', dataKey: 'sleep_schedule_adherence' },
 };
 
+function dayLabel(date) {
+  const d = new Date(date);
+  return Number.isNaN(d.getTime()) ? date : d.toLocaleDateString(undefined, { weekday: 'short' });
+}
+
+function makeDataset(cfg, data, labels) {
+  return {
+    label: cfg.label,
+    data,
+    labels,
+    borderColor: cfg.border,
+    backgroundColor: cfg.bg,
+    pointBackgroundColor: cfg.border,
+    pointBorderColor: cfg.border,
+    pointRadius: 0,
+    pointHoverRadius: 5,
+    borderWidth: 2,
+    tension: 0.35,
+    fill: true,
+  };
+}
+
 /**
- * Build line-chart datasets from a `/habits/score/history` payload.
- * history entries conform to HabitScoreRes with an ISO `date` field.
+ * Build a single honest line-series from a `/habits/score/history` payload.
+ * @param {Array} history entries with an ISO `date` and the metric key
+ * @param {{dataKey: string, label?: string, border?: string, bg?: string}} cfgOrKey
+ */
+export function buildSeries(history = [], cfgOrKey = {}) {
+  const cfg = typeof cfgOrKey === 'string'
+    ? chartConfigs[cfgOrKey] || { dataKey: cfgOrKey, label: cfgOrKey }
+    : { ...{ dataKey: 'overall_score', label: 'Overall Score (%)' }, ...cfgOrKey };
+  const labels = history.map(h => dayLabel(h.date));
+  return {
+    labels,
+    datasets: [makeDataset(cfg, history.map(h => h[cfg.dataKey]), labels)],
+  };
+}
+
+/**
+ * Build all four sub-metric line-chart datasets from a history payload.
+ * Returns the same stable key set: wakeUp, challenge, snooze, sleep.
  */
 export function buildHabitCharts(history = []) {
-  const dayLabels = history.map((h) => {
-    const d = new Date(h.date);
-    return Number.isNaN(d.getTime()) ? h.date : d.toLocaleDateString(undefined, { weekday: 'short' });
-  });
-
   return Object.fromEntries(
     Object.entries(chartConfigs).map(([key, cfg]) => [
       key,
-      {
-        labels: dayLabels,
-        datasets: [
-          {
-            label: cfg.label,
-            data: history.map((h) => h[cfg.dataKey]),
-            borderColor: cfg.border,
-            backgroundColor: cfg.bg,
-            tension: 0.4,
-            fill: true,
-          },
-        ],
-      },
+      buildSeries(history, cfg),
     ])
   );
 }
 
+/**
+ * Theme-aware options, resolved at render time from the active CSS tokens so
+ * tooltips/grids follow dark and light mode without a module-level rebuild.
+ */
+export function makeChartOptions() {
+  const cs = typeof document !== 'undefined'
+    ? getComputedStyle(document.documentElement)
+    : null;
+  const theme = (v, fallback) => (cs ? (cs.getPropertyValue(v).trim() || fallback) : fallback);
+  const text = theme('--text', '#eef1ff');
+  const muted = theme('--text-muted', '#9aa5cf');
+  const faint = theme('--text-faint', '#6b76a3');
+  const surface = theme('--surface-2', '#1b2547');
+  const border = theme('--border', 'rgba(148,163,255,0.14)');
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: surface,
+        titleColor: text,
+        bodyColor: muted,
+        padding: 10,
+        cornerRadius: 8,
+        displayColors: false,
+        borderColor: border,
+        borderWidth: 1,
+        titleFont: { size: 12, weight: 600 },
+        bodyFont: { size: 12 },
+      },
+    },
+    scales: {
+      y: {
+        min: 0,
+        max: 100,
+        ticks: { color: faint, font: { size: 10 }, stepSize: 25 },
+        grid: { color: border },
+        border: { display: false },
+      },
+      x: {
+        ticks: { color: faint, font: { size: 10 }, maxRotation: 0 },
+        grid: { display: false },
+        border: { display: false },
+      },
+    },
+  };
+}
+
+/**
+ * Static baseline kept as the documented contract (0-100 clamp); pages render
+ * through makeChartOptions() so charts track the active theme.
+ */
 export const chartOptions = {
   responsive: true,
   plugins: {

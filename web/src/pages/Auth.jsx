@@ -1,4 +1,26 @@
 import React, { useState } from 'react';
+import {
+  AuthLayout,
+  AuthBranding,
+  AuthTabs,
+  AuthDivider,
+  TextInput,
+  PasswordInput,
+  SelectInput,
+  Button,
+  BenefitList,
+} from '../components/auth';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const DIFFICULTIES = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
+const TIMEZONES = [
+  'UTC',
+  'America/New_York',
+  'America/Los_Angeles',
+  'Europe/London',
+  'Asia/Kolkata',
+];
 
 export default function Auth({ onAuth }) {
   const [mode, setMode] = useState('login');
@@ -9,21 +31,47 @@ export default function Auth({ onAuth }) {
     timezone: 'UTC',
     difficulty_preference: 'Medium',
   });
+  const [errors, setErrors] = useState({});
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
+  const validate = () => {
+    const e = {};
+    if (!form.email.trim()) e.email = 'Email is required.';
+    else if (!EMAIL_RE.test(form.email.trim())) e.email = 'Enter a valid email address.';
+
+    if (!form.password) e.password = 'Password is required.';
+    else if (mode === 'register' && form.password.length < 8) {
+      e.password = 'Password must contain at least 8 characters.';
+    }
+
+    if (mode === 'register' && !form.full_name.trim()) {
+      e.full_name = 'Full name is required.';
+    }
+    return e;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage(null);
+
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      const first = ['full_name', 'email', 'password'].find((k) => nextErrors[k]);
+      if (first) document.getElementById(first)?.focus();
+      return;
+    }
+
     setLoading(true);
 
     const isLogin = mode === 'login';
     const url = isLogin ? '/api/v1/auth/login' : '/api/v1/auth/register';
     const body = isLogin
-      ? { email: form.email, password: form.password }
-      : { ...form };
+      ? { email: form.email.trim(), password: form.password }
+      : { ...form, email: form.email.trim() };
 
     try {
       const res = await fetch(url, {
@@ -50,6 +98,7 @@ export default function Auth({ onAuth }) {
 
   const demoLogin = async () => {
     setMessage(null);
+    setErrors({});
     setLoading(true);
     const email = 'demo@cerebro.com';
     const password = 'password123';
@@ -77,90 +126,108 @@ export default function Auth({ onAuth }) {
     }
   };
 
-  return (
-    <div className="auth-shell">
-      {/* Hero panel */}
-      <div className="auth-hero">
-        <div className="hero-brand">
-          <span className="brand-mark">🧠</span> CerebroKognit
-        </div>
+  const hero = (
+    <>
+      <AuthBranding />
+      <div className="hero-copy">
         <h1>Win your mornings with a smarter alarm.</h1>
         <p>
           An AI-powered cognitive alarm that wakes you with adaptive,
           brain-engaging challenges — and turns waking up into a daily habit.
         </p>
-        <div className="highlights">
-          <div className="highlight"><span className="dot" style={{ background: 'var(--accent)' }} /> Adaptive difficulty, personalized to you</div>
-          <div className="highlight"><span className="dot" style={{ background: 'var(--accent-2)' }} /> 7 challenge types engineered for your brain</div>
-          <div className="highlight"><span className="dot" style={{ background: 'var(--accent-3)' }} /> Habit scoring & progress insights</div>
-        </div>
       </div>
+      <BenefitList />
+    </>
+  );
 
-      {/* Auth panel */}
-      <div className="auth-panel">
-        <div className="auth-card">
-          <div className="tabs">
-            <button className={`tab ${mode === 'login' ? 'active' : ''}`} onClick={() => setMode('login')}>Login</button>
-            <button className={`tab ${mode === 'register' ? 'active' : ''}`} onClick={() => setMode('register')}>Register</button>
-          </div>
+  const formEl = (
+    <div className="auth-form">
+      <AuthTabs mode={mode} onChange={setMode} />
 
-          {message && (
-            <div className={`banner ${message.type === 'error' ? 'banner-error' : 'banner-success'}`} style={{ marginBottom: '1rem' }}>
-              {message.type === 'error' ? '⚠️' : '✓'} {message.text}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            {mode === 'register' && (
-              <>
-                <div className="auth-field">
-                  <label className="auth-label">Full name</label>
-                  <input value={form.full_name} onChange={update('full_name')} placeholder="e.g. Alex Morgan" />
-                </div>
-                <div className="auth-field">
-                  <label className="auth-label">Preferred difficulty</label>
-                  <select value={form.difficulty_preference} onChange={update('difficulty_preference')}>
-                    <option value="Beginner">Beginner</option>
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
-                    <option value="Expert">Expert</option>
-                  </select>
-                </div>
-                <div className="auth-field">
-                  <label className="auth-label">Timezone</label>
-                  <select value={form.timezone} onChange={update('timezone')}>
-                    <option value="UTC">UTC</option>
-                    <option value="America/New_York">America/New York</option>
-                    <option value="America/Los_Angeles">America/Los Angeles</option>
-                    <option value="Europe/London">Europe/London</option>
-                    <option value="Asia/Kolkata">Asia/Kolkata</option>
-                  </select>
-                </div>
-              </>
-            )}
-
-            <div className="auth-field">
-              <label className="auth-label">Email</label>
-              <input value={form.email} onChange={update('email')} type="email" required placeholder="you@example.com" />
-            </div>
-            <div className="auth-field">
-              <label className="auth-label">Password</label>
-              <input value={form.password} onChange={update('password')} type="password" required minLength={mode === 'register' ? 8 : undefined} placeholder={mode === 'register' ? 'At least 8 characters' : 'Enter your password'} />
-            </div>
-
-            <button type="submit" className="auth-submit" disabled={loading}>
-              {loading ? 'Please wait…' : mode === 'login' ? 'Login' : 'Create Account'}
-            </button>
-          </form>
-
-          <div className="auth-divider">or</div>
-
-          <button onClick={demoLogin} className="demo-btn" disabled={loading}>
-            Login with Demo Account
-          </button>
+      {message && (
+        <div
+          className={`banner ${message.type === 'error' ? 'banner-error' : 'banner-success'}`}
+          role="alert"
+        >
+          {message.type === 'error' ? '⚠️' : '✓'} {message.text}
         </div>
-      </div>
+      )}
+
+      <form onSubmit={handleSubmit} noValidate>
+        {mode === 'register' && (
+          <>
+            <TextInput
+              id="full_name"
+              label="Full name"
+              value={form.full_name}
+              onChange={update('full_name')}
+              placeholder="e.g. Alex Morgan"
+              autoComplete="name"
+              error={errors.full_name}
+            />
+            <SelectInput
+              id="difficulty_preference"
+              label="Preferred difficulty"
+              value={form.difficulty_preference}
+              onChange={update('difficulty_preference')}
+              error={errors.difficulty_preference}
+            >
+              {DIFFICULTIES.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </SelectInput>
+            <SelectInput
+              id="timezone"
+              label="Timezone"
+              value={form.timezone}
+              onChange={update('timezone')}
+              error={errors.timezone}
+            >
+              {TIMEZONES.map((tz) => (
+                <option key={tz} value={tz}>{tz}</option>
+              ))}
+            </SelectInput>
+          </>
+        )}
+
+        <TextInput
+          id="email"
+          label="Email"
+          type="email"
+          value={form.email}
+          onChange={update('email')}
+          placeholder="you@example.com"
+          autoComplete="email"
+          error={errors.email}
+        />
+
+        <PasswordInput
+          id="password"
+          label="Password"
+          value={form.password}
+          onChange={update('password')}
+          placeholder={mode === 'register' ? 'At least 8 characters' : 'Enter your password'}
+          minLength={mode === 'register' ? 8 : undefined}
+          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+          error={errors.password}
+        />
+
+        <div className="auth-form__actions">
+          <Button loading={loading}>
+            {loading
+              ? (mode === 'login' ? 'Logging in…' : 'Creating account…')
+              : (mode === 'login' ? 'Login' : 'Create Account')}
+          </Button>
+        </div>
+      </form>
+
+      <AuthDivider />
+
+      <Button variant="secondary" onClick={demoLogin} loading={loading} type="button">
+        {loading ? 'Signing in…' : 'Login with Demo Account'}
+      </Button>
     </div>
   );
+
+  return <AuthLayout hero={hero} form={formEl} />;
 }

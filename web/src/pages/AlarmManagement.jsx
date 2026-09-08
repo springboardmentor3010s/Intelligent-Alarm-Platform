@@ -1,10 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../styles';
+import {
+  EmptyState,
+  Skeleton,
+  AlarmClockIcon,
+  PlusIcon,
+  TrashIcon,
+  ClockIcon,
+} from '../components/ui';
 
 const ALARM_TYPES = ['Daily', 'Weekday', 'Weekend', 'One-Time'];
 const CHALLENGE_TYPES = ['Math', 'Logic', 'Memory', 'Word', 'Pattern', 'Riddle', 'QuickQuiz'];
 const DIFFICULTIES = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
 const RECURRENCE = ['none', 'daily', 'weekdays', 'weekends'];
+
+const RECURRENCE_LABEL = { none: 'One-Time', daily: 'Daily', weekdays: 'Weekdays', weekends: 'Weekends' };
+
+const EMPTY_FORM = { title: '', type: 'Daily', time: '07:00', challenge_type: 'Math', difficulty: 'Medium', recurrence: 'none' };
 
 export default function AlarmManagement() {
   const [alarms, setAlarms] = useState([]);
@@ -12,7 +24,7 @@ export default function AlarmManagement() {
   const [error, setError] = useState(null);
   const [token] = useState(localStorage.getItem('token'));
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', type: 'Daily', time: '07:00', challenge_type: 'Math', difficulty: 'Medium', recurrence: 'none' });
+  const [form, setForm] = useState(EMPTY_FORM);
 
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -23,12 +35,14 @@ export default function AlarmManagement() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then(setAlarms)
+      .then(data => setAlarms(Array.isArray(data) ? data : []))
       .catch(err => { console.error(err); setError('Could not load alarms.'); })
       .finally(() => setLoading(false));
   };
 
   useEffect(() => { loadAlarms(); }, []);
+
+  const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
   const createAlarm = async (e) => {
     e.preventDefault();
@@ -41,7 +55,7 @@ export default function AlarmManagement() {
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || 'create failed'); }
       setShowForm(false);
-      setForm({ title: '', type: 'Daily', time: '07:00', challenge_type: 'Math', difficulty: 'Medium', recurrence: 'none' });
+      setForm(EMPTY_FORM);
       loadAlarms();
     } catch (err) { setError(err.message); }
   };
@@ -62,109 +76,135 @@ export default function AlarmManagement() {
     } catch (err) { setError(err.message); }
   };
 
-  if (loading) return <div className="page">Loading alarms…</div>;
+  if (loading) {
+    return (
+      <div className="page">
+        <AlarmHeader />
+        <div className="alarm-row"><Skeleton tone="metric" style={{ width: '88px' }} /><Skeleton tone="block" style={{ flex: 1, height: '56px' }} /></div>
+        <div className="alarm-row"><Skeleton tone="metric" style={{ width: '88px' }} /><Skeleton tone="block" style={{ flex: 1, height: '56px' }} /></div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Alarm Management</h1>
-          <div className="subtitle">Create, snooze, and manage your wake-up alarms</div>
-        </div>
+      <AlarmHeader>
         <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
-          {showForm ? 'Cancel' : '+ New Alarm'}
+          <PlusIcon size={16} />
+          {showForm ? 'Cancel' : 'New Alarm'}
         </button>
-      </div>
+      </AlarmHeader>
 
-      {error && <div className="banner banner-error">⚠️ {error}</div>}
+      {error && <div className="banner banner-error">{error}</div>}
 
       {showForm && (
-        <Card className="mb-6">
+        <Card className="form-panel mb-6">
           <div className="card-label mb-4">New Alarm</div>
-          <form onSubmit={createAlarm} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <input
-              value={form.title}
-              onChange={e => setForm({ ...form, title: e.target.value })}
-              placeholder="Alarm title"
-              required
-              style={{ flex: 2, minWidth: '160px' }}
-            />
-            <select
-              value={form.type}
-              onChange={e => setForm({ ...form, type: e.target.value })}
-              style={{ flex: 1, minWidth: '110px' }}
-            >
-              {ALARM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <input
-              type="time"
-              value={form.time}
-              onChange={e => setForm({ ...form, time: e.target.value })}
-              style={{ flex: 1, minWidth: '110px' }}
-            />
-            <select
-              value={form.challenge_type}
-              onChange={e => setForm({ ...form, challenge_type: e.target.value })}
-              style={{ flex: 1, minWidth: '110px' }}
-            >
-              {CHALLENGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <select
-              value={form.difficulty}
-              onChange={e => setForm({ ...form, difficulty: e.target.value })}
-              style={{ flex: 1, minWidth: '110px' }}
-            >
-              {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-            <select
-              value={form.recurrence}
-              onChange={e => setForm({ ...form, recurrence: e.target.value })}
-              style={{ flex: 1, minWidth: '110px' }}
-            >
-              {RECURRENCE.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-            <button type="submit" className="btn btn-primary">Create Alarm</button>
+          <form onSubmit={createAlarm}>
+            <div className="form-grid">
+              <div>
+                <label className="form-field-label" htmlFor="alarm-title">Alarm title</label>
+                <input
+                  id="alarm-title"
+                  value={form.title}
+                  onChange={set('title')}
+                  placeholder="e.g. Morning Boost"
+                />
+              </div>
+              <div>
+                <label className="form-field-label" htmlFor="alarm-type">Alarm type</label>
+                <select id="alarm-type" value={form.type} onChange={set('type')}>
+                  {ALARM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-field-label" htmlFor="alarm-time">Time</label>
+                <input id="alarm-time" type="time" value={form.time} onChange={set('time')} />
+              </div>
+              <div>
+                <label className="form-field-label" htmlFor="alarm-challenge">Challenge</label>
+                <select id="alarm-challenge" value={form.challenge_type} onChange={set('challenge_type')}>
+                  {CHALLENGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-field-label" htmlFor="alarm-difficulty">Difficulty</label>
+                <select id="alarm-difficulty" value={form.difficulty} onChange={set('difficulty')}>
+                  {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-field-label" htmlFor="alarm-recurrence">Recurrence</label>
+                <select id="alarm-recurrence" value={form.recurrence} onChange={set('recurrence')}>
+                  {RECURRENCE.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary">Create Alarm</button>
+              <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
+            </div>
           </form>
         </Card>
       )}
 
       {alarms.length === 0 ? (
-        <div className="empty">
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>⏰</div>
-          No alarms found. Create your first alarm to get started.
+        <div className="mt-6">
+          <EmptyState
+            icon={<AlarmClockIcon size={24} />}
+            title="No alarms yet"
+            description="Create your first cognitive alarm to begin your morning routine."
+            action={
+              <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+                <PlusIcon size={16} /> New Alarm
+              </button>
+            }
+          />
         </div>
       ) : (
-        alarms.map((alarm) => (
-          <div className="list-row" key={alarm.id}>
-            <div>
-              <div className="title">{alarm.title || 'Untitled'}</div>
-              <div className="meta">
-                Next: {alarm.next_trigger ? new Date(alarm.next_trigger).toLocaleString() : 'N/A'}
-                {alarm.challenge_type && (
-                  <span style={{ marginLeft: '0.6rem' }}>
-                    · Challenge: {alarm.challenge_type}/{alarm.difficulty}
-                  </span>
-                )}
-                {alarm.recurrence && alarm.recurrence !== 'none' && (
-                  <span style={{ marginLeft: '0.6rem' }}>· Recur: {alarm.recurrence}</span>
-                )}
+        <div className="mt-6">
+          {alarms.map((alarm) => (
+            <div className="alarm-row" key={alarm.id}>
+              <div className="alarm-time">{alarm.time || '—:—'}</div>
+              <div className="alarm-main">
+                <div className="alarm-title">{alarm.title || 'Untitled alarm'}</div>
+                <div className="alarm-meta">
+                  {alarm.alarm_type}
+                  {alarm.recurrence && alarm.recurrence !== 'none' && ` · ${RECURRENCE_LABEL[alarm.recurrence] || alarm.recurrence}`}
+                  {alarm.challenge_type && ` · ${alarm.challenge_type} · ${alarm.difficulty || ''}`}
+                </div>
+                <div className="alarm-next">
+                  <ClockIcon size={13} />
+                  {alarm.next_trigger ? `Next: ${new Date(alarm.next_trigger).toLocaleString()}` : 'Not scheduled'}
+                </div>
+              </div>
+              <div className="alarm-actions">
+                <span className={`pill alarm-status ${alarm.is_enabled ? 'pill-success' : 'pill-neutral'}`}>
+                  {alarm.is_enabled ? 'Enabled' : 'Disabled'}
+                </span>
+                <button className="btn btn-ghost" onClick={() => snoozeAlarm(alarm.id)}>
+                  <AlarmClockIcon size={16} /> Snooze
+                </button>
+                <button className="btn btn-danger" onClick={() => deleteAlarm(alarm.id)} aria-label={`Delete ${alarm.title || 'alarm'}`}>
+                  <TrashIcon size={15} /> Delete
+                </button>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-              <span className={`pill ${alarm.is_enabled ? 'pill-success' : 'pill-warm'}`}>
-                {alarm.is_enabled ? 'Enabled' : 'Disabled'}
-              </span>
-              <span className="pill">{alarm.alarm_type}</span>
-              {alarm.time && <span className="pill">{alarm.time}</span>}
-              <span className="pill" style={{ background: 'rgba(255,213,121,0.15)', color: 'var(--accent-3)' }}>
-                Snoozed {alarm.times_snoozed}x
-              </span>
-              <button className="btn btn-ghost" onClick={() => snoozeAlarm(alarm.id)}>Snooze</button>
-              <button className="btn btn-danger" onClick={() => deleteAlarm(alarm.id)}>Delete</button>
-            </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
+    </div>
+  );
+}
+
+function AlarmHeader({ children }) {
+  return (
+    <div className="page-header">
+      <div>
+        <h1>Alarms</h1>
+        <div className="subtitle">Create, snooze, and manage your wake-up alarms</div>
+      </div>
+      {children}
     </div>
   );
 }

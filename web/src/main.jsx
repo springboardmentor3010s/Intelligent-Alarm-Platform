@@ -14,6 +14,9 @@ import {
 import App from './App.jsx';
 import './index.css';
 
+// Initialize theme before first paint to avoid a flash of the wrong theme.
+document.documentElement.setAttribute('data-theme', localStorage.getItem('ck-theme') || 'dark');
+
 // Register Chart.js components globally (required by react-chartjs-2)
 ChartJS.register(
   CategoryScale,

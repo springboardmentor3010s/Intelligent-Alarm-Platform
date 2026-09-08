@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import App from './App';
 
 vi.mock('react-chartjs-2', () => ({
@@ -33,6 +33,8 @@ describe('App navigation (§21 grouping)', () => {
   beforeEach(() => {
     localStorage.setItem('token', 'test-token');
     localStorage.setItem('user', JSON.stringify({ email: 'demo@test.io', full_name: 'Demo' }));
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('ck-theme', 'dark');
   });
 
   afterEach(() => {
@@ -73,5 +75,43 @@ describe('App navigation (§21 grouping)', () => {
 
     await waitFor(() => expect(screen.getByText('Win your mornings with a smarter alarm.')).toBeInTheDocument());
     expect(localStorage.getItem('token')).toBeNull();
+  });
+});
+
+describe('global theme switcher (sidebar)', () => {
+  beforeEach(() => {
+    localStorage.setItem('token', 'test-token');
+    localStorage.setItem('user', JSON.stringify({ email: 'demo@test.io', full_name: 'Demo' }));
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('ck-theme', 'dark');
+  });
+
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('switches the entire app to Light and persists it', async () => {
+    mockFetch({ '/api/v1/habits/score': habitScore });
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByRole('navigation')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('radio', { name: 'Use Light theme' }));
+
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(localStorage.getItem('ck-theme')).toBe('light');
+    expect(screen.getByRole('radio', { name: 'Use Light theme' })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('restores the persisted Light theme on boot', async () => {
+    localStorage.setItem('ck-theme', 'light');
+    document.documentElement.setAttribute('data-theme', 'light');
+    mockFetch({ '/api/v1/habits/score': habitScore });
+    render(<App />);
+
+    await waitFor(() =>
+      expect(screen.getByRole('radio', { name: 'Use Light theme' })).toHaveAttribute('aria-checked', 'true')
+    );
   });
 });
