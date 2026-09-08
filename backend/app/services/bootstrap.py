@@ -9,12 +9,11 @@ Disable with AUTO_INIT=0.
 """
 
 import os
-from datetime import datetime, timedelta, timezone
 
 import bcrypt
 
 from ..database import SessionLocal, engine
-from ..Models import Alarm, Base, Challenge, Role, User, UserRole
+from ..Models import Base, Challenge, Role, User, UserRole
 
 DEFAULT_ROLES = [
     ("User", "Standard registered user with alarm and challenge access"),
@@ -77,38 +76,6 @@ def _seed_demo_user(db):
         role = db.query(Role).filter(Role.name == "User").first()
         if role is not None:
             db.add(UserRole(user_id=user.id, role_id=role.id))
-        db.commit()
-
-    if db.query(Alarm).filter(Alarm.user_id == user.id).first() is None:
-        challenge = (
-            db.query(Challenge)
-            .filter(Challenge.challenge_type == "Math", Challenge.difficulty == "Medium")
-            .first()
-        )
-        if challenge is None:
-            challenge = Challenge(
-                title="Morning Math Warm-up",
-                description="Solve simple arithmetic to dismiss the alarm",
-                challenge_type="Math",
-                difficulty="Medium",
-                is_active=True,
-            )
-            db.add(challenge)
-            db.flush()
-
-        now = datetime.now(timezone.utc)
-        next_trigger = (now + timedelta(days=1)).replace(hour=7, minute=0, second=0, microsecond=0)
-        db.add(
-            Alarm(
-                user_id=user.id,
-                title="Morning Boost",
-                alarm_type="Daily",
-                next_trigger=next_trigger,
-                is_enabled=True,
-                challenge_id=challenge.id,
-                times_snoozed=0,
-            )
-        )
         db.commit()
 
 

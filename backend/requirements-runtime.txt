@@ -4,7 +4,8 @@
 # rule-based path when torch is unavailable, and nothing in app/ imports
 # pandas/sklearn/xgboost. Keeping this lean keeps image builds fast.
 
-fastapi>=0.109.0
+fastapi==0.141.1  # pinned: newer starlette testclient requires httpx2
+starlette==1.6.0  # pinned: matches fastapi 0.141.1
 uvicorn[standard]>=0.27.0
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.9

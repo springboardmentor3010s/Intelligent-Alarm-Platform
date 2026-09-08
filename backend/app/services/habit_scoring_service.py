@@ -228,6 +228,23 @@ def get_or_compute_habit_score(
     if existing:
         return _score_payload(existing)
 
+    # Honest zero-data state: no alarms and no attempts means no score exists.
+    # Return 0 without fabricating defaults or writing a row (keeps new accounts
+    # at zero data until they generate real activity).
+    has_activity = (
+        db.query(Alarm.id).filter(Alarm.user_id == user_id).first() is not None
+        or db.query(ChallengeAttempt.id).filter(ChallengeAttempt.user_id == user_id).first() is not None
+    )
+    if not has_activity:
+        return {
+            "date": date,
+            "wake_up_consistency": 0,
+            "challenge_completion": 0,
+            "snooze_reduction": 0,
+            "sleep_schedule_adherence": 0,
+            "overall_score": 0,
+        }
+
     wake_up = _compute_wake_up_consistency(db, user_id, date)
     challenge = _compute_challenge_completion(db, user_id, date)
     snooze = _compute_snooze_reduction(db, user_id, date)

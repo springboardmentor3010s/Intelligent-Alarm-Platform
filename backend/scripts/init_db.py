@@ -1,6 +1,6 @@
 """Database initialization and seed script for CerebroKognit.
 
-Creates all tables and seeds default roles plus a demo user + sample alarm.
+Creates all tables and seeds default roles plus a demo user.
 Usage (from backend/):
     python scripts/init_db.py            # create tables + seed
     python scripts/init_db.py --reset    # drop all tables first, then recreate + seed
@@ -8,7 +8,6 @@ Usage (from backend/):
 
 import os
 import sys
-from datetime import datetime, timedelta, timezone
 
 import bcrypt
 
@@ -16,7 +15,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import SessionLocal, engine  # noqa: E402
 from app.Models import (  # noqa: E402
-    Alarm,
     Base,
     Challenge,
     Role,
@@ -82,39 +80,6 @@ def seed_demo_user(db):
         role = db.query(Role).filter(Role.name == "User").first()
         if role:
             db.add(UserRole(user_id=user.id, role_id=role.id))
-        db.commit()
-
-    # Seed a sample daily challenge-linked alarm if the user has none
-    if not db.query(Alarm).filter(Alarm.user_id == user.id).first():
-        challenge = (
-            db.query(Challenge)
-            .filter(Challenge.challenge_type == "Math", Challenge.difficulty == "Medium")
-            .first()
-        )
-        if challenge is None:
-            challenge = Challenge(
-                title="Morning Math Warm-up",
-                description="Solve simple arithmetic to dismiss the alarm",
-                challenge_type="Math",
-                difficulty="Medium",
-                is_active=True,
-            )
-            db.add(challenge)
-            db.flush()
-
-        now = datetime.now(timezone.utc)
-        next_trigger = (now + timedelta(days=1)).replace(hour=7, minute=0, second=0, microsecond=0)
-        db.add(
-            Alarm(
-                user_id=user.id,
-                title="Morning Boost",
-                alarm_type="Daily",
-                next_trigger=next_trigger,
-                is_enabled=True,
-                challenge_id=challenge.id,
-                times_snoozed=0,
-            )
-        )
         db.commit()
 
 
