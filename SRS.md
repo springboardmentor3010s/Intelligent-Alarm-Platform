@@ -924,7 +924,7 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Offline Sync (server) | ✅ Complete (M4-backlog) | Idempotent upsert works and **mobile calls it** via `syncEngine.js` (offlineStore cache, sync-on-focus, offline banner) | 95% |
 | Dashboard + Reports | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `format` param; RBAC enforced; admin UI added | 95% |
 | ML Inference | ✅ Complete (M3) | Trained `difficulty_model.pt` served; rule-based fallback in container (no torch) | 85% |
-| Database Models + Migrations | ✅ Complete | 9 tables (+`push_tokens`); migration current (`992b0ec03dba`); 0→head verified fresh | 95% |
+| Database Models + Migrations | ✅ Complete | 9 ORM tables (incl. `push_tokens` + `alarm_roles`); migration current (`992b0ec03dba`); 0→head verified fresh | 95% |
 | Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
 | Testing (pytest) | ✅ Complete (M4) | 32 tests (auth, alarms, challenges, analytics, notifications, sync, reports); verified Python 3.11 + 3.14 | 90% |
 | CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 18) + mobile jest (31) | 90% |

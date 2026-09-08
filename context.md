@@ -19,7 +19,7 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | Alembic | 1.19.2 | >=1.13.0 (added M1) | Migrations regenerated & verified |
 | | reportlab | 5.0.1 | >=4.0.0 (added M4) | PDF report export |
 | | openpyxl | 3.1.5 | >=3.1.0 (added M4) | Excel report export |
-| | pytest | 9.1.1 | >=8.0.0 (added M4) | Test suite (`backend/tests/`, 23 tests) |
+| | pytest | 9.1.1 | >=8.0.0 (added M4) | Test suite (`backend/tests/`, 32 tests) |
 | | ruff | 0.16.6 | >=0.8.0 (added M4) | Linter (`backend/pyproject.toml`, E/F/W) |
 | | PyTorch | present | >=2.3.x | ML / adaptive difficulty; **trained `backend/ml_models/difficulty_model.pt` (M3)** |
 | | scikit-learn | present | >=1.4.x | Unused in code |
@@ -37,11 +37,11 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | SQLite | (local dev) | — | Used via `backend/.env` override |
 | | MongoDB | — | 7.x | ⚠️ **Not implemented** — referenced in architecture only |
 | **DevOps** | Docker | Compose v2 | latest | Containerization |
-| | Git & GitHub | — | Latest | Version control; **5 commits, HEAD `3dfe85a` (M2), pushed to `origin/main`** |
-| | GitHub Actions | — | Latest | ⚠️ **Not implemented** — no CI/CD |
+| | Git & GitHub | — | Latest | Version control; `main` synced with `origin` (HEAD `230a83e`, 2026-09-08) |
+| | GitHub Actions | — | Latest | ✅ **Implemented (M4)** — `.github/workflows/ci.yml`: ruff + pytest + smokes + web test/build + mobile jest |
 | **Mobile** | Expo | SDK ~57.0.15 | Latest | React Native framework |
-| | Firebase Cloud Messaging | — | Latest | ⚠️ **Not wired** — token fetched, never registered |
-| | Android Alarm Manager | — | Native | ⚠️ **Not implemented** |
+| | Firebase Cloud Messaging | — | Latest | ⚠️ **Registration wired (P5 + 2026-09-07)** — Expo push token registered via `/notifications/register`; delivery provider still Noop (FCM/APNs pending) |
+| | Android Alarm Manager | — | Native | ⚠️ **Backlog** — on-device local alarm scheduling (Levels 12/16) |
 
 ---
 
@@ -87,6 +87,10 @@ All models defined in `backend/models.py` (SQLAlchemy 2.0 declarative):
 - **`challenges`** — challenge type (Math/Logic/Memory/Word/Pattern/Riddle/QuickQuiz), difficulty (Beginner→Expert), active flag
 - **`challenge_attempts`** — per-attempt tracking: correct/total, time_taken, completion status
 - **`habit_scores`** — daily composite: wake-up consistency (35%), challenge completion (25%), snooze reduction (20%), sleep adherence (20%)
+- **`push_tokens`** — push-notification tokens per user (unique token, platform, cascade delete)
+- **`alarm_roles`** — cooperative alarm assignment junction (alarm_id ↔ role_id)
+
+9 ORM tables total (incl. `push_tokens` + `alarm_roles`); 10 physical in a migrated DB (+ `alembic_version`).
 
 ### Indexes (performance-critical)
 - `ix_users_email_lower` — case-insensitive email lookup
@@ -110,6 +114,9 @@ erDiagram
     CHALLENGE ||--|{ CHALLENGE_ATTEMPT : has_attempts
     CHALLENGE ||--|{ ALARM : triggers
     ALARM ||--|{ CHALLENGE : uses_challenge
+    ALARM ||--|{ ALARM_ROLES : assigned_roles
+    ROLE ||--|{ ALARM_ROLES : assigned_to_alarms
+    USER ||--|{ PUSH_TOKEN : owns_push_tokens
 
     USER {
         int id PK
@@ -179,6 +186,20 @@ erDiagram
         int snooze_reduction 0-100
         int sleep_schedule_adherence 0-100
         int overall_score 0-100
+        datetime created_at
+    }
+
+    ALARM_ROLES {
+        int id PK
+        int alarm_id FK
+        int role_id FK
+    }
+
+    PUSH_TOKEN {
+        int id PK
+        int user_id FK
+        string token UK
+        string platform
         datetime created_at
     }
 ```
@@ -443,7 +464,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 13. **Level 12 — Notifications** — server push-token API + mobile Expo-token registration ✅ DONE (P5 + 2026-09-07); **local scheduling + FCM/APNs delivery provider ⚠️ M4 backlog**
 14. **Level 13 — Offline Sync** — SQLite/AsyncStorage cache + sync engine + screen wiring ✅ DONE (2026-09-07, but on-device E2E pending)
 15. **Level 14 — Testing** — pytest + httpx ✅ backend (32 tests, 3.11+3.14 verified); **web Vitest (18) + mobile jest-expo (31) ✅ added 2026-09-07**; reminders: broader flow-level component coverage
-16. **Level 15 — Linting & CI/CD** — Ruff ✅ (pyproject pragmatic E/F/W config, `ruff check app tests scripts` clean); ESLint/mypy ⚠️; **GitHub Actions ✅ DONE (M4)** (`ci.yml`: ruff + pytest + smokes + web build)
+16. **Level 15 — Linting & CI/CD** — Ruff ✅ (pyproject pragmatic E/F/W config, `ruff check app tests scripts` clean); ESLint/mypy ⚠️; **GitHub Actions ✅ DONE (M4)** (`ci.yml`: ruff + pytest + smokes + web test/build + mobile jest)
 17. **Level 16 — Production Hardening** — monitoring, rate limiting, Sentry, performance fixes
 
 > Full detail for every level: see **`HierarchicalRemediationPlan.md`**.

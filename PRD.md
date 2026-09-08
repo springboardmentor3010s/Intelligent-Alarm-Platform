@@ -200,7 +200,7 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | Security | 🟡 M1+M2+P1-fixed | Env-driven JWT secret + CORS, RBAC enforced, answer leak fixed (M2), **rate limiting + request-id/logging (P1)** |
 | Mobile integration | 🟡 M2-wired + M4-backlog | Alarm-dismiss E2E matches backend contract (`/next` → `/submit` → `/dismiss`); profile/settings wired; **offline cache + sync + push registration wired (2026-09-07)**; shared-auth `AuthProvider` fixes login-stuck (2026-09-08); on-device E2E pending |
 | Error handling | ✅ Complete (M4) | Global envelope `{detail, error_code, timestamp, status_code}` |
-| Database | ✅ Good | 9 tables (+`push_tokens`); migration chain 0→head verified on fresh DB; SQLite local dev, PostgreSQL via Docker |
+| Database | ✅ Good | 9 ORM tables (incl. `push_tokens` + `alarm_roles`); migration chain 0→head verified on fresh DB; SQLite local dev, PostgreSQL via Docker |
 | Testing | ✅ M4-backed | pytest (32) + smoke_m1 (22) + smoke_m2 (25) + **web Vitest (18) + mobile jest (31)** gates |
 | CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web test (Vitest) + web build + mobile jest; pushed to `origin/main` |
 

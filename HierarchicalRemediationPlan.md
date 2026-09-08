@@ -81,7 +81,7 @@
 ---
 
 ## Level 3: Database & Migrations
-**Status: 🟡 PARTIAL (M1)** — 3.1 import/env fixes ✅ · 3.2 migration regenerated (`732e5cb49bcf` initial + `1c584bd4a5b0` answer-data) + verified on fresh DB ✅ · 3.3 startup init ⏳ manual `init_db.py` only (Docker entrypoint not wired) · 3.4 seed script ✅ (roles + demo user + full 7×5 challenge grid)
+**Status: ✅ DONE (M1 + M4)** — 3.1 import/env fixes ✅ · 3.2 migration regenerated (`732e5cb49bcf` initial + `1c584bd4a5b0` answer-data → current head `992b0ec03dba` w/ `push_tokens`, P5) + verified on fresh DB ✅ · 3.3 startup init ✅ (SQLite `bootstrap.py` auto-create + Docker `alembic upgrade head` entrypoint, M4) · 3.4 seed script ✅ (roles + demo user + full 7×5 challenge grid)
 > *Must be working before any feature can be reliably tested.*
 
 ```

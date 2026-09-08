@@ -15,6 +15,7 @@ All notable changes to this project are tracked here. Format follows [Keep a Cha
 
 ### Changed
 - Full doc sync to current state: `README.md` (module %, Known Issues, Vitest (18), SRS v1.4, mobile env override note, docs table), `SRS.md` (header v1.4/2026-09-08 + revision row), `plan.md` (EXECUTED marker, smoke_m2 25/25), `context.md` (continuity rows). All `smoke_m2.py` references normalized to **25/25** (was misreported as 28/28).
+- **Docs consistency sweep (2026-09-08)**: `context.md` tech-matrix refreshed (pytest **32**, git HEAD `230a83e`, GitHub Actions row ✅, FCM row → token registration wired, Android Alarm Manager → backlog, Level 15 CI scope → +web test/build + mobile jest); `push_tokens` + `alarm_roles` added to schema lists + ER diagram; `PRD`/`SRS` table count → 9 ORM (incl. `push_tokens` + `alarm_roles`); `README`/`backend/.env.example` SQLite filename normalized to `cerebrokognit.db`; `HRP` Level 3 status → DONE (bootstrap + Docker entrypoint).
 
 ### Planned (backlog — unchanged)
 - Broader flow-level test coverage (alarm-dismiss flow components).
