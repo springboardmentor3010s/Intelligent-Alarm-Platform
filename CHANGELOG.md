@@ -2,6 +2,27 @@
 
 All notable changes to this project are tracked here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2026-09-08] — M4 backlog close-out + full local-run verification
+
+### Added
+- **Web app-shell UI pass (user-authored, committed)**: fixed 248px collapsible sidebar (`Sidebar.jsx`, `navSections.js`), global theme system (`theme.js` — shared `data-theme` + `ck-theme` persistence + cross-tab sync), auth design system (`Auth.test.jsx`, `ThemeToggle`, `login-bg.svg`), new Profile page, rebuilt Home/Dashboard/Alarms/Challenges/Reports/Settings/Admin as one cohesive product. Vitest 18/18 + `npm run build` clean.
+- **Web test count corrected**: `web` Vitest is **18/18** (chartUtils 5 · Dashboard 1 · Auth 7 · App 5) — prior CHANGELOG/README entries had misreported `8`/`16`. Mobile jest 31/31 (unchanged).
+- **Mobile shared-auth fix**: `context/AuthContext.jsx` (`AuthProvider` + `useAuthContext`) — login/logout/401-expiry now notify the whole tree instead of 7 independent `useAuth()` instances (login-stuck bug fixed). jest 31/31.
+- **One-terminal launcher `run_all.bat`/`run_all.ps1`**: database → backend → web → mobile (**last**, foreground so the Expo QR + `a/w/r/q` keys render); colour-labelled job streaming; `-NoDb` / `-TimeLimitSec N` options; Ctrl+C stops all.
+- **`run_all.ps1` Postgres path fixed**: waits for `pg_isready` then applies `alembic upgrade head` from the repo root (fresh Docker Postgres no longer 500s). Verified end-to-end on 2026-09-08 (10 tables incl. `push_tokens`).
+- **Config hygiene**: `.gitignore` (+`.ruff_cache/`, coverage dirs, dedupe `web-build/`), `.gitattributes` (+`*.pptx binary`, `*.svg text eol=lf`), `.dockerignore` (+`presentation/`, `Completed Milestones/`, `.idea/`, `.expo/`, junk files).
+- **Package-lock / migration HEAD updates**: README migration head → `992b0ec03dba`.
+
+### Changed
+- Full doc sync to current state: `README.md` (module %, Known Issues, Vitest (18), SRS v1.4, mobile env override note, docs table), `SRS.md` (header v1.4/2026-09-08 + revision row), `plan.md` (EXECUTED marker, smoke_m2 25/25), `context.md` (continuity rows). All `smoke_m2.py` references normalized to **25/25** (was misreported as 28/28).
+
+### Planned (backlog — unchanged)
+- Broader flow-level test coverage (alarm-dismiss flow components).
+- FCM/APNs delivery provider + local alarm scheduling on-device (needs Expo **dev build**; Expo Go disables push).
+- Real cloud deployment + monitoring/alerting.
+
+---
+
 ## [Unreleased] — Architecture Alignment (2026-09-07)
 
 ### Added

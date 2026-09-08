@@ -1,6 +1,8 @@
 # Plan — Architecture Alignment: Intelligent Cognitive Alarm Platform
 
-> Status: **approved 2026-09-07**. Source spec: *Architecture Update Specification* (architecture spec ref'd from codebase) + `context.md` milestones.
+> Status: **approved 2026-09-07 · EXECUTED 2026-09-07/08** — P1–P7 landed and the architecture-alignment backlog
+> (mobile offline/sync, push registration, frontend/mobile tests, web app-shell UI pass, presentation) delivered.
+> Source spec: *Architecture Update Specification* (architecture spec ref'd from codebase) + `context.md` milestones.
 > Principle (§25/§20): **do not rewrite working functionality.** Map existing code to target responsibilities; only add/move/refactor where required for architectural consistency. Anything not yet implemented is either implemented-as-scaffold or explicitly documented as **planned**.
 
 ---
@@ -62,7 +64,7 @@ CLIENTS/USERS -> USER INTERFACES -> API GATEWAY (FastAPI) -> MICROSERVICES -> AI
   - **structured logging** (JSON-friendly; method/path/status/duration/trace)
   - **in-memory sliding-window rate limiter** for `/api/v1/auth/*` (e.g. 10/min per IP)
 - Wire into `main.py`. Keep CORS, error envelope, RBAC, `/health`, OpenAPI untouched.
-- **Gate:** pytest 23 ✓ · smoke_m1 22/22 ✓ · smoke_m2 28/28 ✓ · ruff ✓ · `X-Request-ID` echo verified.
+- **Gate:** pytest 23 ✓ · smoke_m1 22/22 ✓ · smoke_m2 25/25 ✓ · ruff ✓ · `X-Request-ID` echo verified.
 
 ### P2 — Service modularization (reorganize, zero logic change)
 - Split `services/` into one module per domain, preserving signatures via thin import shims used by `api/`:

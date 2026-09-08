@@ -1,8 +1,8 @@
 # SRS.md - Software Requirements Specification (IEEE Format)
 
 **System**: Intelligent Cognitive Alarm Platform  
-**Version**: 1.3  
-**Date**: 2026-09-06  
+**Version**: 1.4  
+**Date**: 2026-09-08  
 **Organization**: CerebroKognit Project  
 **Contact**: architect@cerebrokognit.local
 
@@ -864,6 +864,7 @@ FUNCTION sync_pending_records(records):
 | 1.1 | 2026-09-05 | architect | Reflected actual implementation state from deep codebase analysis; added missing endpoints, known issues, and implementation status matrix |
 | 1.2 | 2026-09-05 | architect | Marked M1-resolved items (RBAC enforced, env JWT/CORS, `PUT /users/profile` implemented, migration regenerated, Dockerfile CMD fixed); updated known-issues and implementation status matrices to verified post-M1 state |
 | 1.3 | 2026-09-06 | architect | Refreshed to post-M2 state: `POST /challenges/submit`, no-answer-leak `/next`, and mobile E2E dismiss marked complete; corrected `load_dotenv` note in issue #6; migration HEAD `1c584bd4a5b0`; `smoke_m2.py` 25/25 added to testing matrix |
+| 1.4 | 2026-09-08 | architect | Refreshed to post-M4/build state: offline/-first sync + push-token registration rows implemented; testing matrix (pytest 32, Vitest 18, jest-expo 31, ruff, GitHub Actions CI); web app-shell/global-theme/Profile additions; migration HEAD `992b0ec03dba` |
 
 ---
 

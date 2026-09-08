@@ -69,7 +69,7 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 
 **Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 30 REST endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications (P5).
 **Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **§21 grouped navigation**.
-**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); offline caching + notifications pending (M4 backlog — P5 register API ready).
+**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); **offline-first sync + Expo push-token registration wired & jest-tested (2026-09-07)**; native push delivery pending (needs an Expo dev build).
 **Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 9 ORM tables with performance indexes.
 
 ---
@@ -106,6 +106,8 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 > (`a`/`w`/`r`/`q`) appear exactly as with a manual `npx expo start`. Press Ctrl+C or `q` to stop
 > everything. Options: `-NoDb` (skip Postgres, use SQLite), `-TimeLimitSec N` (non-interactive
 > auto-stop, no QR). If the Docker daemon isn't running it falls back to local SQLite automatically.
+> When Postgres is used it waits for readiness and **applies migrations automatically**
+> (`alembic upgrade head`); `-NoDb`/SQLite self-inits on backend startup.
 >
 > ⚠️ **Don't** start uvicorn via `activate` + bare `uvicorn` from the repo root — that can resolve to a
 > stray Python (e.g. a global 3.11) missing the project deps, so the backend crashes at import and
@@ -135,7 +137,7 @@ docker-compose up -d db
 ```bash
 # From project root (or with DATABASE_URL set for a non-default target):
 alembic upgrade head
-# Migration is current with `app/Models.py` (revision 1c584bd4a5b0).
+# Migration is current with `app/Models.py` (revision 992b0ec03dba).
 # `migrations/env.py` honors the `DATABASE_URL` env var; SQLite is the local-dev default.
 ```
 
@@ -246,7 +248,10 @@ FCM_SERVER_KEY=your_fcm_server_key_here
 
 ### Mobile (`.env`)
 ```
-EXPO_PUBLIC_API_URL=http://10.0.2.2:8000  # Android emulator localhost
+# EXPO_PUBLIC_API_URL is an OPTIONAL override - leave it EMPTY in dev.
+# The app auto-derives the backend host from the Metro bundle's hostUri
+# (see mobile/src/utils/api.js), so `localhost` here would mean the device itself.
+EXPO_PUBLIC_API_URL=
 ```
 
 ### Web Dashboard
@@ -285,7 +290,7 @@ Full milestone detail: see `Milestone.md`.
 |---|---|
 | `npm run dev` | Start Vite dev server |
 | `npm run build` | Build for production |
-| `npm test` | Run Vitest frontend unit tests (8) |
+| `npm test` | Run Vitest frontend unit tests (18) |
 
 ### Mobile
 | Command | Description |
@@ -301,11 +306,16 @@ Full milestone detail: see `Milestone.md`.
 | Document | Purpose |
 |---|---|
 | `README.md` | This file — quick start, status, architecture |
-| `SRS.md` | Software Requirements Specification (IEEE format, v1.2) |
+| `SRS.md` | Software Requirements Specification (IEEE format, v1.4) |
 | `PRD.md` | Product Requirements Document — vision, personas, modules |
+| `ARCHITECTURE.md` | Implemented-vs-planned architecture matrix (✅ / 🟡 / 🟥) |
 | `context.md` | System Memory & State Anchor — session continuity, discrepancy matrix |
 | `Milestone.md` | Milestone definitions, tasks, outcomes, evaluation criteria |
+| `plan.md` | Architecture-alignment plan (P1–P7, approved 2026-09-07) |
 | `HierarchicalRemediationPlan.md` | Prioritized remediation roadmap — Levels 0–16 with effort estimates |
+| `UI_Wireframes.md` | Web/mobile wireframes + design tokens |
+| `CHANGELOG.md` | Changelog by milestone |
+| `infrastructure/*.md` | Security checklist, monitoring, logging, backup/DR plans |
 | `presentation/CerebroKognit_Final.pptx` | Final capstone presentation (15 slides + speaker notes) |
 | `presentation/build_presentation.py` | Reproducible generator for the final deck (python-pptx) |
 | `Completed Milestones/Milestone - 1.docx` | Milestone 1 presentation notes (foundation, auth, alarms) |
