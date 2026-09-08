@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../context/AuthContext';
 import { useChallenge } from '../hooks/useChallenge';
 import { apiFetch, authHeaders, parseApiError } from '../utils/api';
 
 export default function AlarmScreen({ navigation }) {
-  const { token } = useAuth();
+  const { token } = useAuthContext();
   const { current, loading, fetchChallenge, submitChallenge, elapsedSeconds } = useChallenge(token);
   const [activeAlarm, setActiveAlarm] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);

@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../context/AuthContext';
 import { useChallenge } from '../hooks/useChallenge';
 import { offlineStore } from '../sync/offlineStore';
 
@@ -13,7 +13,7 @@ const normalizeType = (raw) => {
 };
 
 export default function ChallengeScreen({ route, navigation }) {
-  const { token } = useAuth();
+  const { token } = useAuthContext();
   const { type } = route.params || {};
   const { current, loading, fetchChallenge, submitChallenge } = useChallenge(token);
   const [answers, setAnswers] = useState([]);

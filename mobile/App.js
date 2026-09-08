@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAuth } from './src/hooks/useAuth';
+import { AuthProvider, useAuthContext } from './src/context/AuthContext';
 import HomeScreen from './src/screens/HomeScreen';
 import AlarmScreen from './src/screens/AlarmScreen';
 import ChallengeScreen from './src/screens/ChallengeScreen';
@@ -12,8 +12,8 @@ import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
-  const { isLoggedIn, loading: authLoading } = useAuth();
+function AppNavigator() {
+  const { isLoggedIn, loading: authLoading } = useAuthContext();
 
   // Show a loading screen while checking auth state
   if (authLoading) {
@@ -45,5 +45,13 @@ export default function App() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppNavigator />
+    </AuthProvider>
   );
 }

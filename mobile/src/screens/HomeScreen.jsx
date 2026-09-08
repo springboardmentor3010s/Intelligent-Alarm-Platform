@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../context/AuthContext';
 import { useHabitScore } from '../hooks/useHabitScore';
 import { apiFetch } from '../utils/api';
 import { offlineStore } from '../sync/offlineStore';
 import { useSync } from '../sync/useSync';
 
 export default function HomeScreen({ navigation }) {
-  const { user, token } = useAuth();
+  const { user, token } = useAuthContext();
   const { score: habitScore, loading: scoreLoading, fetchHabitScore } = useHabitScore(token);
   const { syncing, run: runSync } = useSync(token);
   const [alarms, setAlarms] = useState([]);

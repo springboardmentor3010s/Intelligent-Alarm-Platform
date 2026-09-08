@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../context/AuthContext';
 import NetInfo from '@react-native-community/netinfo';
 import { apiFetch } from '../utils/api';
 
 export default function SettingsScreen({ navigation }) {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout } = useAuthContext();
   const [notifications, setNotifications] = useState(user?.notifications !== false);
   const [autoDismiss, setAutoDismiss] = useState(user?.auto_dismiss !== false);
   const [vibrate, setVibrate] = useState(user?.vibrate !== false);
