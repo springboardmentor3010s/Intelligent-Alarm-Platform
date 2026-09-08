@@ -100,6 +100,13 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 > `-Mobile` (also starts Metro `:8081`). The script waits for each service to bind a port and reports
 > status. Run `npm install` / `pip install -r backend\requirements.txt` once first (see below).
 >
+> 🚀 **Whole stack, one terminal:** `.\run_all.bat` starts **database → backend → web → mobile**
+> (mobile **last**) in a single window, streaming colour-labelled output from every service. The
+> mobile part runs in the **foreground** so the Expo Go **QR code** + keyboard shortcuts
+> (`a`/`w`/`r`/`q`) appear exactly as with a manual `npx expo start`. Press Ctrl+C or `q` to stop
+> everything. Options: `-NoDb` (skip Postgres, use SQLite), `-TimeLimitSec N` (non-interactive
+> auto-stop, no QR). If the Docker daemon isn't running it falls back to local SQLite automatically.
+>
 > ⚠️ **Don't** start uvicorn via `activate` + bare `uvicorn` from the repo root — that can resolve to a
 > stray Python (e.g. a global 3.11) missing the project deps, so the backend crashes at import and
 > every `/api/v1/*` call from the web proxy fails with `ECONNREFUSED`. Always pin the interpreter:
