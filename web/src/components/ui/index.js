@@ -9,4 +9,5 @@ export { default as Toggle } from './Toggle';
 export { default as ThemeSwitcher } from './ThemeSwitcher';
 export { default as LiveClock } from './LiveClock';
 export { default as TimeInput } from './TimeInput';
+export { default as TimezonePicker } from './TimezonePicker';
 export * from './Icons';

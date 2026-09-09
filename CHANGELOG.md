@@ -5,12 +5,13 @@ All notable changes to this project are tracked here. Format follows [Keep a Cha
 ## [2026-09-08] — Timezone + 12/24-hour format system (web)
 
 ### Added
+- **Searchable timezone picker** (`components/ui/TimezonePicker.jsx`): click → scrollable dropdown with a type-to-filter search box; matches zone names, cities, regions, offsets, and **plain country names** ("india" → Asia/Kolkata, "usa" → US zones) via `timeZoneTags()` alias map in `utils/timezones.js`; exact country matches rank first; arrow-key navigation + Esc/click-outside close. Used in Profile and the register form.
 - **Web timezone + 12/24-hour format system**: `utils/timezones.js` (full IANA catalog via `Intl.supportedValuesOf('timeZone')` with fallbacks + offset labels, offset-sorted; guarantees `UTC` + `Asia/Kolkata` — some ICU builds omit them / use legacy names), `utils/timeFormat.js` (`ck-time-format` store + `formatDateTime`/`formatDate`/`formatWeekday`/`formatTimeOfDay`/`parseTimeOfDay`/`toTimeInputValue`), `components/ui/LiveClock.jsx` (fixed top-right ticking clock; timezone from `localStorage.user`), `components/ui/TimeInput.jsx` (12h → Hour/Minute/AM-PM selects, 24h → native `<input type="time">`; always emits `HH:MM`), `components/ui/LiveZoneTime` + 12/24 segmented control in Profile.
 - **Backend `time_format` setting**: `User.settings.time_format` ("12"/"24", default "12") via `PUT /api/v1/users/time_format` (whitelisted `_SETTING_KEYS`) + returned in `GET /api/v1/users/settings`; `SettingsUpdateReq` extended; `GET /users/settings` response_model → `Dict[str, object]`; pytest `test_time_format_setting` (default "12", valid "24", invalid → 400, unknown key → 400).
 - **Pages wired**: Profile (catalog timezone select + format toggle), Auth register (catalog select), Home (alarm time/next formatted per preference), AlarmManagement (TimeInput + formatted times), Admin (tz-aware `formatDate`).
 
 ### Changed
-- Web test suite **36/36** (added timezones 3, timeFormat 6, TimeInput 4, LiveClock 2, Profile 3); backend pytest **33**; `npm run build` clean (36.03 KB CSS / 396.96 KB JS).
+- Web test suite **42/42** (added TimezonePicker 6; timezones 3, timeFormat 6, TimeInput 4, LiveClock 2, Profile 3); backend pytest **33**; `npm run build` clean (37.40 KB CSS / 402.97 KB JS).
 
 ---
 

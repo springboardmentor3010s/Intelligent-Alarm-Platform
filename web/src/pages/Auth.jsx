@@ -8,15 +8,14 @@ import {
   PasswordInput,
   SelectInput,
   Button,
+  FormField,
   BenefitList,
 } from '../components/auth';
-
-import { buildTimeZoneOptions } from '../utils/timezones';
+import { TimezonePicker } from '../components/ui';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const DIFFICULTIES = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
-const TIME_ZONE_OPTIONS = buildTimeZoneOptions();
 
 export default function Auth({ onAuth }) {
   const [mode, setMode] = useState('login');
@@ -172,17 +171,14 @@ export default function Auth({ onAuth }) {
                 <option key={d} value={d}>{d}</option>
               ))}
             </SelectInput>
-            <SelectInput
-              id="timezone"
-              label="Timezone"
-              value={form.timezone}
-              onChange={update('timezone')}
-              error={errors.timezone}
-            >
-              {TIME_ZONE_OPTIONS.map((tz) => (
-                <option key={tz.value} value={tz.value}>{tz.label}</option>
-              ))}
-            </SelectInput>
+            <FormField id="timezone" label="Timezone" error={errors.timezone}>
+              <TimezonePicker
+                id="timezone"
+                value={form.timezone}
+                onChange={tz => setForm({ ...form, timezone: tz })}
+                error={errors.timezone}
+              />
+            </FormField>
           </>
         )}
 

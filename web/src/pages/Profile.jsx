@@ -5,8 +5,8 @@ import {
   ErrorState,
   CheckCircleIcon,
   ClockIcon,
+  TimezonePicker,
 } from '../components/ui';
-import { buildTimeZoneOptions } from '../utils/timezones';
 import {
   formatDateTime,
   formatDate,
@@ -15,7 +15,6 @@ import {
 } from '../utils/timeFormat';
 
 const DIFFICULTIES = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
-const TIME_ZONE_OPTIONS = buildTimeZoneOptions();
 
 function initials(name, email) {
   const src = (name || '').trim() || email;
@@ -212,15 +211,11 @@ export default function Profile() {
               </div>
               <div>
                 <label className="form-field-label" htmlFor="profile-tz">Time zone</label>
-                <select
+                <TimezonePicker
                   id="profile-tz"
                   value={form.timezone}
-                  onChange={e => setForm({ ...form, timezone: e.target.value })}
-                >
-                  {TIME_ZONE_OPTIONS.map(tz => (
-                    <option key={tz.value} value={tz.value}>{tz.label}</option>
-                  ))}
-                </select>
+                  onChange={tz => setForm({ ...form, timezone: tz })}
+                />
                 <LiveZoneTime timezone={form.timezone} />
               </div>
               <div>

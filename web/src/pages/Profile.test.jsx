@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react';
 import Profile from './Profile';
 
 const profile = {
@@ -58,15 +58,22 @@ describe('Profile', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders the timezone as a select backed by the full catalog', async () => {
+  it('renders the timezone as a searchable picker backed by the full catalog', async () => {
     mockFetch();
     render(<Profile />);
     await waitFor(() => expect(screen.getByLabelText('Time zone')).toBeInTheDocument());
 
-    const select = screen.getByLabelText('Time zone');
-    expect(select.tagName).toBe('SELECT');
-    expect(select.value).toBe('UTC');
-    expect(select.querySelectorAll('option').length).toBeGreaterThan(300);
+    const combobox = screen.getByRole('combobox', { name: 'Time zone' });
+    expect(combobox.textContent).toContain('UTC');
+
+    fireEvent.click(combobox);
+    const listbox = screen.getByRole('listbox', { name: 'Time zone' });
+    expect(within(listbox).getAllByRole('option').length).toBeGreaterThan(300);
+
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Asia/Kolkata' } });
+    const filtered = within(listbox).getAllByRole('option');
+    expect(filtered.length).toBe(1);
+    expect(filtered[0].textContent).toContain('Asia/Kolkata');
   });
 
   it('switching to 24-hour and saving persists to backend + local store', async () => {
@@ -93,7 +100,11 @@ describe('Profile', () => {
     await waitFor(() => expect(screen.getByLabelText('Full Name')).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText('Full Name'), { target: { value: 'New Name' } });
-    fireEvent.change(screen.getByLabelText('Time zone'), { target: { value: 'Asia/Kolkata' } });
+
+    const combobox = screen.getByRole('combobox', { name: 'Time zone' });
+    fireEvent.click(combobox);
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Asia/Kolkata' } });
+    fireEvent.click(within(screen.getByRole('listbox')).getByRole('option', { name: /Asia\/Kolkata/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
@@ -101,6 +112,7 @@ describe('Profile', () => {
     const profilePut = global.fetch.mock.calls.find(
       ([url, o]) => !String(url).includes('time_format') && o && o.method === 'PUT'
     );
+    expect(profilePut).toBeTruthy();
     const body = JSON.parse(profilePut[1].body);
     expect(body.full_name).toBe('New Name');
     expect(body.timezone).toBe('Asia/Kolkata');
