@@ -146,7 +146,7 @@ class AuthService:
         )
 
 
-_SETTING_KEYS = {"notifications", "auto_dismiss", "vibrate"}
+_SETTING_KEYS = {"notifications", "auto_dismiss", "vibrate", "time_format"}
 
 
 def to_profile(user: User) -> UserProfileRes:
@@ -179,13 +179,17 @@ def update_profile(
     return to_profile(user)
 
 
-def get_user_settings(user: User) -> Dict[str, bool]:
+def get_user_settings(user: User) -> Dict[str, object]:
     """Return the user's app preferences with defaults applied."""
     settings = user.settings or {}
+    time_format = settings.get("time_format", "12")
+    if time_format not in ("12", "24"):
+        time_format = "12"
     return {
         "notifications": bool(settings.get("notifications", True)),
         "auto_dismiss": bool(settings.get("auto_dismiss", False)),
         "vibrate": bool(settings.get("vibrate", True)),
+        "time_format": time_format,
     }
 
 
@@ -204,7 +208,12 @@ def update_user_setting(
     if value is None:
         raise HTTPException(
             status_code=400,
-            detail=f"Missing boolean value for setting: {key}",
+            detail=f"Missing value for setting: {key}",
+        )
+    if key == "time_format" and value not in ("12", "24"):
+        raise HTTPException(
+            status_code=400,
+            detail="time_format must be either '12' or '24'",
         )
     settings[key] = value
     user.settings = settings

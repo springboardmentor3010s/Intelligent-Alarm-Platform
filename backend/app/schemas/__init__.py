@@ -64,6 +64,10 @@ class SettingsUpdateReq(BaseModel):
     notifications: Optional[bool] = None
     auto_dismiss: Optional[bool] = None
     vibrate: Optional[bool] = None
+    time_format: Optional[str] = Field(
+        None,
+        description="Hour display format: '12' (AM/PM) or '24'",
+    )
 
 
 # ============================================================

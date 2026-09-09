@@ -32,7 +32,7 @@ def update_profile(
     return user_service.update_profile(db, current_user, payload)
 
 
-@router.get("/settings", response_model=Dict[str, bool])
+@router.get("/settings", response_model=Dict[str, object])
 def get_settings(
     current_user: User = Depends(get_current_user),
 ):

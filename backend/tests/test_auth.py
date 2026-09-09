@@ -62,3 +62,22 @@ def test_user_profile_and_settings(client, user_headers):
     st = client.get("/api/v1/users/settings", headers=user_headers)
     assert st.status_code == 200
     assert "notifications" in st.json()
+
+
+def test_time_format_setting(client, user_headers):
+    st = client.get("/api/v1/users/settings", headers=user_headers)
+    assert st.status_code == 200
+    assert st.json()["time_format"] == "12"
+
+    upd = client.put("/api/v1/users/time_format", headers=user_headers, json={"time_format": "24"})
+    assert upd.status_code == 200, upd.text
+    assert upd.json()["time_format"] == "24"
+
+    st2 = client.get("/api/v1/users/settings", headers=user_headers)
+    assert st2.json()["time_format"] == "24"
+
+    bad = client.put("/api/v1/users/time_format", headers=user_headers, json={"time_format": "banana"})
+    assert bad.status_code == 400
+
+    unknown = client.put("/api/v1/users/color", headers=user_headers, json={"color": "red"})
+    assert unknown.status_code == 400

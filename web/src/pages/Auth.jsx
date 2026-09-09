@@ -11,16 +11,12 @@ import {
   BenefitList,
 } from '../components/auth';
 
+import { buildTimeZoneOptions } from '../utils/timezones';
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const DIFFICULTIES = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
-const TIMEZONES = [
-  'UTC',
-  'America/New_York',
-  'America/Los_Angeles',
-  'Europe/London',
-  'Asia/Kolkata',
-];
+const TIME_ZONE_OPTIONS = buildTimeZoneOptions();
 
 export default function Auth({ onAuth }) {
   const [mode, setMode] = useState('login');
@@ -183,8 +179,8 @@ export default function Auth({ onAuth }) {
               onChange={update('timezone')}
               error={errors.timezone}
             >
-              {TIMEZONES.map((tz) => (
-                <option key={tz} value={tz}>{tz}</option>
+              {TIME_ZONE_OPTIONS.map((tz) => (
+                <option key={tz.value} value={tz.value}>{tz.label}</option>
               ))}
             </SelectInput>
           </>

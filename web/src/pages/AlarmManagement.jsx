@@ -7,7 +7,9 @@ import {
   PlusIcon,
   TrashIcon,
   ClockIcon,
+  TimeInput,
 } from '../components/ui';
+import { formatTimeOfDay, formatDateTime } from '../utils/timeFormat';
 
 const ALARM_TYPES = ['Daily', 'Weekday', 'Weekend', 'One-Time'];
 const CHALLENGE_TYPES = ['Math', 'Logic', 'Memory', 'Word', 'Pattern', 'Riddle', 'QuickQuiz'];
@@ -119,7 +121,7 @@ export default function AlarmManagement() {
               </div>
               <div>
                 <label className="form-field-label" htmlFor="alarm-time">Time</label>
-                <input id="alarm-time" type="time" value={form.time} onChange={set('time')} />
+                <TimeInput id="alarm-time" value={form.time} onChange={value => setForm({ ...form, time: value })} />
               </div>
               <div>
                 <label className="form-field-label" htmlFor="alarm-challenge">Challenge</label>
@@ -165,7 +167,7 @@ export default function AlarmManagement() {
         <div className="mt-6">
           {alarms.map((alarm) => (
             <div className="alarm-row" key={alarm.id}>
-              <div className="alarm-time">{alarm.time || '—:—'}</div>
+              <div className="alarm-time">{formatTimeOfDay(alarm.time) || '—:—'}</div>
               <div className="alarm-main">
                 <div className="alarm-title">{alarm.title || 'Untitled alarm'}</div>
                 <div className="alarm-meta">
@@ -175,7 +177,7 @@ export default function AlarmManagement() {
                 </div>
                 <div className="alarm-next">
                   <ClockIcon size={13} />
-                  {alarm.next_trigger ? `Next: ${new Date(alarm.next_trigger).toLocaleString()}` : 'Not scheduled'}
+                  {alarm.next_trigger ? `Next: ${formatDateTime(alarm.next_trigger)}` : 'Not scheduled'}
                 </div>
               </div>
               <div className="alarm-actions">

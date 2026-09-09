@@ -3,6 +3,7 @@ import { Line } from 'react-chartjs-2';
 import { Card } from '../styles';
 import { buildSeries, makeChartOptions } from '../utils/chartUtils';
 import { CardSkeleton, ProgressBar, InfoIcon } from '../components/ui';
+import { formatTimeOfDay, formatDateTime, formatWeekday } from '../utils/timeFormat';
 import { Link } from 'react-router-dom';
 
 const WEIGHTS = [
@@ -23,13 +24,11 @@ function greeting() {
 function formatNext(alarm) {
   const d = new Date(alarm.next_trigger);
   const time = alarm.time
-    ? alarm.time
+    ? formatTimeOfDay(alarm.time)
     : Number.isNaN(d.getTime())
       ? '—'
-      : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const day = Number.isNaN(d.getTime())
-    ? 'Scheduled'
-    : d.toLocaleDateString(undefined, { weekday: 'short' });
+      : formatDateTime(alarm.next_trigger);
+  const day = formatWeekday(alarm.next_trigger);
   return { time, day };
 }
 

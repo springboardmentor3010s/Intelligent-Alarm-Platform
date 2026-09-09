@@ -1623,3 +1623,55 @@ html[data-theme='light'] .app-brand-mark { color: #ffffff; box-shadow: inset 0 0
 @media (min-width: 1200px) {
   .grid-cards--metrics { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* Tabular numerals for clocks/times */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Live clock — pinned top-right of the authenticated shell */
+.live-clock {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+}
+.live-clock svg { color: var(--text-muted); flex-shrink: 0; }
+.live-clock__body { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+.live-clock__time { font-weight: 700; font-size: 0.92rem; letter-spacing: 0.01em; }
+.live-clock__meta { font-size: 0.72rem; color: var(--text-muted); }
+@media (max-width: 560px) {
+  .live-clock { top: 10px; right: 10px; padding: 0.4rem 0.6rem; }
+  .live-clock__meta { display: none; }
+}
+
+/* 12h time picker (Hour : Minute AM/PM) */
+.time-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.time-input select { min-width: 0; }
+.time-input__sep { color: var(--text-muted); font-weight: 700; }
+
+/* Live timezone readout inside Profile */
+.tz-live {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.tz-live strong { color: var(--text); font-weight: 600; }
+
+/* 12h/24h format choice in Profile */
+.segmented--format { max-width: 340px; margin-top: 0.25rem; }
+.segmented--format button { flex: 1; white-space: nowrap; }

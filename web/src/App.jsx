@@ -10,7 +10,7 @@ import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Admin from './pages/Admin';
 import Sidebar from './components/layout/Sidebar';
-import { BrandMark, MenuIcon } from './components/ui';
+import { BrandMark, MenuIcon, LiveClock } from './components/ui';
 
 function initialsOf(user) {
   const source = user.full_name || user.email || 'User';
@@ -128,6 +128,8 @@ function App() {
           onNavigate={() => setMobileNavOpen(false)}
           onLogout={handleLogout}
         />
+
+        <LiveClock />
 
         {mobileNavOpen && (
           <button

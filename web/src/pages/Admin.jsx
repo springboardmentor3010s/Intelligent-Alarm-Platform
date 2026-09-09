@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Grid } from '../styles';
 import { CardSkeleton, ErrorState, ProgressBar, Badge, ShieldIcon } from '../components/ui';
+import { formatDate } from '../utils/timeFormat';
 
 async function getJSON(path) {
   const res = await fetch(`/api/v1${path}`, {
@@ -143,7 +144,7 @@ export default function Admin() {
                         </td>
                         <td>{u.is_active ? '✓' : '—'}</td>
                         <td>{u.is_verified ? '✓' : '—'}</td>
-                        <td>{u.created_at ? String(u.created_at).slice(0, 10) : '—'}</td>
+                        <td>{u.created_at ? formatDate(u.created_at) : '—'}</td>
                       </tr>
                     ))}
                   </tbody>
