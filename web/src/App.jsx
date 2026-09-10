@@ -11,7 +11,7 @@ import Auth from './pages/Auth';
 import Admin from './pages/Admin';
 import Landing from './pages/Landing';
 import Sidebar from './components/layout/Sidebar';
-import { BrandMark, MenuIcon, LiveClock } from './components/ui';
+import { LiveClock } from './components/ui';
 
 function initialsOf(user) {
   const source = user.full_name || user.email || 'User';
@@ -23,7 +23,6 @@ function initialsOf(user) {
 function App() {
   const [authed, setAuthed] = useState(!!localStorage.getItem('token'));
   const [restoring, setRestoring] = useState(() => !!localStorage.getItem('token'));
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('ck-sidebar-collapsed') === '1');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Validate a stored token on startup so an expired/invalid JWT doesn't leave
@@ -79,14 +78,6 @@ function App() {
     setAuthed(false);
   };
 
-  const toggleCollapsed = () => {
-    setCollapsed(prev => {
-      const next = !prev;
-      localStorage.setItem('ck-sidebar-collapsed', next ? '1' : '0');
-      return next;
-    });
-  };
-
   if (restoring) {
     return (
       <div className="session-loading" role="status">
@@ -114,7 +105,6 @@ function App() {
 
   const shellClass = [
     'app-shell',
-    collapsed ? 'app-shell--collapsed' : '',
     mobileNavOpen ? 'app-shell--drawer-open' : '',
   ].filter(Boolean).join(' ');
 
@@ -125,8 +115,8 @@ function App() {
           name={name}
           email={email}
           initials={initials}
-          collapsed={collapsed}
-          onToggleCollapsed={toggleCollapsed}
+          mobileOpen={mobileNavOpen}
+          onToggleMobile={() => setMobileNavOpen(v => !v)}
           onNavigate={() => setMobileNavOpen(false)}
           onLogout={handleLogout}
         />
@@ -143,22 +133,6 @@ function App() {
         )}
 
         <div className="app-main">
-          <header className="app-topbar">
-            <button
-              type="button"
-              className="nav-menu-toggle"
-              onClick={() => setMobileNavOpen(v => !v)}
-              aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'}
-              aria-expanded={mobileNavOpen}
-            >
-              <MenuIcon size={20} />
-            </button>
-            <span className="brand app-topbar__brand">
-              <BrandMark size={26} />
-              CerebroKognit
-            </span>
-          </header>
-
           <main className="app-content">
             <Routes>
               <Route path="/" element={<Home />} />
