@@ -2,6 +2,16 @@
 
 All notable changes to this project are tracked here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2026-09-10] — Sidebar hover-reveal collapse control
+
+### Changed
+- **Web sidebar collapse control is now hover-revealed**: the always-visible collapse/expand button was removed from the resting state in `web/src/index.css`. Expanded mode shows only the CerebroKognit logo; hovering (or keyboard-focusing) the sidebar header fades/slides the chevron in at the right via a smooth `opacity`/`width`/`margin`/`transform` transition (`:focus-within` keeps it a11y-exposed). The logo is never covered or overlapped.
+- **Collapsed (icon-only) rail**: the chevron is now a chip anchored inside the rail's right edge (absolute, `pointer-events:none` until shown) that fades in on header hover; the logo nudges left slightly so the two never overlap. The LED dot is hidden in the compact rail.
+- Mobile drawer rule unchanged (no button on ≤1000px drawers).
+- Gates: web **Vitest 42/42** + `npm run build` clean (46.17 KB CSS / 411.83 KB JS).
+
+---
+
 ## [2026-09-10] — Retro-futuristic product-wide redesign (web + mobile)
 
 One design system across the entire CerebroKognit ecosystem — brand palette `#F25912` orange / `#5C3E94` purple / `#412B6B` deep purple / `#211832` deep space, with warm-white + lavender text, font pair Chakra Petch + Barlow (web).

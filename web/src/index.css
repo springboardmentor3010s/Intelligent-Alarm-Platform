@@ -338,12 +338,13 @@ select option { background: var(--surface-2); color: var(--text); }
   transition: width 0.18s ease, transform 0.2s ease;
 }
 
-/* Sidebar header: brand + collapse control */
+/* Sidebar header: brand + contextual collapse control (revealed on hover) */
 .sidebar-head {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0;
   padding: 0 4px 20px;
 }
 .sidebar-brand {
@@ -364,15 +365,32 @@ select option { background: var(--surface-2); color: var(--text); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
+  width: 0;
   height: 30px;
   flex-shrink: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(6px);
+  margin-left: 0;
   border: 1px solid transparent;
   border-radius: var(--radius-xs);
   background: transparent;
   color: var(--text-faint);
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    opacity 0.22s ease,
+    width 0.24s ease,
+    margin-left 0.24s ease,
+    transform 0.24s ease;
+}
+.sidebar-head:hover .sidebar-collapse,
+.sidebar-head:focus-within .sidebar-collapse {
+  width: 30px;
+  opacity: 1;
+  margin-left: 0.5rem;
+  transform: translateX(0);
 }
 .sidebar-collapse:hover {
   color: var(--text);
@@ -517,7 +535,29 @@ select option { background: var(--surface-2); color: var(--text); }
 .app-shell--collapsed .sidebar-user .nav-avatar {
   display: none;
 }
-.app-shell--collapsed .sidebar-head { justify-content: center; padding-left: 0; padding-right: 0; }
+.app-shell--collapsed .sidebar-head { position: static; justify-content: flex-start; padding-left: 0; padding-right: 0; }
+.app-shell--collapsed .sidebar-head .led { display: none; }
+.app-shell--collapsed .sidebar-brand { transition: transform 0.26s ease; }
+.app-shell--collapsed .sidebar-head:hover .sidebar-brand,
+.app-shell--collapsed .sidebar-head:focus-within .sidebar-brand { transform: translateX(-6px); }
+.app-shell--collapsed .sidebar-collapse {
+  position: absolute;
+  top: 25px;
+  right: 0;
+  width: 30px;
+  margin-left: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+.app-shell--collapsed .sidebar-head:hover .sidebar-collapse,
+.app-shell--collapsed .sidebar-head:focus-within .sidebar-collapse {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
 .app-shell--collapsed .sidebar-link { justify-content: center; gap: 0; padding: 0; }
 .app-shell--collapsed .sidebar-footer { align-items: stretch; }
 .app-shell--collapsed .sidebar-theme { align-items: center; }
