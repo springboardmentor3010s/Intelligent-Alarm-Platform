@@ -781,7 +781,6 @@ html[data-theme='light'] .card:hover {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
 }
 .grid-cards > * { min-width: 0; }
-.grid-cards .span-2 { grid-column: span 2; }
 .grid-cards--metrics {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
 }
