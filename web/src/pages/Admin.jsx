@@ -61,19 +61,17 @@ export default function Admin() {
       )}
 
       {loadState === 'denied' && (
-        <Card className="p-4">
-          <div className="state-card">
-            <div className="state-icon"><ShieldIcon size={22} /></div>
-            <div className="state-title">Access Restricted</div>
-            <p className="state-desc">
-              This page requires Administrator or Wellness Coach privileges. If you believe this is an
-              error, contact your system administrator.
-            </p>
-            <div className="state-action">
-              <Link className="btn btn-primary" to="/">Return to Dashboard</Link>
-            </div>
+        <div className="state-card">
+          <div className="state-icon"><ShieldIcon size={22} /></div>
+          <div className="state-title">Access Restricted</div>
+          <p className="state-desc">
+            This page requires Administrator or Wellness Coach privileges. If you believe this is an
+            error, contact your system administrator.
+          </p>
+          <div className="state-action">
+            <Link className="btn btn-primary" to="/">Return to Dashboard</Link>
           </div>
-        </Card>
+        </div>
       )}
 
       {loadState === 'ok' && (

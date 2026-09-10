@@ -106,12 +106,12 @@ export default function Dashboard() {
 
       {error && <div className="banner banner-warning">{error}</div>}
 
-      <Grid className="mb-6 grid-cards--metrics">
+      <Grid className="mb-6 grid-cards--duo">
         <MetricCard label="Overall Score" value={habitScore.overall_score} suffix="/100">
           Weighted from four habit pillars
         </MetricCard>
         {analytics && (
-          <Card className="p-4 span-2">
+          <Card className="p-4">
             <div className="card-label">Analytics Summary</div>
             <div className="metric-grid">
               <div>

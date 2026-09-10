@@ -116,7 +116,7 @@ export default function Reports() {
       {error && <div className="banner banner-warning">{error}</div>}
 
       <div className="reports-grid">
-        <Card className="span-2-s">
+        <Card>
           <div className="card-label mb-2">Habit Score Summary</div>
           <div className="score-hero__value mb-2">
             <span className="num">{reportData.overall_score}</span>

@@ -2,6 +2,29 @@
 
 All notable changes to this project are tracked here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2026-09-10] — Responsive + overflow pass across the whole web app
+
+### Fixed
+- **Horizontal overflow everywhere** (`web/src/index.css`): all grid tracks now use `minmax(min(100%, Npx), 1fr)` (`grid-cards` 300px, `grid-cards--metrics` 320px, `grid-cards--3`, `export-grid`, `form-grid`, `landing-grid`) and every grid/flex child gets `min-width: 0`; `.chart-card`, `.card`, `.metric-grid > *`, `.stat-strip > *`, `.score-hero > *` hardened; `.app-shell` gained an `overflow-x: clip` safety net. Previously a wide card or Chart.js canvas could force a page-level horizontal scrollbar.
+- **Fixed clock collision**: `.page` top padding now clears the global pinned `LiveClock`, and `.page-header` actions can never sit underneath the clock band. `.live-clock` is `white-space: nowrap` (meta hidden ≤560px, compact after the 4rem mobile topbar at 561–1000px).
+- **Dashboard summary layout**: the loaded metrics row was a `span-2` card inside a 4-column grid → blank columns at wide widths and a broken wrap at medium widths. New `.grid-cards--duo` gives "Overall Score + Analytics Summary" a stable 2-up stage on desktop, stacked on mobile; the four chart cards now use the responsive `grid-cards--metrics` (4-across ≥1500px, ~3 at 1440px, 2×2 at ~1280px, single-column mobile). Analytics-summary `metric-grid` tidied to a 2×2 grid (single column ≤560px).
+- **Reports** `.reports-grid` was `repeat(2, 1fr)` unconditionally → tiny columns/overflow on mobile. Now `1fr` below 1024px and `repeat(2, minmax(0,1fr))` on desktop; removed the undefined `span-2-s` class; export buttons share consistent `flex: 1 1 120px` sizing.
+- **Admin restricted state** loses the redundant outer `<Card>` wrapper — the centered `.state-card` is now the only panel.
+- **Profile** side-by-side column uses `minmax(0, 1fr)` (was `minmax(0, 560px)`), so the form column can never overflow.
+- **Alarm rows** stack on ≤640px (time, info, then actions on their own line).
+- **Settings rows** wrap cleanly on small phones (label/description with the switch `flex-shrink: 0`).
+- **Auth** hero headline uses `clamp()` (no fixed 50px), form max-width 420px, and on ≤560px the hero becomes a compact brand band (benefits hidden visually, still in the DOM) so the form isn't pushed off-screen.
+
+### Changed
+- Page headers standardized: `align-items: center`, consistent top margin, `h1` 1.75rem with `line-height: 1.2`; title block `min-width: 0` so long titles wrap instead of overflowing.
+- Cards get a subtle hover elevation (border + soft shadow, light-theme variant); `.quick-action` gained a proper `:focus-visible` ring.
+- `state-card--empty` variant: centered, max-width 480px, centered action row.
+
+### Gates
+- Web **Vitest 42/42** + `npm run build` clean (47.69 KB CSS / 411.77 KB JS). No backend/mobile changes.
+
+---
+
 ## [2026-09-10] — Sidebar logo crossfades into collapse toggle on hover
 
 ### Changed
