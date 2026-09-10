@@ -10,17 +10,18 @@ import {
 } from './components/ui';
 
 /**
- * §21-style navigation hierarchy used by the sidebar and mobile drawer.
- * Every destination reuses an existing page.
+ * Application navigation hierarchy used by the sidebar and mobile drawer —
+ * tracks the product dashboard IA: Dashboard · Alarms · Challenges ·
+ * History · Profile · Settings · Admin.
  */
 export const NAV_SECTIONS = [
   {
     label: 'Track',
     links: [
-      { to: '/', label: 'Home', icon: HomeIcon, title: "Today's progress" },
+      { to: '/', label: 'Dashboard', icon: HomeIcon, title: "Today's cognitive status" },
       {
         to: '/dashboard',
-        label: 'Analytics',
+        label: 'Insights',
         icon: ActivityIcon,
         title: 'Habits (score · tracking) · Sleep · Analytics · Recommendations',
       },
@@ -36,7 +37,7 @@ export const NAV_SECTIONS = [
   {
     label: 'Insights',
     links: [
-      { to: '/reports', label: 'Reports', icon: FileTextIcon, title: 'Habit · Wake-up · Challenge exports' },
+      { to: '/reports', label: 'History', icon: FileTextIcon, title: 'Habit · Wake-up · Challenge history & exports' },
     ],
   },
   {

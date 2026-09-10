@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
+import { BRAND, ui } from '../theme/tokens';
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen() {
   const { user, token, logout, updateUser } = useAuthContext();
   const [email, setEmail] = useState(user?.email || '');
   const [fullName, setFullName] = useState(user?.full_name || '');
@@ -26,9 +28,7 @@ export default function ProfileScreen({ navigation }) {
     try {
       const response = await apiFetch('/api/v1/users/profile', {
         method: 'PUT',
-        headers: { 
-          Authorization: `Bearer ${token}`
-        },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ full_name: fullName, timezone, difficulty_preference: difficulty })
       });
 
@@ -40,7 +40,6 @@ export default function ProfileScreen({ navigation }) {
         Alert.alert('Error', 'Failed to update profile');
       }
     } catch (error) {
-      console.error(error);
       Alert.alert('Error', 'Network error. Please try again.');
     } finally {
       setLoading(false);
@@ -48,48 +47,40 @@ export default function ProfileScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Your Profile</Text>
+    <ScrollView style={ui.screen} contentContainerStyle={styles.content}>
+      <Text style={styles.sysLabel}><Ionicons name="person-outline" size={12} color={BRAND.primary} /> OPERATOR PROFILE</Text>
+      <Text style={styles.title}>Edit Profile</Text>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput style={[styles.input, { backgroundColor: '#e5e7eb' }]} value={email} editable={false} />
-      </View>
+      <Text style={styles.fieldLabel}>EMAIL</Text>
+      <TextInput style={[ui.input, { opacity: 0.6 }]} value={email} editable={false} />
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput style={styles.input} value={fullName} onChangeText={setFullName} placeholder="Enter your name" />
-      </View>
+      <Text style={styles.fieldLabel}>FULL NAME</Text>
+      <TextInput style={ui.input} value={fullName} onChangeText={setFullName} placeholder="Enter your name" placeholderTextColor={ui.inputPlaceholder} />
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Timezone</Text>
-        <TextInput style={styles.input} value={timezone} onChangeText={setTimezone} placeholder="e.g. UTC, Asia/Kolkata" />
-      </View>
+      <Text style={styles.fieldLabel}>TIMEZONE</Text>
+      <TextInput style={ui.input} value={timezone} onChangeText={setTimezone} placeholder="e.g. UTC, Asia/Kolkata" placeholderTextColor={ui.inputPlaceholder} />
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Difficulty Preference</Text>
-        <TextInput style={styles.input} value={difficulty} onChangeText={setDifficulty} placeholder="Beginner/Easy/Medium/Hard/Expert" />
-      </View>
+      <Text style={styles.fieldLabel}>DIFFICULTY PREFERENCE</Text>
+      <TextInput style={ui.input} value={difficulty} onChangeText={setDifficulty} placeholder="Beginner/Easy/Medium/Hard/Expert" placeholderTextColor={ui.inputPlaceholder} />
 
-      <TouchableOpacity style={styles.saveBtn} onPress={saveProfile} disabled={loading}>
-        {loading ? <ActivityIndicator color="white" /> : <Text style={styles.saveText}>Save Changes</Text>}
+      <TouchableOpacity style={[ui.btnPrimary, styles.saveBtn]} onPress={saveProfile} disabled={loading}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={ui.btnPrimaryText}>SAVE CHANGES</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
+        <Ionicons name="log-out-outline" size={18} color={BRAND.danger} />
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 24 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#1f2937', textAlign: 'center', marginBottom: 32 },
-  inputGroup: { marginBottom: 16 },
-  label: { fontSize: 14, color: '#6b7280', marginBottom: 4 },
-  input: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, fontSize: 16, width: '100%', backgroundColor: 'white' },
-  saveBtn: { backgroundColor: '#3b82f6', padding: 16, borderRadius: 8, width: '100%', alignItems: 'center', marginTop: 24 },
-  saveText: { color: 'white', fontWeight: '600', fontSize: 16 },
-  logoutBtn: { marginTop: 24, alignSelf: 'center', padding: 10 },
-  logoutText: { color: '#ef4444', fontWeight: '600' }
+  content: { padding: 24, paddingBottom: 48 },
+  sysLabel: { color: BRAND.primary, fontSize: 11, fontWeight: '700', letterSpacing: 2.5, marginBottom: 8, textTransform: 'uppercase' },
+  title: { ...ui.title, marginBottom: 24 },
+  fieldLabel: { color: BRAND.textFaint, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginTop: 16, marginBottom: 8 },
+  saveBtn: { marginTop: 28 },
+  logoutBtn: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24, padding: 12 },
+  logoutText: { color: BRAND.danger, fontWeight: '700', fontSize: 15 },
 });

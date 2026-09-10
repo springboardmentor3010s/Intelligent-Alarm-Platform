@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { useChallenge } from '../hooks/useChallenge';
 import { apiFetch, authHeaders, parseApiError } from '../utils/api';
+import { BRAND, ui } from '../theme/tokens';
 
 export default function AlarmScreen({ navigation }) {
   const { token } = useAuthContext();
@@ -97,11 +99,12 @@ export default function AlarmScreen({ navigation }) {
 
   if (dismissed) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Alarm dismissed!</Text>
-        <Text style={styles.subtitle}>Great job waking up and solving the challenge.</Text>
-        <TouchableOpacity style={styles.btn} onPress={() => navigation.goBack()}>
-          <Text style={styles.btnText}>Back to Home</Text>
+      <View style={ui.center}>
+        <Ionicons name="checkmark-circle" size={72} color={BRAND.success} />
+        <Text style={styles.dismissTitle}>ALARM DISMISSED</Text>
+        <Text style={styles.dismissSub}>Great job waking up and solving the challenge.</Text>
+        <TouchableOpacity style={ui.btnPrimary} onPress={() => navigation.goBack()}>
+          <Text style={ui.btnPrimaryText}>BACK TO HOME</Text>
         </TouchableOpacity>
       </View>
     );
@@ -109,18 +112,19 @@ export default function AlarmScreen({ navigation }) {
 
   if (initialLoading || loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+      <View style={ui.center}>
+        <ActivityIndicator size="large" color={BRAND.primary} />
+        <Text style={styles.loadingText}>ARMING CHALLENGE…</Text>
       </View>
     );
   }
 
   if (error || !activeAlarm) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.subtitle}>{error || 'No active alarms'}</Text>
-        <TouchableOpacity style={styles.btn} onPress={() => navigation.goBack()}>
-          <Text style={styles.btnText}>Go Back</Text>
+      <View style={ui.center}>
+        <Text style={styles.dismissSub}>{error || 'No active alarms'}</Text>
+        <TouchableOpacity style={ui.btnGhost} onPress={() => navigation.goBack()}>
+          <Text style={ui.btnGhostText}>GO BACK</Text>
         </TouchableOpacity>
       </View>
     );
@@ -130,18 +134,22 @@ export default function AlarmScreen({ navigation }) {
   const timedOut = secondsLeft === 0;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Wake Up Challenge</Text>
-      <Text style={styles.subtitle}>Solve all questions to dismiss your alarm</Text>
+    <ScrollView style={ui.screen} contentContainerStyle={styles.content}>
+      <Text style={styles.sysLabel}><Ionicons name="alarm-outline" size={12} color={BRAND.primary} /> WAKE-UP VERIFICATION</Text>
+      <Text style={styles.title}>Solve to Dismiss</Text>
+      <Text style={styles.subtitle}>Complete every question to unlock this alarm.</Text>
       {secondsLeft !== null && (
-        <Text style={[styles.timer, timedOut && styles.timerExpired]}>
-          {timedOut ? 'Time is up' : `Time left: ${secondsLeft}s`}
-        </Text>
+        <View style={[styles.timerPill, timedOut && styles.timerExpired]}>
+          <Ionicons name="timer-outline" size={16} color={timedOut ? BRAND.danger : BRAND.warm} />
+          <Text style={[styles.timerText, timedOut && { color: BRAND.danger }]}>
+            {timedOut ? 'TIME IS UP' : `${secondsLeft}s REMAINING`}
+          </Text>
+        </View>
       )}
 
       {questions.map((q, index) => (
-        <View key={index} style={styles.questionCard}>
-          <Text style={styles.questionLabel}>Question {index + 1}</Text>
+        <View key={index} style={[ui.card, styles.questionCard]}>
+          <Text style={styles.questionLabel}>QUESTION {index + 1}</Text>
           <Text style={styles.questionText}>{q.prompt}</Text>
           {q.options && q.options.length > 0 ? (
             <View style={styles.optionRow}>
@@ -159,7 +167,7 @@ export default function AlarmScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Your answer"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={ui.inputPlaceholder}
               value={String(answers[index] || '')}
               onChangeText={(v) => setAnswerAt(index, v)}
               editable={!timedOut}
@@ -169,34 +177,61 @@ export default function AlarmScreen({ navigation }) {
       ))}
 
       <TouchableOpacity
-        style={[styles.btn, (submitting || timedOut) && styles.btnDisabled]}
+        style={[ui.btnPrimary, (submitting || timedOut) && styles.btnDisabled]}
         onPress={handleDismiss}
         disabled={submitting || timedOut}
       >
-        {submitting ? <ActivityIndicator color="white" /> : <Text style={styles.btnText}>Submit & Dismiss</Text>}
+        {submitting ? <ActivityIndicator color="#fff" /> : <Text style={ui.btnPrimaryText}>SUBMIT & DISMISS</Text>}
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#0a0a0f' },
   content: { padding: 24, paddingBottom: 48 },
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0f', padding: 24 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 16, color: '#888', marginBottom: 16, textAlign: 'center' },
-  timer: { fontSize: 18, fontWeight: '600', color: '#3b82f6', textAlign: 'center', marginBottom: 16 },
-  timerExpired: { color: '#ef4444' },
-  questionCard: { backgroundColor: '#1f2937', padding: 20, borderRadius: 16, marginBottom: 16 },
-  questionLabel: { fontSize: 12, color: '#9ca3af', marginBottom: 4, textTransform: 'uppercase' },
-  questionText: { fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 16 },
-  optionRow: { flexDirection: 'row', flexWrap: 'wrap' },
-  option: { backgroundColor: '#374151', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, marginRight: 8, marginBottom: 8 },
-  optionSelected: { backgroundColor: '#3b82f6' },
-  optionText: { color: '#ddd', fontWeight: '600', fontSize: 16 },
+  loadingText: { color: BRAND.textFaint, marginTop: 14, fontSize: 12, letterSpacing: 3 },
+  sysLabel: { color: BRAND.primary, fontSize: 11, fontWeight: '700', letterSpacing: 2.5, marginBottom: 8, textTransform: 'uppercase' },
+  title: { ...ui.title },
+  subtitle: { ...ui.subtitle, marginBottom: 18 },
+  dismissTitle: { fontSize: 28, fontWeight: '800', color: BRAND.text, marginTop: 10, marginBottom: 6 },
+  dismissSub: { fontSize: 15, color: BRAND.textDim, textAlign: 'center', marginBottom: 24, maxWidth: 280 },
+  timerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: BRAND.surface2,
+    borderWidth: 1,
+    borderColor: 'rgba(245,199,90,0.4)',
+    borderRadius: 999,
+    paddingVertical: 10,
+    marginBottom: 18,
+  },
+  timerExpired: { borderColor: 'rgba(240,107,130,0.5)' },
+  timerText: { color: BRAND.warm, fontSize: 13, fontWeight: '800', letterSpacing: 1 },
+  questionCard: {},
+  questionLabel: { color: BRAND.primarySoft, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8, textTransform: 'uppercase' },
+  questionText: { fontSize: 18, fontWeight: '600', color: BRAND.text, marginBottom: 16, lineHeight: 25 },
+  optionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  option: {
+    backgroundColor: BRAND.surface2,
+    borderWidth: 1,
+    borderColor: BRAND.borderStrong,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  optionSelected: { backgroundColor: BRAND.primary, borderColor: BRAND.primary },
+  optionText: { color: BRAND.textDim, fontWeight: '600', fontSize: 16 },
   optionTextSelected: { color: '#fff' },
-  input: { backgroundColor: '#374151', borderRadius: 8, padding: 14, fontSize: 18, color: '#fff' },
-  btn: { backgroundColor: '#3b82f6', paddingVertical: 16, borderRadius: 10, alignItems: 'center', marginTop: 8 },
+  input: {
+    backgroundColor: BRAND.inputBg,
+    borderWidth: 1,
+    borderColor: BRAND.borderStrong,
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 18,
+    color: BRAND.text,
+  },
   btnDisabled: { opacity: 0.5 },
-  btnText: { color: 'white', fontWeight: '700', fontSize: 16 },
 });

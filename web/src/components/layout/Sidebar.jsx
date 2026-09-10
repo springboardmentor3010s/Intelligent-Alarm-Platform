@@ -34,6 +34,7 @@ export default function Sidebar({
         <div className="sidebar-brand">
           <BrandMark size={36} />
           <span className="sidebar-brand__word">CerebroKognit</span>
+          <span className="led led--on led--live" title="System online" />
         </div>
         <button
           type="button"

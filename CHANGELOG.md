@@ -2,6 +2,29 @@
 
 All notable changes to this project are tracked here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2026-09-10] — Retro-futuristic product-wide redesign (web + mobile)
+
+One design system across the entire CerebroKognit ecosystem — brand palette `#F25912` orange / `#5C3E94` purple / `#412B6B` deep purple / `#211832` deep space, with warm-white + lavender text, font pair Chakra Petch + Barlow (web).
+
+### Added
+- **Web design system (`index.css`)**: brand token overhaul (dark + light), ambient glows + 48px technical grid + scanlines in `body::before`, orange primary/CTA, retro component system (`.sys-label` micro labels, `.led` status LEDs with pulse, card corner brackets, `.score-ring` conic progress, `.stat-strip`, alarm timeline, countdown, `.pill*`), and a full **landing-page style set** (`.landing*`).
+- **Marketing landing page** (`web/src/pages/Landing.jsx`): brand nav with live LED, hero ("WAKE WITH PURPOSE.") with a live score-ring dashboard mock, 4 feature modules (Intelligent Alarms / Cognitive Challenges / Habit Tracking / Personal Insights), "How it works" 3-step protocol, CTA, footer. Logged-out users land at `/`; `/auth` is the login/register page.
+- **Info architecture v2 web sidebar** (`navSections.js`): Track (Dashboard, Insights), Plan (Alarms, Challenges), Insights (History), Account (Profile, Settings), Administration (Admin); sidebar brand shows a live system LED.
+- **Home = command-center dashboard** (`Home.jsx`): greeting + "Online" sys-label, score ring, Next Alarm card with countdown, 4-stat strip, weighted pillar cards, upcoming schedule timeline, weekly trend, quick actions.
+- **Brand `login-bg.svg`**: regenerated in palette (deep-space base, orange/green... orange/purple glows, neural-net constellation, circuit chip, grid + scanlines).
+- **Mobile design system** (`mobile/src/theme/tokens.js`): `BRAND` palette + shared `ui` StyleSheet helpers (cards, inputs, buttons, sys-labels) replacing the old Material-blue look.
+- **Mobile bottom navigation HOME / ALARMS / INSIGHTS / PROFILE** (`components/MainTabs.jsx`) — custom tab bar (no extra dependency) with orange active glow, rendered inside the native-stack shell (App.js header now deep purple).
+- **New mobile screens**: `screens/AlarmsTab` (full alarm list with edit/delete), `screens/AlarmFormScreen` (create/edit: title, HH:MM time, recurrence types, challenge type, difficulty, question count via segmented chips), `screens/InsightsTab` (score ring hero + 35/25/20/20 pillar bars + 7-day track), `screens/ProfileTab` (identity card + Edit Profile/Settings/Log out), `screens/HomeTab` (score ring, next alarm window, active alarm queue).
+- **Mobile screens restyled**: Login, Challenge, Alarm (wake-up), Profile, Settings — all on the brand palette, orange CTAs, purple cards/borders, LED dots.
+- **Mobile icon mock for jest** (`jest.setup.js`): `@expo/vector-icons` stubbed (expo-font→expo-asset isn't resolvable under jest).
+
+### Changed
+- Uppercased/retro-labeled CTAs across mobile (e.g. "SUBMIT & DISMISS", "CREATE ALARM", "LOGIN").
+- Old monolithic `HomeScreen.jsx` removed (superseded by tab content).
+- Gates: web **Vitest 42/42** + `npm run build` clean (45.17 KB CSS / 411.83 KB JS, `login-bg.svg` emitted); mobile **jest 33/33** + `expo export --platform android` bundles clean; backend pytest **34/34** + ruff clean (no backend changes).
+
+---
+
 ## [2026-09-09] — Snooze fix + searchable timezone picker
 
 ### Fixed

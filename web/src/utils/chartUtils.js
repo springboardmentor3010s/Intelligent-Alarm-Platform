@@ -5,10 +5,10 @@
  */
 
 const chartConfigs = {
-  wakeUp: { label: 'Wake-up Consistency (%)', border: '#7b8fff', bg: 'rgba(123, 143, 255, 0.12)', dataKey: 'wake_up_consistency' },
-  challenge: { label: 'Challenge Completion (%)', border: '#42d6a4', bg: 'rgba(66, 214, 164, 0.12)', dataKey: 'challenge_completion' },
-  snooze: { label: 'Snooze Reduction (%)', border: '#f5c75a', bg: 'rgba(245, 199, 90, 0.12)', dataKey: 'snooze_reduction' },
-  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#63d8de', bg: 'rgba(99, 216, 222, 0.12)', dataKey: 'sleep_schedule_adherence' },
+  wakeUp: { label: 'Wake-up Consistency (%)', border: '#f25912', bg: 'rgba(242, 89, 18, 0.12)', dataKey: 'wake_up_consistency' },
+  challenge: { label: 'Challenge Completion (%)', border: '#8b6bc6', bg: 'rgba(139, 107, 198, 0.14)', dataKey: 'challenge_completion' },
+  snooze: { label: 'Snooze Reduction (%)', border: '#ff8a4d', bg: 'rgba(255, 138, 77, 0.12)', dataKey: 'snooze_reduction' },
+  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#5c3e94', bg: 'rgba(92, 62, 148, 0.16)', dataKey: 'sleep_schedule_adherence' },
 };
 
 function dayLabel(date) {
@@ -71,11 +71,11 @@ export function makeChartOptions() {
     ? getComputedStyle(document.documentElement)
     : null;
   const theme = (v, fallback) => (cs ? (cs.getPropertyValue(v).trim() || fallback) : fallback);
-  const text = theme('--text', '#eef1ff');
-  const muted = theme('--text-muted', '#9aa5cf');
-  const faint = theme('--text-faint', '#6b76a3');
-  const surface = theme('--surface-2', '#1b2547');
-  const border = theme('--border', 'rgba(148,163,255,0.14)');
+  const text = theme('--text', '#f7f3fc');
+  const muted = theme('--text-muted', '#c3b8da');
+  const faint = theme('--text-faint', '#9689b5');
+  const surface = theme('--surface-2', '#4b3278');
+  const border = theme('--border', 'rgba(173,146,224,0.14)');
 
   return {
     responsive: true,

@@ -51,8 +51,8 @@ describe('App navigation (§21 grouping)', () => {
     expect(screen.getByText('Plan')).toBeInTheDocument();
     expect(screen.getByText('Account')).toBeInTheDocument();
 
-    for (const label of ['Home', 'Analytics', 'Alarms', 'Challenges', 'Reports', 'Profile', 'Admin']) {
-      expect(screen.getByText(label)).toBeInTheDocument();
+    for (const label of ['Dashboard', 'Insights', 'Alarms', 'Challenges', 'History', 'Profile', 'Admin']) {
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
   });
 
@@ -64,7 +64,7 @@ describe('App navigation (§21 grouping)', () => {
     render(<App />);
 
     await waitFor(() => expect(screen.getByText("Today's Progress")).toBeInTheDocument());
-    expect(screen.getByText('72')).toBeInTheDocument();
+    expect(screen.getAllByText('72').length).toBeGreaterThan(0);
   });
 
   it('logs out when the stored token is invalid/expired (401)', async () => {
@@ -73,7 +73,7 @@ describe('App navigation (§21 grouping)', () => {
     );
     render(<App />);
 
-    await waitFor(() => expect(screen.getByText('Win your mornings with a smarter alarm.')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/WAKE WITH PURPOSE/i)).toBeInTheDocument());
     expect(localStorage.getItem('token')).toBeNull();
   });
 });

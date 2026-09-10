@@ -13,16 +13,16 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 ## Project Status
 
-> **Current Stage**: Functional Prototype — **Milestones 1–4 delivered** + **M4 backlog (offline sync, mobile push registration, web/mobile tests, UI app-shell pass, presentation) landed** (2026-09-07/08)
-> Status updated: 2026-09-08. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap and `ARCHITECTURE.md` for the implemented-vs-planned mapping.
+> **Current Stage**: Functional Prototype — **Milestones 1–4 delivered** + **M4 backlog (offline sync, mobile push registration, web/mobile tests, UI app-shell pass, presentation) landed** (2026-09-07/08) + **product-wide retro-futuristic redesign (web + mobile) landed** (2026-09-10)
+> Status updated: 2026-09-10. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap and `ARCHITECTURE.md` for the implemented-vs-planned mapping.
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
 | Backend Core Logic | Functional | ~95% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync, **server-authoritative challenge engine** all working & smoke-tested |
 | Backend Security | Good | ~95% | Env-driven JWT secret + CORS, RBAC enforced, **structured error envelope**, **rate limiting + request-id/structured logging (P1)** |
-| Web Dashboard | Good | ~95% | Home/Dashboard/Reports wired to real history charts; admin UI page; **§21 sidebar + global theme + Profile page (app-shell pass 2026-09-08)** |
-| Mobile App | Good | ~75% | **alarm dismiss E2E (next→submit→dismiss) functional**; **offline-first sync engine + Expo push-token registration wired**; **shared-auth AuthProvider (login-stuck fix)**; on-device E2E + native push still pending (dev build) |
-| Testing | Good | ~95% | **Backend pytest suite (32, verified 3.11 + 3.14)**; **web Vitest (18) + mobile jest-expo (31)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
+| Web Dashboard | Good | ~95% | **Retro-futuristic redesign (2026-09-10)**: brand palette `#F25912`/#5C3E94/#412B6B/#211832, landing page, tracked nav IA, Home command-center dashboard, admin UI, brand login-bg |
+| Mobile App | Good | ~80% | **Custom HOME/ALARMS/INSIGHTS/PROFILE bottom nav + redesigned screens (2026-09-10)**; alarm dismiss E2E functional; offline-first sync + Expo push-registration wired; on-device E2E + native push still pending (dev build) |
+| Testing | Good | ~95% | **Backend pytest suite (34, verified 3.11 + 3.14)**; **web Vitest (42) + mobile jest-expo (33)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
 | Infrastructure/Docker | Good | ~90% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
 ### Known Critical Issues (remaining after M4)

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Card } from '../styles';
 import { buildSeries, makeChartOptions } from '../utils/chartUtils';
-import { CardSkeleton, ProgressBar, InfoIcon } from '../components/ui';
-import { formatTimeOfDay, formatDateTime, formatWeekday } from '../utils/timeFormat';
+import { CardSkeleton, ProgressBar, InfoIcon, AlarmClockIcon, ActivityIcon, SparklesIcon, ClockIcon, PlusIcon } from '../components/ui';
+import { formatTimeOfDay, formatWeekday } from '../utils/timeFormat';
 import { Link } from 'react-router-dom';
 
 const WEIGHTS = [
@@ -15,21 +15,18 @@ const WEIGHTS = [
 
 function greeting() {
   const h = new Date().getHours();
-  if (h < 5) return 'Good night';
+  if (h < 5) return 'Good evening';
   if (h < 12) return 'Good morning';
   if (h < 18) return 'Good afternoon';
   return 'Good evening';
 }
 
-function formatNext(alarm) {
-  const d = new Date(alarm.next_trigger);
-  const time = alarm.time
-    ? formatTimeOfDay(alarm.time)
-    : Number.isNaN(d.getTime())
-      ? '—'
-      : formatDateTime(alarm.next_trigger);
-  const day = formatWeekday(alarm.next_trigger);
-  return { time, day };
+function formatCountdown(iso) {
+  const diff = new Date(iso) - Date.now();
+  if (!Number.isFinite(diff) || diff <= 0) return 'due now';
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  return h >= 24 ? `in ${Math.floor(h / 24)}d ${h % 24}h` : `in ${h}h ${m}m`;
 }
 
 export default function Home() {
@@ -37,6 +34,7 @@ export default function Home() {
   const [history, setHistory] = useState([]);
   const [alarms, setAlarms] = useState([]);
   const [error, setError] = useState(null);
+  const [, setTick] = useState(0);
 
   useEffect(() => {
     const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
@@ -62,6 +60,9 @@ export default function Home() {
       .then(res => (res.ok ? res.json() : []))
       .then(data => setAlarms(Array.isArray(data) ? data : []))
       .catch(console.error);
+
+    const timer = setInterval(() => setTick(t => t + 1), 30000);
+    return () => clearInterval(timer);
   }, []);
 
   if (!habitScore) {
@@ -87,67 +88,135 @@ export default function Home() {
   const trendData = buildSeries(trendHistory, { dataKey: 'overall_score', label: 'Overall Score (%)' });
   const chartOpts = makeChartOptions();
 
-  const upcoming = alarms
-    .filter(a => a.is_enabled)
-    .sort((a, b) => (a.next_trigger || '').toString().localeCompare((b.next_trigger || '').toString()))[0];
+  const enabled = alarms.filter(a => a.is_enabled);
+  const upcoming = [...enabled].sort((a, b) =>
+    (a.next_trigger || '').toString().localeCompare((b.next_trigger || '').toString())
+  )[0];
+  const timeline = [...enabled].sort((a, b) =>
+    (a.next_trigger || '').toString().localeCompare((b.next_trigger || '').toString())
+  ).slice(0, 6);
+  const score = Number(habitScore.overall_score) || 0;
 
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h1>Today's Progress</h1>
-          <div className="subtitle">{greeting()}, {firstName}. Here is your cognitive status right now.</div>
+          <div className="subtitle">
+            {greeting()}, {firstName}. <span className="sys-label" style={{ marginLeft: '0.4rem' }}><span className="led led--on led--live" /> Online</span>
+          </div>
         </div>
       </div>
 
       {error && <div className="banner banner-warning">{error}</div>}
 
+      {/* Next Alarm + habit score hero */}
       <Card className="mb-6">
-        <div className="score-hero">
-          <div className="score-hero__left">
-            <div className="score-hero__label">Overall Score</div>
-            <div className="score-hero__value">
-              <span className="num">{habitScore.overall_score}</span>
-              <span className="denom">/100</span>
+        <div className="score-hero" style={{ alignItems: 'center' }}>
+          <div className="score-ring" style={{ ['--p']: `${score}` }}>
+            <div className="score-ring__inner">
+              <div className="score-ring__num">{score}</div>
+              <div className="score-ring__cap">Habit Score</div>
             </div>
-            <div className="score-hero__hint">Weighted from your four habit pillars</div>
           </div>
 
-          <div className="score-hero__alarm">
-            <div className="score-hero__label">Next Alarm</div>
+          <div className="next-alarm__infos">
+            <div className="sys-label">Next Alarm</div>
             {upcoming ? (
               <>
-                <div className="score-hero__alarm-time">{formatNext(upcoming).time}</div>
-                <div className="score-hero__alarm-meta">
-                  {upcoming.title || 'Untitled alarm'} · {upcoming.challenge_type || ''} · {upcoming.difficulty || ''}
+                <div className="next-alarm__time">
+                  {upcoming.time ? formatTimeOfDay(upcoming.time) : '—'}
+                  <span className="led led--on led--live" style={{ marginLeft: '0.9rem', verticalAlign: 'middle' }} />
                 </div>
-                <div className="score-hero__actions">
-                  <Link to="/alarms" className="quick-action">Manage alarms</Link>
+                <div className="next-alarm__meta">
+                  <span>
+                    {upcoming.title || 'Untitled alarm'} · {upcoming.alarm_type || ''}
+                    {upcoming.challenge_type ? ` · ${upcoming.challenge_type} challenge` : ''}
+                  </span>
+                  <span className="countdown">{formatCountdown(upcoming.next_trigger)}</span>
                 </div>
               </>
             ) : (
               <>
-                <div className="score-hero__alarm-meta" style={{ marginTop: '0.35rem' }}>
-                  No alarm scheduled yet.
-                </div>
-                <div className="score-hero__actions">
-                  <Link to="/alarms" className="quick-action">Create an alarm</Link>
+                <div className="next-alarm__meta" style={{ marginTop: '0.5rem' }}>
+                  No alarm scheduled.
                 </div>
               </>
             )}
+            <div className="score-hero__actions">
+              <Link to="/alarms" className="quick-action">Manage alarms</Link>
+              <Link to="/challenges" className="quick-action">Practice a challenge</Link>
+            </div>
           </div>
         </div>
       </Card>
 
-      <div className="quick-actions mb-6">
-        <Link to="/alarms" className="quick-action">+ New Alarm</Link>
-        <Link to="/challenges" className="quick-action">Generate a Challenge</Link>
+      {/* Compact statistics */}
+      <div className="stat-strip">
+        <div className="stat-card">
+          <span className="stat-card__icon"><ActivityIcon size={20} /></span>
+          <div>
+            <div className="stat-card__num">{score}</div>
+            <div className="stat-card__label">Habit Score</div>
+          </div>
+        </div>
+        <div className="stat-card stat-card--violet">
+          <span className="stat-card__icon"><AlarmClockIcon size={20} /></span>
+          <div>
+            <div className="stat-card__num">{enabled.length}</div>
+            <div className="stat-card__label">Active Alarms</div>
+          </div>
+        </div>
+        <div className="stat-card stat-card--violet">
+          <span className="stat-card__icon"><ClockIcon size={20} /></span>
+          <div>
+            <div className="stat-card__num">{trendHistory.length}</div>
+            <div className="stat-card__label">Days Tracked</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <span className="stat-card__icon"><SparklesIcon size={20} /></span>
+          <div>
+            <div className="stat-card__num">{habitScore.challenge_completion}%</div>
+            <div className="stat-card__label">Challenge Completion</div>
+          </div>
+        </div>
       </div>
 
+      {/* Pillar weights */}
       <GridMetrics habitScore={habitScore} />
 
+      {/* Today's schedule timeline */}
       <Card className="mt-6">
-        <div className="card-label">Weekly Trend</div>
+        <div className="card-label"><span className="sys-label">Upcoming · Schedule</span></div>
+        {timeline.length ? (
+          <ul className="timeline" style={{ marginTop: '1rem' }}>
+            {timeline.map((a, i) => (
+              <li key={a.id} className={`timeline-item ${i === 0 ? 'timeline-item--hot' : ''}`}>
+                <span className="timeline-item__dot" aria-hidden="true" />
+                <div className="timeline-item__time">{a.time ? formatTimeOfDay(a.time) : '—'}</div>
+                <div className="timeline-item__main">
+                  <div className="timeline-item__label">{a.title || 'Untitled alarm'}</div>
+                  <div className="timeline-item__meta">
+                    {a.alarm_type} · {a.next_trigger ? formatWeekday(a.next_trigger) : 'unscheduled'}
+                  </div>
+                </div>
+                <span className={`pill ${a.is_enabled ? 'pill-success' : 'pill-neutral'}`}>
+                  <span className="led led--on" style={{ marginRight: '0.3rem' }} />{a.is_enabled ? 'Active' : 'Inactive'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-600" style={{ marginTop: '0.75rem' }}>
+            No alarms scheduled — add one to start building your routine.
+          </p>
+        )}
+      </Card>
+
+      {/* Weekly trend */}
+      <Card className="mt-6">
+        <div className="card-label"><span className="sys-label">Weekly Trend</span></div>
         {trendHistory.length >= 2 ? (
           <>
             <div className="chart-card chart-card--sm">
@@ -164,13 +233,19 @@ export default function Home() {
           </p>
         )}
       </Card>
+
+      <div className="quick-actions mt-6">
+        <Link to="/alarms" className="quick-action"><PlusIcon size={16} /> New Alarm</Link>
+        <Link to="/challenges" className="quick-action"><SparklesIcon size={16} /> Generate a Challenge</Link>
+        <Link to="/dashboard" className="quick-action"><ActivityIcon size={16} /> View Insights</Link>
+      </div>
     </div>
   );
 }
 
 function GridMetrics({ habitScore }) {
   return (
-    <div className="grid-cards grid-cards--metrics">
+    <div className="grid-cards grid-cards--metrics mt-4">
       {WEIGHTS.map(m => (
         <Card key={m.key} className="p-4">
           <div className="card-label">{m.label}</div>

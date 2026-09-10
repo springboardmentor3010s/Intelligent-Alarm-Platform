@@ -2,24 +2,25 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuthContext } from './src/context/AuthContext';
-import HomeScreen from './src/screens/HomeScreen';
+import MainTabs from './src/components/MainTabs';
 import AlarmScreen from './src/screens/AlarmScreen';
+import AlarmFormScreen from './src/screens/AlarmFormScreen';
 import ChallengeScreen from './src/screens/ChallengeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import { ActivityIndicator, View } from 'react-native';
+import { BRAND } from './src/theme/tokens';
 
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   const { isLoggedIn, loading: authLoading } = useAuthContext();
 
-  // Show a loading screen while checking auth state
   if (authLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BRAND.space }}>
+        <ActivityIndicator size="large" color={BRAND.primary} />
       </View>
     );
   }
@@ -28,19 +29,22 @@ function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: '#3b82f6' },
+          headerStyle: { backgroundColor: BRAND.deepPurple },
           headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '700' },
+          contentStyle: { backgroundColor: BRAND.space },
         }}
       >
         {!isLoggedIn ? (
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         ) : (
           <>
-            <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'CerebroKognit' }} />
+            <Stack.Screen name="Main" component={MainTabs} options={{ title: 'CEREBROKOGNIT', headerTitleAlign: 'center' }} />
             <Stack.Screen name="Alarm" component={AlarmScreen} options={{ title: 'Wake Up!' }} />
+            <Stack.Screen name="AlarmForm" component={AlarmFormScreen} options={{ title: 'Configure Alarm' }} />
             <Stack.Screen name="Challenge" component={ChallengeScreen} options={{ title: 'Challenge' }} />
-            <Stack.Screen name="Profile" component={ProfileScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Edit Profile' }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
           </>
         )}
       </Stack.Navigator>

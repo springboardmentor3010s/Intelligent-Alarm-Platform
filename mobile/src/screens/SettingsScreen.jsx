@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import NetInfo from '@react-native-community/netinfo';
 import { apiFetch } from '../utils/api';
+import { BRAND, ui } from '../theme/tokens';
 
-export default function SettingsScreen({ navigation }) {
+export default function SettingsScreen() {
   const { user, token, logout } = useAuthContext();
   const [notifications, setNotifications] = useState(user?.notifications !== false);
   const [autoDismiss, setAutoDismiss] = useState(user?.auto_dismiss !== false);
@@ -14,9 +16,7 @@ export default function SettingsScreen({ navigation }) {
 
   useFocusEffect(
     React.useCallback(() => {
-      const unsubscribe = NetInfo.addEventListener(state => {
-        setIsOnline(state.isConnected);
-      });
+      const unsubscribe = NetInfo.addEventListener((state) => setIsOnline(state.isConnected));
       return () => unsubscribe();
     }, [])
   );
@@ -32,74 +32,95 @@ export default function SettingsScreen({ navigation }) {
       });
       if (!response.ok) throw new Error('Failed to update');
     } catch (error) {
-      console.error(error);
       Alert.alert('Error', `Failed to update ${key} setting`);
-      setter(oldValue); // Revert
+      setter(oldValue);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Preferences</Text>
-      
-      <View style={styles.settingItem}>
-        <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>Push Notifications</Text>
-          <Switch
-            value={notifications}
-            onValueChange={(val) => updateSetting('notifications', val, setNotifications)}
-            trackColor={{ false: '#e5e7eb', true: '#3b82f6' }}
-          />
-        </View>
-        <Text style={styles.settingDesc}>Receive reminders and habit score updates</Text>
-      </View>
+    <ScrollView style={ui.screen} contentContainerStyle={styles.content}>
+      <Text style={styles.sysLabel}><Ionicons name="settings-outline" size={12} color={BRAND.primary} /> SYSTEM PREFERENCES</Text>
+      <Text style={styles.title}>Settings</Text>
 
-      <View style={styles.settingItem}>
-        <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>Auto-Dismiss</Text>
-          <Switch
-            value={autoDismiss}
-            onValueChange={(val) => updateSetting('auto_dismiss', val, setAutoDismiss)}
-            trackColor={{ false: '#e5e7eb', true: '#3b82f6' }}
-          />
-        </View>
-        <Text style={styles.settingDesc}>Dismiss alarm instantly after solving a challenge</Text>
-      </View>
+      <SettingRow
+        label="Push Notifications"
+        desc="Receive reminders and habit score updates"
+        icon="notifications-outline"
+        value={notifications}
+        onChange={(v) => updateSetting('notifications', v, setNotifications)}
+      />
+      <SettingRow
+        label="Auto-Dismiss"
+        desc="Dismiss alarm instantly after solving a challenge"
+        icon="flash-outline"
+        value={autoDismiss}
+        onChange={(v) => updateSetting('auto_dismiss', v, setAutoDismiss)}
+      />
+      <SettingRow
+        label="Haptic Feedback"
+        desc="Vibrate device during challenges"
+        icon="phone-portrait-outline"
+        value={vibrate}
+        onChange={(v) => updateSetting('vibrate', v, setVibrate)}
+      />
 
-      <View style={styles.settingItem}>
-        <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>Haptic Feedback</Text>
-          <Switch
-            value={vibrate}
-            onValueChange={(val) => updateSetting('vibrate', val, setVibrate)}
-            trackColor={{ false: '#e5e7eb', true: '#3b82f6' }}
-          />
+      <View style={styles.connectCard}>
+        <Ionicons name={isOnline ? 'wifi' : 'cloud-offline-outline'} size={20} color={isOnline ? BRAND.success : BRAND.danger} />
+        <View style={{ marginLeft: 14 }}>
+          <Text style={styles.connectLabel}>CONNECTIVITY STATUS</Text>
+          <Text style={[styles.connectValue, { color: isOnline ? BRAND.success : BRAND.danger }]}>
+            {isOnline ? 'Connected to Internet' : 'Offline Mode'}
+          </Text>
         </View>
-        <Text style={styles.settingDesc}>Vibrate device during challenges</Text>
-      </View>
-
-      <View style={styles.settingItem}>
-        <Text style={styles.settingLabel}>Connectivity Status</Text>
-        <Text style={[styles.statusText, { color: isOnline ? '#10b981' : '#ef4444' }]}>
-          {isOnline ? 'Connected to Internet' : 'Offline Mode'}
-        </Text>
       </View>
 
       <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-        <Text style={styles.logoutText}>Sign Out</Text>
+        <Ionicons name="log-out-outline" size={18} color={BRAND.danger} />
+        <Text style={styles.logoutText}>SIGN OUT</Text>
       </TouchableOpacity>
+    </ScrollView>
+  );
+}
+
+function SettingRow({ label, desc, icon, value, onChange }) {
+  return (
+    <View style={styles.settingItem}>
+      <View style={styles.settingRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.settingLabel}>{label}</Text>
+          <Text style={styles.settingDesc}>{desc}</Text>
+        </View>
+        <Switch
+          value={value}
+          onValueChange={onChange}
+          trackColor={{ false: BRAND.borderStrong, true: BRAND.primary }}
+          thumbColor={value ? '#fff' : BRAND.textFaint}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 24 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#1f2937', textAlign: 'center', marginBottom: 32 },
-  settingItem: { marginBottom: 20, padding: 16, backgroundColor: 'white', borderRadius: 12, elevation: 1 },
-  settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  settingLabel: { fontSize: 16, color: '#1f2937', fontWeight: '500' },
-  settingDesc: { fontSize: 13, color: '#6b7280' },
-  statusText: { fontSize: 14, fontWeight: '600', marginTop: 4 },
-  logoutBtn: { marginTop: 32, padding: 16, borderRadius: 8, borderWidth: 1, borderColor: '#ef4444' },
-  logoutText: { color: '#ef4444', fontWeight: '600', textAlign: 'center', fontSize: 16 }
+  content: { padding: 24, paddingBottom: 48 },
+  sysLabel: { color: BRAND.primary, fontSize: 11, fontWeight: '700', letterSpacing: 2.5, marginBottom: 8, textTransform: 'uppercase' },
+  title: { ...ui.title, marginBottom: 18 },
+  settingItem: { backgroundColor: BRAND.surface, borderRadius: 16, borderWidth: 1, borderColor: BRAND.border, padding: 16, marginBottom: 12 },
+  settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  settingLabel: { color: BRAND.text, fontSize: 15, fontWeight: '600' },
+  settingDesc: { color: BRAND.textFaint, fontSize: 12, marginTop: 4, lineHeight: 17 },
+  connectCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: BRAND.surface2,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BRAND.border,
+    padding: 16,
+    marginTop: 6,
+  },
+  connectLabel: { color: BRAND.textFaint, fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
+  connectValue: { fontSize: 14, fontWeight: '700', marginTop: 3 },
+  logoutBtn: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 28, padding: 14, borderWidth: 1, borderColor: 'rgba(240,107,130,0.4)', borderRadius: 12 },
+  logoutText: { color: BRAND.danger, fontWeight: '700', fontSize: 15, letterSpacing: 1 },
 });

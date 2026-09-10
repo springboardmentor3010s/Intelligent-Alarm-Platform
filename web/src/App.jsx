@@ -9,6 +9,7 @@ import Profile from './pages/Profile';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Admin from './pages/Admin';
+import Landing from './pages/Landing';
 import Sidebar from './components/layout/Sidebar';
 import { BrandMark, MenuIcon, LiveClock } from './components/ui';
 
@@ -99,7 +100,8 @@ function App() {
     return (
       <Router>
         <Routes>
-          <Route path="*" element={<Auth onAuth={handleAuth} />} />
+          <Route path="/auth" element={<Auth onAuth={handleAuth} />} />
+          <Route path="*" element={<Landing />} />
         </Routes>
       </Router>
     );

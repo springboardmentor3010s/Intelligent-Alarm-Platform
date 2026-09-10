@@ -1,84 +1,79 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
   <defs>
-    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0d1230"/>
-      <stop offset="0.55" stop-color="#0a0f26"/>
-      <stop offset="1" stop-color="#0b1020"/>
+    <radialGradient id="glowOrange" cx="18%" cy="6%" r="60%">
+      <stop offset="0%" stop-color="#f25912" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="#f25912" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#f25912" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowPurple" cx="90%" cy="92%" r="65%">
+      <stop offset="0%" stop-color="#8b6bc6" stop-opacity="0.3"/>
+      <stop offset="55%" stop-color="#5c3e94" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#5c3e94" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f25912" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#8b6bc6" stop-opacity="0.35"/>
     </linearGradient>
   </defs>
 
-  <!-- Base -->
-  <rect width="1600" height="1200" fill="url(#base)"/>
+  <!-- Deep space base -->
+  <rect width="1600" height="1000" fill="#1c1329"/>
+  <rect width="1600" height="1000" fill="url(#glowOrange)"/>
+  <rect width="1600" height="1000" fill="url(#glowPurple)"/>
 
-  <!-- Concentric arc ripples — upper right -->
-  <g fill="none" stroke="#63d8de" stroke-opacity="0.16" stroke-width="1.5">
-    <circle cx="1310" cy="210" r="70"/>
-    <circle cx="1310" cy="210" r="120"/>
-    <circle cx="1310" cy="210" r="175"/>
-  </g>
-
-  <!-- Concentric arc ripples — lower left -->
-  <g fill="none" stroke="#8fa2ff" stroke-opacity="0.14" stroke-width="1.5">
-    <circle cx="150" cy="1040" r="80"/>
-    <circle cx="150" cy="1040" r="140"/>
-    <circle cx="150" cy="1040" r="205"/>
+  <!-- Hairline technical grid -->
+  <g stroke="#3d2a5e" stroke-opacity="0.32" stroke-width="1">
+    <path d="M0 80h1600M0 160h1600M0 240h1600M0 320h1600M0 400h1600M0 480h1600M0 560h1600M0 640h1600M0 720h1600M0 800h1600M0 880h1600M0 960h1600"/>
+    <path d="M80 0v1000M160 0v1000M240 0v1000M320 0v1000M400 0v1000M480 0v1000M560 0v1000M640 0v1000M720 0v1000M800 0v1000M880 0v1000M960 0v1000M1040 0v1000M1120 0v1000M1200 0v1000M1280 0v1000M1360 0v1000M1440 0v1000M1520 0v1000"/>
   </g>
 
-  <!-- Blueprint hairline diagonals (lower left region) -->
-  <g stroke="#8fa2ff" stroke-opacity="0.10" stroke-width="1">
-    <path d="M-40 900 L 640 1180"/>
-    <path d="M60 900 L 740 1180"/>
-    <path d="M160 900 L 840 1180"/>
-    <path d="M260 900 L 940 1180"/>
-    <path d="M-40 980 L 640 1260"/>
-    <path d="M60 980 L 740 1260"/>
+  <!-- Neural-net constellation (nodes + links) -->
+  <g stroke="#8b6bc6" stroke-opacity="0.4" stroke-width="1">
+    <path d="M240 260l180 120-60 220-190-70z"/>
+    <path d="M420 380l150-60 110 150-90 130-170-60z"/>
+    <path d="M240 260l170-110 160 90z"/>
+    <path d="M750 470l190-90 130 120-60 200-210 60-50-190z"/>
+    <path d="M330 600l390 130 150-20z"/>
+    <path d="M540 320l210 220-180 230z"/>
+    <path d="M940 380l210-160 150 130z"/>
+  </g>
+  <g fill="#f25912">
+    <circle cx="240" cy="260" r="3.5"/>
+    <circle cx="570" cy="320" r="3"/>
+    <circle cx="600" cy="600" r="3.5"/>
+    <circle cx="420" cy="380" r="3"/>
+    <circle cx="750" cy="470" r="3.5"/>
+    <circle cx="1150" cy="220" r="3"/>
+    <circle cx="1300" cy="350" r="3.5"/>
+    <circle cx="1080" cy="820" r="3"/>
+  </g>
+  <g fill="#c3b8da" fill-opacity="0.6">
+    <circle cx="410" cy="150" r="2"/>
+    <circle cx="150" cy="540" r="2"/>
+    <circle cx="410" cy="840" r="2"/>
+    <circle cx="940" cy="160" r="2"/>
+    <circle cx="1300" cy="640" r="2"/>
+    <circle cx="1500" cy="860" r="2"/>
   </g>
 
-  <!-- Neural network constellation -->
-  <g fill="none" stroke="#7b8fff" stroke-opacity="0.5" stroke-width="1.6" stroke-linecap="round">
-    <path d="M180 300 L 320 380 L 470 330 L 610 470"/>
-    <path d="M320 380 L 330 540 L 480 560"/>
-    <path d="M470 330 L 640 210 L 830 250"/>
-    <path d="M830 250 L 1000 360 L 1120 300"/>
-    <path d="M610 470 L 760 600 L 940 540"/>
-    <path d="M940 540 L 1080 700 L 1240 660"/>
-    <path d="M1120 300 L 1280 420 L 1420 380"/>
-    <path d="M1240 660 L 1390 780"/>
+  <!-- Ripple arcs (circuit-like) -->
+  <g fill="none" stroke="url(#line)" stroke-width="1.5">
+    <path d="M1080 470a220 220 0 0 1 220-220" stroke-opacity="0.5"/>
+    <path d="M900 500a330 330 0 0 1 260-270" stroke-opacity="0.25"/>
+    <path d="M240 260a40 40 0 0 1 40-40" stroke-opacity="0.6"/>
   </g>
 
-  <!-- Constellation nodes -->
-  <g fill="#8fa2ff" fill-opacity="0.85">
-    <circle cx="180" cy="300" r="4"/>
-    <circle cx="470" cy="330" r="3.5"/>
-    <circle cx="830" cy="250" r="4.5"/>
-    <circle cx="1120" cy="300" r="3.5"/>
-    <circle cx="940" cy="540" r="4"/>
-    <circle cx="1240" cy="660" r="3.5"/>
-  </g>
-  <g fill="#63d8de" fill-opacity="0.9">
-    <circle cx="320" cy="380" r="5"/>
-    <circle cx="1000" cy="360" r="4"/>
-    <circle cx="1420" cy="380" r="4.5"/>
-  </g>
-  <g fill="#f5c75a" fill-opacity="0.8">
-    <circle cx="610" cy="470" r="3.5"/>
-    <circle cx="1080" cy="700" r="4"/>
+  <!-- Circuit chip detail -->
+  <g stroke="#f25912" stroke-opacity="0.5" stroke-width="1.2" fill="none">
+    <rect x="920" y="170" width="86" height="86" rx="6" stroke-opacity="0.35"/>
+    <path d="M963 170v-40m0 190v40m-86-24h-40m206 0h40"/>
+    <circle cx="963" cy="130" r="3" fill="#f25912"/>
+    <circle cx="963" cy="210" r="3" fill="#f25912"/>
   </g>
 
-  <!-- Circuit chip outline — lower right -->
-  <g fill="none" stroke="#8fa2ff" stroke-opacity="0.28" stroke-width="1.4" stroke-linejoin="round">
-    <rect x="1190" y="820" width="180" height="180" rx="24"/>
-    <path d="M1220 820 V 770 H 1280 V 820"/>
-    <path d="M1295 820 V 748 H 1350 V 820"/>
-    <path d="M1350 848 H 1400 V 880 H 1370"/>
-    <path d="M1220 1000 V 1040 H 1280 V 1000"/>
-    <path d="M1340 1000 V 1050 H 1380"/>
-  </g>
-
-  <!-- Fine crosshairs -->
-  <g stroke="#63d8de" stroke-opacity="0.35" stroke-width="1.2">
-    <path d="M520 180 V 208 M506 194 H 534"/>
-    <path d="M1460 980 V 1008 M1446 994 H 1474"/>
-  </g>
+  <!-- Scanline texture -->
+  <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+    <rect width="4" height="1" fill="#f7f3fc" fill-opacity="0.02"/>
+  </pattern>
+  <rect width="1600" height="1000" fill="url(#scan)"/>
 </svg>
