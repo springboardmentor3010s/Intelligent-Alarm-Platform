@@ -25,6 +25,18 @@ All notable changes to this project are tracked here. Format follows [Keep a Cha
 
 ---
 
+## [2026-09-10] — Responsive pass follow-up (header actions, mid-width padding, form wrap)
+
+### Changed
+- **Header actions wrapper**: `AlarmHeader` (Alarms) and the Challenges "Generate Challenge" button now live in a `.page-header__actions` group (flex, `margin-left: auto`, wrap on narrow screens, buttons `flex-shrink: 0`) — consistent action alignment across every page header and no chance of running under the pinned live clock.
+- **Mid-width page padding**: `.page` horizontal padding steps down to 1.5rem at ≤1100px (2.5rem → 1.5rem → 1rem ≤900px), giving content more room on tablets/laptop widths.
+- **Form action rows** `.form-actions` wrap on small phones so Save/Cancel buttons never overflow.
+
+### Gates
+- Web **Vitest 42/42** + `npm run build` clean (47.82 KB CSS / 411.88 KB JS). No backend/mobile changes.
+
+---
+
 ## [2026-09-10] — Sidebar logo crossfades into collapse toggle on hover
 
 ### Changed

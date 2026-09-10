@@ -206,7 +206,7 @@ function AlarmHeader({ children }) {
         <h1>Alarms</h1>
         <div className="subtitle">Create, snooze, and manage your wake-up alarms</div>
       </div>
-      {children}
+      <div className="page-header__actions">{children}</div>
     </div>
   );
 }

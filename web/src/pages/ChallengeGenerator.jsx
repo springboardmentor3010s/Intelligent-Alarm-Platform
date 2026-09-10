@@ -82,10 +82,12 @@ export default function ChallengeGenerator() {
           <h1>Challenges</h1>
           <div className="subtitle">Adaptive cognitive challenges, tuned to your skill</div>
         </div>
-        <button className="btn btn-primary" onClick={() => generateNext()} disabled={generating} aria-busy={generating}>
-          <SparklesIcon size={16} />
-          {generating ? 'Generating…' : 'Generate Challenge'}
-        </button>
+        <div className="page-header__actions">
+          <button className="btn btn-primary" onClick={() => generateNext()} disabled={generating} aria-busy={generating}>
+            <SparklesIcon size={16} />
+            {generating ? 'Generating…' : 'Generate Challenge'}
+          </button>
+        </div>
       </div>
 
       {error && <div className="banner banner-warning">{error}</div>}
