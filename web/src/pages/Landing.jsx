@@ -168,9 +168,9 @@ function CardMock({ children }) {
         margin: '0 auto',
         textAlign: 'left',
         padding: '1.6rem 1.7rem',
-        background: 'rgba(65, 43, 107, 0.9)',
+        background: 'rgba(13, 20, 10, 0.9)',
         backdropFilter: 'blur(10px)',
-        boxShadow: '0 30px 80px -30px rgba(242, 89, 18, 0.35)',
+        boxShadow: '0 24px 60px -30px rgba(0, 0, 0, 0.6)',
       }}
     >
       {children}

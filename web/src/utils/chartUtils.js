@@ -5,10 +5,10 @@
  */
 
 const chartConfigs = {
-  wakeUp: { label: 'Wake-up Consistency (%)', border: '#f25912', bg: 'rgba(242, 89, 18, 0.12)', dataKey: 'wake_up_consistency' },
-  challenge: { label: 'Challenge Completion (%)', border: '#8b6bc6', bg: 'rgba(139, 107, 198, 0.14)', dataKey: 'challenge_completion' },
-  snooze: { label: 'Snooze Reduction (%)', border: '#ff8a4d', bg: 'rgba(255, 138, 77, 0.12)', dataKey: 'snooze_reduction' },
-  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#5c3e94', bg: 'rgba(92, 62, 148, 0.16)', dataKey: 'sleep_schedule_adherence' },
+  wakeUp: { label: 'Wake-up Consistency (%)', border: '#f4a442', bg: 'rgba(244, 164, 66, 0.14)', dataKey: 'wake_up_consistency' },
+  challenge: { label: 'Challenge Completion (%)', border: '#3e7c17', bg: 'rgba(62, 124, 23, 0.18)', dataKey: 'challenge_completion' },
+  snooze: { label: 'Snooze Reduction (%)', border: '#6cbf52', bg: 'rgba(108, 191, 82, 0.12)', dataKey: 'snooze_reduction' },
+  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#c7761a', bg: 'rgba(199, 118, 26, 0.16)', dataKey: 'sleep_schedule_adherence' },
 };
 
 function dayLabel(date) {
@@ -71,11 +71,11 @@ export function makeChartOptions() {
     ? getComputedStyle(document.documentElement)
     : null;
   const theme = (v, fallback) => (cs ? (cs.getPropertyValue(v).trim() || fallback) : fallback);
-  const text = theme('--text', '#f7f3fc');
-  const muted = theme('--text-muted', '#c3b8da');
-  const faint = theme('--text-faint', '#9689b5');
-  const surface = theme('--surface-2', '#4b3278');
-  const border = theme('--border', 'rgba(173,146,224,0.14)');
+  const text = theme('--text', '#f2efe7');
+  const muted = theme('--text-muted', '#a8b89d');
+  const faint = theme('--text-faint', '#8c9d80');
+  const surface = theme('--surface-2', '#1e6b1a');
+  const border = theme('--border', 'rgba(158,178,133,0.14)');
 
   return {
     responsive: true,
@@ -124,7 +124,7 @@ export const chartOptions = {
     title: { display: false },
   },
   scales: {
-    y: { min: 0, max: 100, grid: { color: 'rgba(148, 163, 255, 0.08)' } },
+    y: { min: 0, max: 100, grid: { color: 'rgba(62, 124, 23, 0.1)' } },
     x: { grid: { display: false } },
   },
 };

@@ -121,6 +121,6 @@ const styles = StyleSheet.create({
   },
   connectLabel: { color: BRAND.textFaint, fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
   connectValue: { fontSize: 14, fontWeight: '700', marginTop: 3 },
-  logoutBtn: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 28, padding: 14, borderWidth: 1, borderColor: 'rgba(240,107,130,0.4)', borderRadius: 12 },
+  logoutBtn: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 28, padding: 14, borderWidth: 1, borderColor: 'rgba(224,90,90,0.4)', borderRadius: 12 },
   logoutText: { color: BRAND.danger, fontWeight: '700', fontSize: 15, letterSpacing: 1 },
 });

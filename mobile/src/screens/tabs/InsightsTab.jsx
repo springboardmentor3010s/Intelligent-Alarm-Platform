@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   sysLabel: { color: BRAND.primary, fontSize: 11, fontWeight: '700', letterSpacing: 2.5, marginBottom: 8, textTransform: 'uppercase' },
   title: { ...ui.title },
   subtitle: { ...ui.subtitle, marginBottom: 18 },
-  heroCard: { flexDirection: 'row', alignItems: 'center', borderColor: 'rgba(92,62,148,0.5)' },
+  heroCard: { flexDirection: 'row', alignItems: 'center', borderColor: 'rgba(62,124,23,0.5)' },
   heroLabel: { color: BRAND.textFaint, fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
   heroDate: { color: BRAND.text, fontSize: 15, fontWeight: '700', marginTop: 4 },
   heroMeta: { color: BRAND.textDim, fontSize: 12, marginTop: 6, lineHeight: 17 },

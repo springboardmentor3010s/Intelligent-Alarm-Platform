@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: BRAND.deepPurple,
     borderTopWidth: 1,
-    borderTopColor: '#4A3569',
+    borderTopColor: '#125C13',
     paddingTop: 8,
     paddingBottom: 4,
   },

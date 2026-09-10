@@ -1,38 +1,48 @@
 import { StyleSheet } from 'react-native';
 
 /**
- * CerebroKognit retro-futuristic design tokens.
- * Mirrors the web design system: brand orange, purple spectrum, deep space backgrounds.
+ * CerebroKognit design tokens.
+ * Mirrors the web design system: amber + green spectrum, cream neutrals on
+ * deep-green space backgrounds. Flat colors only — no gradients, no glow.
  */
 export const BRAND = {
   // Palette
-  primary: '#F25912',
-  primarySoft: '#FF8A4D',
-  primaryDark: '#D84A0E',
-  purple: '#5C3E94',
-  purpleSoft: '#8B6BC6',
-  deepPurple: '#412B6B',
-  deepPurple2: '#2C1F42',
-  space: '#211832',
-  spaceDeep: '#1A1129',
+  amber: '#F4A442',
+  green: '#3E7C17',
+  greenSoft: '#4D8A1F',
+  greenDeep: '#125C13',
+  cream: '#E8E1D9',
+  space: '#0F1410',
+  spaceDeep: '#0A0D09',
+
+  // Primary alias
+  primary: '#F4A442',
+  primarySoft: '#F4A442',
+  primaryDark: '#C7761A',
+
+  // Legacy aliases (kept for compat)
+  purple: '#3E7C17',
+  purpleSoft: '#4D8A1F',
+  deepPurple: '#125C13',
+  deepPurple2: '#0F1410',
 
   // Surfaces / lines
-  surface: '#2C1F42',
-  surface2: '#382A52',
-  surface3: '#412B6B',
-  border: '#3D2A5E',
-  borderStrong: '#4A3569',
-  inputBg: '#32244C',
+  surface: '#125C13',
+  surface2: '#1E6B1A',
+  surface3: '#2A7D20',
+  border: '#9EB285',
+  borderStrong: '#92AC76',
+  inputBg: '#16201A',
 
   // Text
-  text: '#F7F3FC',
-  textDim: '#C3B8DA',
-  textFaint: '#8E81A8',
+  text: '#F2EFE7',
+  textDim: '#A8B89D',
+  textFaint: '#8C9D80',
 
   // Semantic
-  success: '#42D6A4',
-  warm: '#F5C75A',
-  danger: '#F06B82',
+  success: '#6CBF52',
+  warm: '#F4A442',
+  danger: '#E05A5A',
 
   // Fonts
   fontDisplay: 'System',
@@ -72,7 +82,7 @@ export const ui = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  btnPrimaryText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16, letterSpacing: 0.2 },
+  btnPrimaryText: { color: '#0B0D0A', fontWeight: '700', fontSize: 16, letterSpacing: 0.2 },
   btnGhost: {
     paddingVertical: 14,
     borderRadius: 12,
@@ -94,7 +104,7 @@ export const ui = StyleSheet.create({
 
 export const SHADOWS = {
   card: { elevation: 3, shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 6 } },
-  orangeGlow: { elevation: 6, shadowColor: BRAND.primary, shadowOpacity: 0.5, shadowRadius: 18, shadowOffset: { width: 0, height: 6 } },
+  orangeGlow: { elevation: 3, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
 };
 
 export default { BRAND, ui, SHADOWS };

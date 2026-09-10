@@ -2,6 +2,18 @@
 
 All notable changes to this project are tracked here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2026-09-10] — Flat green/amber palette + no-glow redesign (web + mobile)
+
+### Changed
+- **New brand palette across the whole web app and mobile app**: amber `#F4A442`, green `#3E7C17`, deep green `#125C13`, cream `#E8E1D9`, space `#0F1410` (+ white/black) — replaces the previous orange/purple spectrum everywhere (tokens, charts, landing, login background art, stats, progress bars, badges, nav states).
+- **No gradient effects, no glow**: all `linear/radial-gradient` backgrounds flattened to solid fills (buttons, brand marks, avatars, benefit dots, progress fills, skeleton, timeline line, hero scrims/ambient glows removed); colored glow box-shadows removed (buttons, LEDs, score ring, timeline dots); status LED pulses via opacity instead of box-shadow; body background is now flat with only a subtle 1px grid line texture (kept as a texture, not a color blend).
+- Flat fills keep theme awareness via flat `--grad`/`--grad-purple` variables so gradient-text/clip and border usages still resolve per dark/light.
+- Light theme: warm cream surfaces (`--bg: #E8E1D9`, white cards) with green + amber accents.
+- Mobile: `theme/tokens.js` palette/flat shadows rewritten (legacy alias keys kept for compat), screens pivoted from brand tint rgba to amber/green equivalents, amber primary buttons use near-black text.
+
+### Gates
+- Web **Vitest 42/42** + `npm run build` clean (45.98 KB CSS / 411.87 KB JS); mobile **jest 33/33** + `expo export` bundles clean. No backend changes.
+
 ## [2026-09-10] — Responsive + overflow pass across the whole web app
 
 ### Fixed
