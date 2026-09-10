@@ -14,7 +14,7 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 ## Project Status
 
 > **Current Stage**: Functional Prototype — **Milestones 1–4 delivered** + **M4 backlog (offline sync, mobile push registration, web/mobile tests, UI app-shell pass, presentation) landed** (2026-09-07/08) + **product-wide retro-futuristic redesign (web + mobile) landed** (2026-09-10)
-> Status updated: 2026-09-10. See `HierarchicalRemediationPlan.md` for the prioritized remediation roadmap and `ARCHITECTURE.md` for the implemented-vs-planned mapping.
+> Status updated: 2026-09-10.
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
@@ -64,8 +64,6 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
                                       +---------------+
 ```
 > Redis, MongoDB, and the ML model cache are **planned components** — not implemented in the current codebase.
->
-> The mapping of this diagram to the implemented (single-deployable) architecture is documented in **`ARCHITECTURE.md`** (source of truth: ✅ implemented · 🟡 scaffold · 🟥 planned).
 
 **Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 30 REST endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications (P5).
 **Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **§21 grouped navigation**.
@@ -168,8 +166,6 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 >    `netsh advfirewall firewall add rule name=CerebroDev-API dir=in action=allow protocol=TCP localport=8000`
 >    (`localport=8081` for Metro).
 >
-> **Emulator fallback (optional, dev-only):** `scripts/host_relay.py` (8090→8000) and
-> `scripts/dev_up_all.ps1` exist for Android-emulator debugging; not required for the phone.
 > `mobile/.env` (`EXPO_PUBLIC_API_URL`) is an explicit override — leave it empty in dev.
 
 > ✅ **NOTE (M4)**: Docker deployment is verified end-to-end: root build context, lean runtime image (no torch — ML uses rule-based fallback in the container), `alembic upgrade head` entrypoint, Postgres + API healthchecks, PDF/Excel exports served. Run `docker compose up -d` (needs Docker Desktop) → API at `http://localhost:8000`.
@@ -268,7 +264,7 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ✅ Complete — analytics service (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories), web wired to live data |
 | **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — pytest (32), error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration (jest 31), web Vitest (18), sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; remaining: real cloud deploy |
 
-Full milestone detail: see `Milestone.md`.
+Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone).
 
 ---
 
@@ -308,30 +304,19 @@ Full milestone detail: see `Milestone.md`.
 | `README.md` | This file — quick start, status, architecture |
 | `SRS.md` | Software Requirements Specification (IEEE format, v1.4) |
 | `PRD.md` | Product Requirements Document — vision, personas, modules |
-| `ARCHITECTURE.md` | Implemented-vs-planned architecture matrix (✅ / 🟡 / 🟥) |
 | `context.md` | System Memory & State Anchor — session continuity, discrepancy matrix |
-| `Milestone.md` | Milestone definitions, tasks, outcomes, evaluation criteria |
-| `plan.md` | Architecture-alignment plan (P1–P7, approved 2026-09-07) |
-| `HierarchicalRemediationPlan.md` | Prioritized remediation roadmap — Levels 0–16 with effort estimates |
-| `UI_Wireframes.md` | Web/mobile wireframes + design tokens |
-| `CHANGELOG.md` | Changelog by milestone |
-| `infrastructure/*.md` | Security checklist, monitoring, logging, backup/DR plans |
-| `presentation/CerebroKognit_Final.pptx` | Final capstone presentation (15 slides + speaker notes) |
-| `presentation/build_presentation.py` | Reproducible generator for the final deck (python-pptx) |
-| `Completed Milestones/Milestone - 1.docx` | Milestone 1 presentation notes (foundation, auth, alarms) |
-| `Completed Milestones/Milestone - 2.docx` | Milestone 2 presentation notes (cognitive challenge engine) |
-| `Completed Milestones/Milestone - 3.docx` | Milestone 3 presentation notes (adaptive ML + recommendations) |
-| `Completed Milestones/Milestone - 4.docx` | Milestone 4 presentation notes (analytics, testing, deployment) |
-| `presentation/build_milestone_docs.py` | Reproducible generator for the milestone DOCX notes |
+
+> Removed from the repo 2026-09-10 (recoverable via git history): `ARCHITECTURE.md`, `CHANGELOG.md`,
+> `Milestone.md`, `plan.md`, `HierarchicalRemediationPlan.md`, `UI_Wireframes.md`, `infrastructure/`,
+> `presentation/`, `Completed Milestones/`, and emulator-era scripts (`host_relay.py`, `dev_up_all.ps1`).
 
 ---
 
 ## Contributing
 
 Before making changes, review:
-1. `HierarchicalRemediationPlan.md` — understand current priority order
+1. `SRS.md` — understand the specification and known-discrepancy tracking
 2. `context.md` — understand known gaps vs spec
-3. `.opencode/skills/` — coding conventions for backend/frontend/mobile
 
 ## License
 Proprietary – All rights reserved.

@@ -46,7 +46,7 @@ This document covers:
 - context.md: System Memory & State Anchor (project root)
 - API Contract Registry: Section 7 of SRS.md and context.md
 - Technology Stack: context.md → Technology Stack Version Matrix
-- Design Documents: AI_Intelligent Cognitive Alarm Platform.pdf
+- Design Documents: AI_Intelligent Cognitive Alarm Platform.pdf (removed from repo 2026-09-10; recoverable via git history)
 
 ### 1.4 Overview
 - Section 2: Functional Requirements (ordered by feature module)

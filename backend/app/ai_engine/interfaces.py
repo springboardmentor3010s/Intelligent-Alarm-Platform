@@ -1,7 +1,7 @@
 """Domain interfaces for the AI/ML engine.
 
 Each interface documents the contract a concrete engine must satisfy. Status
-legend (used by ARCHITECTURE.md and the engine registry):
+legend (used by the engine registry):
     implemented - production code exists in this package
     scaffold    - interface + adapter defined; delegate target is wired
     planned     - declared; not implemented yet (no fabrication per §25)

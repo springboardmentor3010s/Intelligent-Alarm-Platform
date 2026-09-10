@@ -3,7 +3,7 @@
 ## Vision
 To build an AI-powered Intelligent Cognitive Alarm Platform that helps users develop consistent wake-up habits by requiring them to solve personalized puzzles, riddles, memory challenges, logic problems, or math exercises before dismissing alarms. The platform adapts challenge difficulty based on user behavior, wake-up performance, snooze patterns, sleep schedules, and cognitive engagement levels to improve productivity, reduce oversleeping, and encourage healthy sleep routines.
 
-> **Document Status (2026-09-06, post-M2)**: Sections below describe the intended product. The **Current Implementation Status** and **Known Gaps** sections at the end reflect actual codebase state from a deep analysis. See `HierarchicalRemediationPlan.md` for the prioritized fix roadmap.
+> **Document Status (2026-09-06, post-M2)**: Sections below describe the intended product. The **Current Implementation Status** and **Known Gaps** sections at the end reflect actual codebase state from a deep analysis. See `context.md` → Implementation Priority Order for the prioritized fix roadmap.
 
 ### Success Metrics
 - **Wake-up Improvement**: Reduce snooze frequency and improve successful wake-up rates.
@@ -205,7 +205,7 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web test (Vitest) + web build + mobile jest; pushed to `origin/main` |
 
 ### Architecture alignment (P1–P7, approved `plan.md`, landed 2026-09-07)
-Gateway hardening · 12 domain service modules · `ai_engine/` package · optional Redis/worker scaffolds · push-token notification API · §21 grouped web nav · docs audit. Full mapping: **`ARCHITECTURE.md`** (✅ implemented · 🟡 scaffold · 🟥 planned).
+Gateway hardening · 12 domain service modules · `ai_engine/` package · optional Redis/worker scaffolds · push-token notification API · §21 grouped web nav · docs audit. Implemented/scaffold/planned mapping is recorded in the session continuity log in `context.md`.
 
 ### UI & app-shell pass (web, 2026-09-07/08)
 Sidebar navigation (collapsible 248/76px) with §21 groups · global Light/Dark theme (`theme.js` → `data-theme` + `ck-theme`, cross-tab sync) · auth design system (`components/auth/*`) · `login-bg.svg` hero · new **Profile** page (`PUT /users/profile`) · honest/theme-aware charts (`makeChartOptions`).

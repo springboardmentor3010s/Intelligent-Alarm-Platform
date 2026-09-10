@@ -302,16 +302,14 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 
 ## How to Restore Project State
 1. Read this `context.md` file in full.
-2. Verify directory layout matches: `backend/, mobile/, web/, .opencode/skills/, docker-compose.yml`
+2. Verify directory layout matches: `backend/, mobile/, web/, docker-compose.yml`
 3. Check `context.md` → `Technology Stack Version Matrix` for exact package versions.
 4. Check `context.md` → `Active Tasks List` for current milestone and next steps.
 5. Check `context.md` → `API Contract Registry` for endpoint contracts.
 6. Review the **Discrepancy Matrix** below to understand specification gaps.
-7. Check `StagingNotes` → **`HierarchicalRemediationPlan.md`** for the level-by-level remediation plan (Levels 0–16).
-8. Check **`Milestone.md`** for milestone definitions and evaluation criteria.
-9. Execute the next immediate step from **Level 0** of `HierarchicalRemediationPlan.md`.
-10. Run `docker-compose up -d` to start infrastructure (DB, API) after Level 0 fixes.
-11. Execute the next immediate step from the Active Tasks List.
+7. Removed docs are recoverable from git history (`ARCHITECTURE.md`, `CHANGELOG.md`, `Milestone.md`, `plan.md`, `HierarchicalRemediationPlan.md`, `UI_Wireframes.md`, `infrastructure/`, `presentation/`, `Completed Milestones/`, `.opencode/skills/`).
+8. Run `docker-compose up -d` to start infrastructure (DB, API), or `run_all.bat` for the full stack (DB→backend→web→mobile).
+9. Execute the next immediate step from the Active Tasks List.
 
 ---
 
