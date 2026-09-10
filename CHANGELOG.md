@@ -2,20 +2,6 @@
 
 All notable changes to this project are tracked here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2026-09-10] — Floating pill navigation + Chakra Petch / Inter / Oxanium type system (web)
-
-### Changed
-- **Floating pill nav header** replaces the fixed left sidebar: a centered, glassy pill (`border-radius: 999px`, `backdrop-filter` blur, deep-space + light-theme variants) fixed at the top of the authenticated shell holds the brand chip, grouped horizontal nav (Track / Plan / Insights / Account / Administration with micro-labels and orange active pills), and right-hand tools (compact Light/Dark segmented, avatar, logout).
-- Responsive pill: full links+labels ≥1341px, icons-only 1161–1340px, brand wordmark hidden ≤1160px; ≤1000px it becomes a compact near-full-width pill (hamburger + brand mark + theme + avatar + logout) with a glassy **dropdown drawer** under it holding the grouped nav + user card (overlay + Escape close preserved).
-- Removed the sidebar collapse (icon-only) mode and `ck-sidebar-collapsed`; content now flows full-width and `.app-content` pads to clear the floating pill (desktop 5.5rem, mobile 5rem); `.page` top padding reduced accordingly.
-- **Typography tokens per design review 005**: body `Barlow` → **Inter**, brand wordmark + pill word → **Oxanium** (accent), headings/numerals keep **Chakra Petch** (already the display font everywhere); Google Fonts import now loads Chakra Petch + Inter + Oxanium; added `.font-number` tabular-numeral utility.
-- Nav component (`Sidebar.jsx`) rewritten as pill + drawer, reusing the grouped IA and keeping a single accessible `Primary navigation` landmark (drawer uses `Mobile navigation`).
-
-### Gates
-- Web **Vitest 42/42** + `npm run build` clean (48.48 KB CSS / 412.00 KB JS). No backend/mobile changes.
-
----
-
 ## [2026-09-10] — Responsive + overflow pass across the whole web app
 
 ### Fixed
