@@ -208,7 +208,14 @@ def snooze_alarm(db: Session, user_id: int, alarm_id: int) -> AlarmRes:
         raise HTTPException(status_code=400, detail="Maximum snooze limit reached")
 
     alarm.times_snoozed += 1
-    alarm.next_trigger = datetime.now(timezone.utc) + timedelta(minutes=5)
+
+    # Snooze postpones the alarm: +5 minutes from its scheduled time, but never
+    # earlier than 5 minutes from now (covers alarms that are already ringing).
+    base = alarm.next_trigger or datetime.now(timezone.utc)
+    if base.tzinfo is None:
+        base = base.replace(tzinfo=timezone.utc)
+    base = max(datetime.now(timezone.utc), base)
+    alarm.next_trigger = base + timedelta(minutes=5)
 
     db.commit()
     db.refresh(alarm)

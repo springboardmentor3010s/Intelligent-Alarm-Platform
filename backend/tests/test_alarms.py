@@ -1,5 +1,7 @@
 """Alarm CRUD, snooze cap, and schema validation tests."""
 
+from datetime import datetime, timedelta
+
 
 def test_create_and_list_alarm(client, user_headers):
     r = client.post("/api/v1/alarms", headers=user_headers, json={
@@ -36,6 +38,20 @@ def test_delete_alarm(client, user_headers):
     d = client.delete(f"/api/v1/alarms/{created['id']}", headers=user_headers)
     assert d.status_code == 200
     assert d.json()["status"] == "success"
+
+
+def test_snooze_postpones_scheduled_alarm_by_five(client, user_headers):
+    created = client.post("/api/v1/alarms", headers=user_headers, json={
+        "title": "Postpone", "type": "Daily", "time": "06:00",
+    }).json()
+    scheduled = datetime.fromisoformat(created["next_trigger"])
+
+    s = client.post(f"/api/v1/alarms/{created['id']}/snooze", headers=user_headers)
+    assert s.status_code == 200, s.text
+    after = datetime.fromisoformat(s.json()["next_trigger"])
+
+    # Snooze postpones the scheduled time by 5 minutes rather than jumping to now+5
+    assert after == scheduled + timedelta(minutes=5)
 
 
 def test_snooze_caps_at_five(client, user_headers):

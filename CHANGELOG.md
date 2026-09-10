@@ -2,6 +2,16 @@
 
 All notable changes to this project are tracked here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2026-09-09] — Snooze fix + searchable timezone picker
+
+### Fixed
+- **Snooze no longer jumps to "now + 5"**: `snooze_alarm` was setting `next_trigger = datetime.now() + 5min`, so snoozing a scheduled 7:00 AM alarm (e.g. pressing Snooze right after creating it at ~4:41) rewound the display to 4:46. Now it **postpones the scheduled time by 5 minutes** (`max(now, scheduled) + 5`), keeping 7:00 → 7:05 and correctly giving "now + 5" only for alarms that are already ringing. Regression test `test_snooze_postpones_scheduled_alarm_by_five` (+1 → pytest **34**).
+
+### Added
+- **Searchable timezone picker** (`components/ui/TimezonePicker.jsx`): click → scrollable dropdown with a type-to-filter search box; matches zone names, cities, regions, offsets, and **plain country names** ("india" → Asia/Kolkata, "usa" → US zones) via `timeZoneTags()` alias map; exact country matches rank first; arrow-key navigation + Esc/click-outside close. Used in Profile and the register form. Web suite **42/42**, build clean.
+
+---
+
 ## [2026-09-08] — Timezone + 12/24-hour format system (web)
 
 ### Added
