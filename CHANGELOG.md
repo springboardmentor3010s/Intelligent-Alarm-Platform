@@ -2,13 +2,13 @@
 
 All notable changes to this project are tracked here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2026-09-10] — Sidebar hover-reveal collapse control
+## [2026-09-10] — Sidebar logo crossfades into collapse toggle on hover
 
 ### Changed
-- **Web sidebar collapse control is now hover-revealed**: the always-visible collapse/expand button was removed from the resting state in `web/src/index.css`. Expanded mode shows only the CerebroKognit logo; hovering (or keyboard-focusing) the sidebar header fades/slides the chevron in at the right via a smooth `opacity`/`width`/`margin`/`transform` transition (`:focus-within` keeps it a11y-exposed). The logo is never covered or overlapped.
-- **Collapsed (icon-only) rail**: the chevron is now a chip anchored inside the rail's right edge (absolute, `pointer-events:none` until shown) that fades in on header hover; the logo nudges left slightly so the two never overlap. The LED dot is hidden in the compact rail.
-- Mobile drawer rule unchanged (no button on ≤1000px drawers).
-- Gates: web **Vitest 42/42** + `npm run build` clean (46.17 KB CSS / 411.83 KB JS).
+- **Web sidebar logo → toggle morph (ChatGPT/Gemini style)** in `web/src/index.css`: the sidebar header now shows only the CerebroKognit logo; on hovering (or keyboard-focusing) the header the **logo crossfades into the collapse/expand chevron in-place** (`opacity` + slight `scale`, ~0.18s, `:focus-within` for a11y) — no separate/additional button alongside the logo, and the logo is never covered.
+- Works the same in the collapsed (icon-only) rail; the LED dot stays hidden in the compact rail.
+- Mobile drawer behavior unchanged (logo only, no toggle on ≤1000px drawers).
+- Gates: web **Vitest 42/42** + `npm run build` clean (45.70 KB CSS / 411.83 KB JS).
 
 ---
 
