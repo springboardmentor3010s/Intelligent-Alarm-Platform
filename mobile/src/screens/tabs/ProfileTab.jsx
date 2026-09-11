@@ -4,20 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../../context/AuthContext';
 import { useHabitScore } from '../../hooks/useHabitScore';
 import { useTheme } from '../../theme/ThemeContext';
-import { SysLabel, StatusPill, SectionHeader, ConnectRow, ScoreRing } from '../../components/ui';
-
-const LINKS = [
-  {
-    icon: 'mail-outline',
-    label: 'Email',
-    sublabel: 'iampawansimha.2004@gmail.com',
-    url: 'mailto:iampawansimha.2004@gmail.com',
-  },
-  { icon: 'logo-github', label: 'GitHub', sublabel: 'github.com/PawanSimha', url: 'https://github.com/PawanSimha' },
-  { icon: 'logo-linkedin', label: 'LinkedIn', sublabel: 'linkedin.com/in/pawansimha', url: 'https://www.linkedin.com/in/pawansimha' },
-  { icon: 'globe-outline', label: 'Portfolio', sublabel: 'portfolio-pawansimha.vercel.app', url: 'https://portfolio-pawansimha.vercel.app' },
-  { icon: 'logo-google', label: 'Google Developer', sublabel: 'g.dev/pawansimha', url: 'https://g.dev/pawansimha' },
-];
+import { SysLabel, StatusPill, SectionHeader, ScoreRing } from '../../components/ui';
 
 const METRICS = [
   { key: 'wake_up_consistency', label: 'WAKE-UP' },
@@ -100,20 +87,17 @@ export default function ProfileTab({ navigation }) {
         <InfoRow label="HABIT ENGINE" value="35 / 25 / 20 / 20" colors={colors} fonts={fonts} />
       </View>
 
-      <SectionHeader tone="violet" style={styles.sectionHeader}>About</SectionHeader>
-      <View style={[ui.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Text style={[styles.aboutText, { color: colors.textMuted }]}>
-          CerebroKognit is an intelligent cognitive alarm and habit platform. Built by Pawan Simha, MCA student at Sapthagiri
-          NPS University, as part of the Infosys Virtual Internship 7.0 program. Project mentor: Shanmukha Priya.
-        </Text>
-      </View>
-
-      <SectionHeader tone="violet" style={styles.sectionHeader}>Connect</SectionHeader>
-      {LINKS.map((l) => (
-        <ConnectRow key={l.label} icon={l.icon} label={l.label} sublabel={l.sublabel} url={l.url} accessibilityLabel={`${l.label} - CerebroKognit project owner`} />
-      ))}
-
       <SectionHeader tone="violet" style={styles.sectionHeader}>Controls</SectionHeader>
+      <TouchableOpacity
+        style={[styles.actionRow, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        onPress={() => navigation.navigate('About')}
+        accessibilityRole="button"
+        accessibilityLabel="About and Connect"
+      >
+        <Ionicons name="information-circle-outline" size={20} color={colors.textMuted} />
+        <Text style={[styles.actionText, { color: colors.text }]}>About & Connect</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+      </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionRow, { backgroundColor: colors.surface, borderColor: colors.border }]}
         onPress={() => navigation.navigate('Profile')}
@@ -189,7 +173,6 @@ const styles = StyleSheet.create({
   infoValue: { fontSize: 14, fontWeight: '600' },
   divider: { height: 1, marginVertical: 12 },
   sectionHeader: { marginTop: 6, marginBottom: 10 },
-  aboutText: { fontSize: 13, lineHeight: 20 },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -10,7 +10,7 @@ import { SysLabel, SectionHeader, ChipRow } from '../components/ui';
 
 const MODE_CHOICES = ['Dark', 'Light', 'System'];
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const { user, token, logout } = useAuthContext();
   const { colors, ui, fonts, mode, setMode } = useTheme();
   const [notifications, setNotifications] = useState(user?.notifications !== false);
@@ -82,6 +82,20 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      <SectionHeader tone="violet" style={styles.sectionHeader}>More</SectionHeader>
+      <JumpRow
+        icon="chatbubble-ellipses-outline"
+        label="Give feedback"
+        desc="Report a bug, request a feature, or say thanks"
+        onPress={() => navigation.navigate('Feedback')}
+      />
+      <JumpRow
+        icon="information-circle-outline"
+        label="About CerebroKognit"
+        desc="Project story, stack, and contact"
+        onPress={() => navigation.navigate('About')}
+      />
+
       <TouchableOpacity
         style={[styles.logoutBtn, { borderColor: colors.roseSoft }]}
         onPress={logout}
@@ -92,6 +106,27 @@ export default function SettingsScreen() {
         <Text style={[styles.logoutText, { color: colors.rose }]}>Sign out</Text>
       </TouchableOpacity>
     </ScrollView>
+  );
+}
+
+function JumpRow({ icon, label, desc, onPress }) {
+  const { colors, fonts } = useTheme();
+  return (
+    <TouchableOpacity
+      style={[styles.settingItem, styles.jumpRow, { backgroundColor: colors.surface, borderColor: colors.border }]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <View style={[styles.jumpIcon, { backgroundColor: colors.violetSoft }]}>
+        <Ionicons name={icon} size={19} color={colors.violet} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.settingLabel, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.settingDesc, { color: colors.textMuted }]}>{desc}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+    </TouchableOpacity>
   );
 }
 
@@ -123,6 +158,8 @@ const styles = StyleSheet.create({
   sectionHeader: { marginTop: 6, marginBottom: 10 },
   settingItem: { borderRadius: 16, borderWidth: 1, padding: 16, marginBottom: 12 },
   settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  jumpRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  jumpIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   settingLabel: { fontSize: 15, fontWeight: '600' },
   settingDesc: { fontSize: 12, marginTop: 4, lineHeight: 17 },
   connectCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 16, marginTop: 18 },

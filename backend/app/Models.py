@@ -166,6 +166,24 @@ class PushToken(Base):
     )
 
 
+class Feedback(Base):
+    __tablename__ = "feedback"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    category = Column(String(30), nullable=False, default="suggestion")
+    rating = Column(Integer, nullable=True)  # 1-5
+    message = Column(Text, nullable=False)
+    contact_email = Column(String(254), nullable=True)
+    status = Column(String(20), nullable=False, default="new")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Relationships
+    user = relationship("User")
+    __table_args__ = (
+        Index("ix_feedback_user_id", "user_id"),
+        Index("ix_feedback_status", "status"),
+    )
+
+
 class AlarmRole(Base):
     __tablename__ = "alarm_roles"
     id = Column(Integer, primary_key=True, index=True)

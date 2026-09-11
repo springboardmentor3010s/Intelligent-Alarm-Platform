@@ -15,6 +15,8 @@ const TABS = [
   { key: 'PROFILE', label: 'Profile', icon: 'person-circle-outline', iconActive: 'person-circle' },
 ];
 
+const TAB_PAD = 10;
+
 const CONTENT = {
   HOME: HomeTab,
   ALARMS: AlarmsTab,
@@ -60,7 +62,7 @@ export function TabBar({ active, onChange }) {
     }).start();
   }, [targetIndex, slide]);
 
-  const tabWidth = barWidth > 0 ? barWidth / TABS.length : 0;
+  const tabWidth = barWidth > 0 ? (barWidth - 2 * TAB_PAD) / TABS.length : 0;
 
   return (
     <SafeAreaView style={[styles.tabSafe, { backgroundColor: colors.tabBar }]} edges={['bottom']}>
@@ -78,7 +80,7 @@ export function TabBar({ active, onChange }) {
               {
                 backgroundColor: colors.violetSoft,
                 borderColor: colors.violetGlow,
-                width: tabWidth - 20,
+                width: tabWidth - 8,
                 transform: [{ translateX: Animated.multiply(slide, tabWidth) }],
               },
             ]}
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
   },
   slider: {
     position: 'absolute',
-    left: 10,
+    left: TAB_PAD + 4,
     top: 6,
     height: 52,
     borderRadius: 26,

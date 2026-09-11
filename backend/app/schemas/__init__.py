@@ -1,7 +1,7 @@
 """Pydantic v2 schemas for Intelligent Cognitive Alarm Platform."""
 
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 
 
@@ -315,3 +315,45 @@ class ReportExportRes(BaseModel):
     download_url: str
     filename: str
     generated_at: datetime
+
+
+# ============================================================
+# FEEDBACK SCHEMAS
+# ============================================================
+
+class FeedbackSubmitReq(BaseModel):
+    """Request schema for submitting user feedback (mobile app)."""
+    category: str = Field(
+        "suggestion",
+        pattern="^(suggestion|bug_report|compliment|other)$",
+        description="suggestion / bug_report / compliment / other",
+    )
+    rating: Optional[int] = Field(
+        None, ge=1, le=5, description="Optional 1-5 star rating"
+    )
+    message: str = Field(..., min_length=1, max_length=2000, description="Feedback message")
+    contact_email: Optional[str] = Field(
+        None, max_length=254, description="Reply address (defaults to the user's email)"
+    )
+
+    @field_validator("message")
+    @classmethod
+    def message_not_blank(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("message cannot be blank")
+        return stripped
+
+
+class FeedbackRes(BaseModel):
+    """Response schema for a feedback record."""
+    id: int
+    user_id: int
+    category: str
+    rating: Optional[int] = None
+    message: str
+    contact_email: Optional[str] = None
+    status: str = "new"
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

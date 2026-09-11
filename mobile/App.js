@@ -12,6 +12,8 @@ import AlarmFormScreen from './src/screens/AlarmFormScreen';
 import ChallengeScreen from './src/screens/ChallengeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import AboutScreen from './src/screens/AboutScreen';
+import FeedbackScreen from './src/screens/FeedbackScreen';
 import LoginScreen from './src/screens/LoginScreen';
 
 const Stack = createNativeStackNavigator();
@@ -65,6 +67,8 @@ function AppNavigator() {
             <Stack.Screen name="Challenge" component={ChallengeScreen} options={{ title: 'Challenge' }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Edit profile' }} />
             <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
+            <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About' }} />
+            <Stack.Screen name="Feedback" component={FeedbackScreen} options={{ title: 'Send feedback' }} />
           </>
         )}
       </Stack.Navigator>
