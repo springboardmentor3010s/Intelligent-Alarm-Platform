@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../../context/AuthContext';
+import { useHabitScore } from '../../hooks/useHabitScore';
 import { useTheme } from '../../theme/ThemeContext';
-import { SysLabel, StatusPill, SectionHeader, ConnectRow } from '../../components/ui';
+import { SysLabel, StatusPill, SectionHeader, ConnectRow, ScoreRing } from '../../components/ui';
 
 const LINKS = [
   {
@@ -18,9 +19,17 @@ const LINKS = [
   { icon: 'logo-google', label: 'Google Developer', sublabel: 'g.dev/pawansimha', url: 'https://g.dev/pawansimha' },
 ];
 
+const METRICS = [
+  { key: 'wake_up_consistency', label: 'WAKE-UP' },
+  { key: 'challenge_completion', label: 'CHALLENGE' },
+  { key: 'snooze_reduction', label: 'SNOOZE' },
+  { key: 'sleep_schedule_adherence', label: 'SLEEP' },
+];
+
 export default function ProfileTab({ navigation }) {
-  const { user, logout } = useAuthContext();
+  const { user, token, logout } = useAuthContext();
   const { colors, ui, fonts } = useTheme();
+  const { score, loading } = useHabitScore(token);
 
   const confirmLogout = () => {
     Alert.alert('Log out', 'End this session?', [
@@ -37,6 +46,9 @@ export default function ProfileTab({ navigation }) {
     .join('')
     .toUpperCase();
 
+  const overall = score?.overall_score;
+  const ringValue = loading || overall === undefined || overall === null ? '–' : overall;
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <SysLabel icon="person-outline" tone="violet">Operator identity</SysLabel>
@@ -51,8 +63,33 @@ export default function ProfileTab({ navigation }) {
           <Text style={[styles.email, { color: colors.textFaint, fontFamily: fonts.monoMedium }]} numberOfLines={1}>
             {user?.email || 'No email set'}
           </Text>
+          <StatusPill label="Verified" tone="emerald" style={styles.verifiedPill} />
         </View>
-        <StatusPill label="Verified" tone="emerald" />
+      </View>
+
+      <View style={[ui.card, styles.scoreCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.scoreStage, { borderColor: colors.border }]}>
+          <ScoreRing score={ringValue} size={86} label="Score" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.scoreLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>DAILY SCORE</Text>
+          <Text style={[styles.scoreSub, { color: colors.textMuted }]}>
+            {loading ? 'Loading your consistency…' : 'Today, across all four pillars.'}
+          </Text>
+          <View style={styles.metricGrid}>
+            {METRICS.map((m) => {
+              const value = score?.[m.key];
+              return (
+                <View key={m.key} style={styles.metricCell}>
+                  <Text style={[styles.metricValue, { color: colors.text, fontFamily: fonts.monoSemi }]}>
+                    {value === undefined || value === null ? '–' : value}
+                  </Text>
+                  <Text style={[styles.metricLabel, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>{m.label}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
       </View>
 
       <View style={[styles.infoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -129,6 +166,23 @@ const styles = StyleSheet.create({
   avatarText: { fontSize: 20, fontWeight: '800' },
   name: { fontSize: 18, fontWeight: '700' },
   email: { fontSize: 12, marginTop: 2 },
+  verifiedPill: { alignSelf: 'flex-start', marginTop: 8 },
+  scoreCard: { flexDirection: 'row', borderWidth: 1, alignItems: 'center' },
+  scoreStage: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  scoreLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 4 },
+  scoreSub: { fontSize: 12, lineHeight: 17 },
+  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, gap: 10 },
+  metricCell: { width: '45%' },
+  metricValue: { fontSize: 16, fontWeight: '700' },
+  metricLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1.2, marginTop: 2 },
   infoCard: { borderRadius: 16, borderWidth: 1, padding: 18, marginBottom: 18 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   infoLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },

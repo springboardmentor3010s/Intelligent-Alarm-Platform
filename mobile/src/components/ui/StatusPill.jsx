@@ -6,7 +6,7 @@ import { useTheme } from '../../theme/ThemeContext';
  * Status pill with an LED dot. Tones: emerald (on/healthy), amber (attention),
  * cyan (syncing), rose (destructive). `reduceMotion` disables the pulse.
  */
-export default function StatusPill({ label, tone = 'emerald', leadingDot = true }) {
+export default function StatusPill({ label, tone = 'emerald', leadingDot = true, style }) {
   const { colors, reduceMotion } = useTheme();
   const pulse = useRef(new Animated.Value(1)).current;
 
@@ -28,7 +28,7 @@ export default function StatusPill({ label, tone = 'emerald', leadingDot = true 
   const color = colors[tone] || tone;
 
   return (
-    <View style={[styles.pill, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
+    <View style={[styles.pill, { backgroundColor: colors.surface2, borderColor: colors.border }, style]}>
       {leadingDot ? (
         <Animated.View
           style={[styles.dot, { backgroundColor: color, opacity: pulse }]}

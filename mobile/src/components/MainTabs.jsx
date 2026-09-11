@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
@@ -38,11 +38,52 @@ export default function MainTabs({ navigation }) {
   );
 }
 
+/**
+ * Bottom tab bar with a rounded pill that glides toward the active tab.
+ * The indicator is a single overlay (no per-tab highlight box) so switching
+ * Home -> Alarms -> Insights -> Profile animates a smooth slide between stops.
+ */
 export function TabBar({ active, onChange }) {
   const { colors } = useTheme();
+  const [barWidth, setBarWidth] = useState(0);
+  const slide = useRef(new Animated.Value(0)).current;
+
+  const activeIndex = TABS.findIndex((t) => t.key === active);
+  const targetIndex = activeIndex < 0 ? 0 : activeIndex;
+
+  useEffect(() => {
+    Animated.spring(slide, {
+      toValue: targetIndex,
+      useNativeDriver: true,
+      friction: 9,
+      tension: 70,
+    }).start();
+  }, [targetIndex, slide]);
+
+  const tabWidth = barWidth > 0 ? barWidth / TABS.length : 0;
+
   return (
     <SafeAreaView style={[styles.tabSafe, { backgroundColor: colors.tabBar }]} edges={['bottom']}>
-      <View style={[styles.tabBar, { backgroundColor: colors.tabBar, borderTopColor: colors.tabBarBorder }]}>
+      <View
+        testID="tab-bar"
+        style={[styles.tabBar, { backgroundColor: colors.tabBar, borderTopColor: colors.tabBarBorder }]}
+        onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
+      >
+        {barWidth > 0 && (
+          <Animated.View
+            testID="tab-slider"
+            pointerEvents="none"
+            style={[
+              styles.slider,
+              {
+                backgroundColor: colors.violetSoft,
+                borderColor: colors.violetGlow,
+                width: tabWidth - 20,
+                transform: [{ translateX: Animated.multiply(slide, tabWidth) }],
+              },
+            ]}
+          />
+        )}
         {TABS.map((t) => {
           const isActive = active === t.key;
           return (
@@ -54,9 +95,7 @@ export function TabBar({ active, onChange }) {
               accessibilityState={{ selected: isActive }}
               accessibilityLabel={t.label}
             >
-              <View style={[styles.tabIconWrap, isActive && { backgroundColor: colors.violetSoft }]}>
-                <Ionicons name={isActive ? t.iconActive : t.icon} size={20} color={isActive ? colors.violet : colors.textFaint} />
-              </View>
+              <Ionicons name={isActive ? t.iconActive : t.icon} size={20} color={isActive ? colors.violet : colors.textFaint} />
               <Text style={[styles.tabLabel, { color: isActive ? colors.violet : colors.textFaint }]}>{t.label}</Text>
             </TouchableOpacity>
           );
@@ -73,10 +112,18 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    paddingTop: 8,
+    paddingTop: 6,
     paddingBottom: 4,
+    paddingHorizontal: 10,
   },
-  tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
-  tabIconWrap: { width: 40, height: 26, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  slider: {
+    position: 'absolute',
+    left: 10,
+    top: 6,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1,
+  },
+  tabItem: { flex: 1, height: 56, alignItems: 'center', justifyContent: 'center' },
   tabLabel: { fontSize: 10, fontWeight: '600', letterSpacing: 0.6, marginTop: 3 },
 });

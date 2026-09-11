@@ -6,6 +6,7 @@ import { AuthProvider, useAuthContext } from './src/context/AuthContext';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { useBrandFonts } from './src/theme/fonts';
 import MainTabs from './src/components/MainTabs';
+import HeaderActions from './src/components/layout/HeaderActions';
 import AlarmScreen from './src/screens/AlarmScreen';
 import AlarmFormScreen from './src/screens/AlarmFormScreen';
 import ChallengeScreen from './src/screens/ChallengeScreen';
@@ -50,7 +51,15 @@ function AppNavigator() {
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         ) : (
           <>
-            <Stack.Screen name="Main" component={MainTabs} options={{ title: 'CerebroKognit', headerTitleAlign: 'center' }} />
+            <Stack.Screen
+              name="Main"
+              component={MainTabs}
+              options={({ navigation }) => ({
+                title: 'CerebroKognit',
+                headerTitleAlign: 'left',
+                headerRight: () => <HeaderActions navigation={navigation} />,
+              })}
+            />
             <Stack.Screen name="Alarm" component={AlarmScreen} options={{ title: 'Solve to dismiss' }} />
             <Stack.Screen name="AlarmForm" component={AlarmFormScreen} options={{ title: 'Configure alarm' }} />
             <Stack.Screen name="Challenge" component={ChallengeScreen} options={{ title: 'Challenge' }} />
