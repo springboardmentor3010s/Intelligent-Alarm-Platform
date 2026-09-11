@@ -22,6 +22,15 @@ describe('Auth login/register UI', () => {
     expect(screen.getByText('Habit scoring & progress insights')).toBeInTheDocument();
   });
 
+  it('renders the "Next wake window" product-card mock in the hero', () => {
+    render(<Auth onAuth={() => {}} />);
+    expect(screen.getByText('Next wake window')).toBeInTheDocument();
+    expect(screen.getByText('ARMED')).toBeInTheDocument();
+    expect(screen.getByText('07')).toBeInTheDocument();
+    expect(screen.getByText('05')).toBeInTheDocument();
+    expect(screen.getByText('SCORE')).toBeInTheDocument();
+  });
+
   it('switching to Register reveals all five fields', () => {
     render(<Auth onAuth={() => {}} />);
     fireEvent.click(screen.getByRole('tab', { name: 'Register' }));

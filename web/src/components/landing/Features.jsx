@@ -15,7 +15,7 @@ export default function Features() {
       id="features"
       eyebrow="Product modules"
       title="An intelligent command center for your mornings."
-      subtitle="Four modules, one loop — wake, solve, score, repeat."
+      subtitle="Four modules, one loop; wake, solve, score, repeat."
     >
       <div className="lp-features">
         {FEATURES.map((f, i) => {

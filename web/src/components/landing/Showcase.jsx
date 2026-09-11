@@ -28,7 +28,7 @@ export default function Showcase() {
       id="showcase"
       eyebrow="One platform"
       title="Web dashboard, pocket companion."
-      subtitle="The same habit score, trends and challenges — tuned for the big screen and for the morning phone."
+      subtitle="The same habit score, trends and challenges, tuned for the big screen and for the morning phone."
       wide
       className="lp-section--tint"
     >
@@ -99,7 +99,7 @@ export default function Showcase() {
             </div>
 
             <div className="lp-show__history">
-              <span className="sys-label">Recent challenges — tap to preview</span>
+              <span className="sys-label">Recent challenges - tap to preview</span>
               {CHALLENGE_PREVIEWS.map((c, i) => (
                 <button
                   key={c.key}

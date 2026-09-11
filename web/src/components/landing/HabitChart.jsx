@@ -2,7 +2,7 @@ import React from 'react';
 import useReveal from './useReveal';
 
 const W = 640;
-const H = 220;
+const H = 250;
 const PAD = { top: 16, right: 20, bottom: 30, left: 24 };
 const plotW = W - PAD.left - PAD.right;
 const plotH = H - PAD.top - PAD.bottom;

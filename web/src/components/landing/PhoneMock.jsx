@@ -21,8 +21,12 @@ export default function PhoneMock() {
   return (
     <div className="lp-show__phone" aria-hidden="true">
       <div className="lp-show__phone-outer">
-        <div className="lp-show__phone-screen">
-          <span className="lp-show__phone-island" />
+        <div className="lp-show__phone-frame">
+          <div className="lp-show__phone-screen">
+            <span className="lp-show__phone-island">
+              <i className="lp-show__phone-lens" />
+            </span>
+            <span className="lp-show__phone-speaker" aria-hidden="true" />
           <div className="lp-show__phone-topbar">
             <span className="tabular">9:41</span>
             <span className="lp-show__phone-signal">
@@ -33,7 +37,7 @@ export default function PhoneMock() {
           <div className="lp-show__phone-app">
             <div className="lp-show__phone-greet">
               <span className="sys-label">Good morning</span>
-              <strong>Maya</strong>
+              <strong>Pawan Simha R</strong>
             </div>
             <div className="lp-show__phone-clock">
               <strong className="tabular">07:05</strong>
@@ -84,6 +88,7 @@ export default function PhoneMock() {
             </div>
           </div>
         </div>
+      </div>
       </div>
       <DemoPill>Mobile preview</DemoPill>
     </div>

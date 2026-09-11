@@ -186,6 +186,36 @@ export function allTimeZones() {
   return FALLBACK_TIMEZONES;
 }
 
+/** Human-friendly zone name, e.g. "India Standard Time" (falls back to the zone). */
+export function friendlyZoneName(zone) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: zone,
+      timeZoneName: 'long',
+    }).formatToParts(0);
+    const name = parts.find(p => p.type === 'timeZoneName');
+    return (name && name.value) || zone;
+  } catch {
+    return zone;
+  }
+}
+
+/**
+ * The user's browser timezone as a valid catalog identifier, or "UTC".
+ * Normalizes legacy ICU aliases (e.g. Asia/Calcutta → Asia/Kolkata).
+ */
+export function browserTimeZone() {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!tz) return 'UTC';
+    if (tz === 'Asia/Calcutta') return 'Asia/Kolkata';
+    if (allTimeZones().includes(tz)) return tz;
+  } catch {
+    /* fall through */
+  }
+  return 'UTC';
+}
+
 /** GMT offset label for a zone at a given instant, e.g. "GMT+05:30". */
 export function zoneOffsetLabel(zone, at = new Date()) {
   try {
@@ -217,6 +247,8 @@ export function buildTimeZoneOptions() {
     .map(zone => ({
       value: zone,
       label: `${zone} (${zoneOffsetLabel(zone)})`,
+      friendly: friendlyZoneName(zone),
+      offsetLabel: zoneOffsetLabel(zone),
       offset: zoneOffsetMinutes(zone),
       tags: timeZoneTags(zone),
     }))

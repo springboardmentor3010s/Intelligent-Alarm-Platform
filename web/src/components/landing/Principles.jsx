@@ -15,7 +15,7 @@ export default function Principles() {
       id="principles"
       eyebrow="How we build"
       title="Principles over promises."
-      subtitle="No fake reviews, no invented statistics — here is how the product actually behaves."
+      subtitle="No fake reviews, no invented statistics; here is how the product actually behaves."
       className="lp-section--gray"
     >
       <div className="lp-principles">

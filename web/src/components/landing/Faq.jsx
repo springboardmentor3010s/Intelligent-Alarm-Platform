@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { ChevronDownIcon } from '../ui';
 import { FAQS } from './demo';
 import { LandingSection } from './primitives';
 
 /**
- * Keyboard-accessible FAQ accordion: each item is a disclosure built from a
- * <button> + aria-expanded + aria-controls, so it works with keyboard and SR.
+ * Keyboard-accessible FAQ accordion: a single centered column of disclosures.
+ * Each question is a <button> (aria-expanded + aria-controls) whose plus icon
+ * rotates 45° into an ✕ when open. One item is open at a time.
  */
 export default function Faq() {
   const [openIndex, setOpenIndex] = useState(0);
@@ -32,7 +32,7 @@ export default function Faq() {
                   onClick={() => setOpenIndex(open ? null : i)}
                 >
                   <span>{item.q}</span>
-                  <ChevronDownIcon size={18} className={open ? 'is-flipped' : ''} />
+                  <span className="lp-faq__plus" aria-hidden="true" />
                 </button>
               </h3>
               {open && (

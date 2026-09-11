@@ -33,7 +33,7 @@ export const FEATURES = [
     kicker: 'Tuned to your performance',
     tone: 'violet',
     desc: 'Seven brain-training formats keep your response sharp instead of a tap-and-snooze ritual.',
-    detail: 'Adaptive difficulty learns from accuracy and solve time — easier when you struggle, harder when you’re on fire.',
+    detail: 'Adaptive difficulty learns from accuracy and solve time; easier when you struggle, harder when you’re on fire.',
   },
   {
     icon: TargetIcon,
@@ -41,14 +41,14 @@ export const FEATURES = [
     kicker: 'One score, your whole morning',
     tone: 'mint',
     desc: 'A weighted 35/25/20/20 habit score turns waking up consistently into something you can measure.',
-    detail: 'Wake-up consistency, challenge completion, snooze reduction and sleep adherence — all rolled into one number.',
+    detail: 'Wake-up consistency, challenge completion, snooze reduction and sleep adherence, all rolled into one number.',
   },
   {
     icon: BarChartIcon,
     title: 'Personal Insights',
     kicker: 'See what your data says',
     tone: 'blue',
-    desc: 'Weekly trends and recommendations show you what is working — no guesswork, no dark patterns.',
+    desc: 'Weekly trends and recommendations show you what is working; no guesswork, no dark patterns.',
     detail: 'Sleep windows, streaks and attempt accuracy, surfaced as plain-language coaching, not jargon.',
   },
 ];
@@ -83,7 +83,7 @@ export const STEPS = [
 export const FAQS = [
   {
     q: 'How does the alarm actually dismiss?',
-    a: 'When an alarm fires, it presents a short cognitive challenge. Solving it correctly unlocks dismissal — that is what proves you’re awake. You can still snooze, but snoozing counts against your habit score.',
+    a: 'When an alarm fires, it presents a short cognitive challenge. Solving it correctly unlocks dismissal; that is what proves you’re awake. You can still snooze, but snoozing counts against your habit score.',
   },
   {
     q: 'What kinds of challenges are there?',
@@ -99,7 +99,7 @@ export const FAQS = [
   },
   {
     q: 'Does the demo on this page schedule a real alarm?',
-    a: 'No — the landing-page demo runs entirely in your browser with sample data. It shows the product flow so you can try it before signing in. Real alarms are scheduled only after you create an account.',
+    a: 'No, the landing-page demo runs entirely in your browser with sample data. It shows the product flow so you can try it before signing in. Real alarms are scheduled only after you create an account.',
   },
   {
     q: 'How do I get started?',
@@ -114,7 +114,7 @@ export const PRINCIPLES = [
   },
   {
     title: 'Truthful about scope',
-    desc: 'CerebroKognit is a habit tool, not a medical device. It helps you build routine — it never claims to diagnose or cure.',
+    desc: 'CerebroKognit is a habit tool, not a medical device. It helps you build routine; it never claims to diagnose or cure.',
   },
   {
     title: 'Built to reduce friction',
@@ -153,7 +153,7 @@ function mathQuestion(diff, attempt) {
   const extra = prompt.startsWith('Solve:') ? ROLL(0, 5) : 0;
   return {
     question: `What is ${prompt}?`,
-    hint: 'Work step by step — rate × time counts.',
+    hint: 'Work step by step, rate × time counts.',
     answer: String((op === '×' ? x * y : op === '+' ? x + y : x - y) + extra),
   };
 }
@@ -169,7 +169,7 @@ function memoryQuestion(diff, attempt) {
   return {
     question: `Memorize the code, then type it back:`,
     memorize: code,
-    hint: 'Chunk it into pairs — 4 8 · 2 6 reads easier than one long run.',
+    hint: 'Chunk it into pairs, 4 8 · 2 6 reads easier than one long run.',
     answer: code,
   };
 }
@@ -197,7 +197,7 @@ function logicQuestion(diff, attempt) {
   return {
     question: item.q,
     options: item.options,
-    hint: 'Read the constraints carefully — the trap is in the wording.',
+    hint: 'Read the constraints carefully, the trap is in the wording.',
     answer: item.answer,
   };
 }

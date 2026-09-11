@@ -25,11 +25,11 @@ describe('Landing page', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders the hero message and CTAs', () => {
+  it('renders the hero message and single CTA (no separate Sign in)', () => {
     renderLanding();
     expect(screen.getByText(/WAKE WITH PURPOSE/i)).toBeInTheDocument();
     expect(screen.getAllByText('Get Started').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Sign in').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Sign in')).not.toBeInTheDocument();
   });
 
   it('toggles the mobile navigation menu', () => {
@@ -73,14 +73,14 @@ describe('Landing page', () => {
     // Correct answer raises the score, bumps the streak, unlocks dismissal.
     fireEvent.change(answer, { target: { value: '4' } });
     fireEvent.click(screen.getByRole('button', { name: /submit answer/i }));
-    expect(screen.getByText(/Correct — dismissal unlocked/i)).toBeInTheDocument();
+    expect(screen.getByText(/Correct, dismissal unlocked/i)).toBeInTheDocument();
     expect(screen.getByText(/streak 1\./)).toBeInTheDocument();
     expect(screen.getByText('10', { selector: '.cc__ring-num' })).toBeInTheDocument();
 
     const dismiss = screen.getByRole('button', { name: /dismiss alarm/i });
     expect(dismiss).toBeEnabled();
     fireEvent.click(dismiss);
-    expect(screen.getByText(/Verified — you’re awake/i)).toBeInTheDocument();
+    expect(screen.getByText(/Verified, you’re awake/i)).toBeInTheDocument();
 
     // Reset returns the demo to its armed zero state.
     fireEvent.click(screen.getByRole('button', { name: 'Reset demo' }));

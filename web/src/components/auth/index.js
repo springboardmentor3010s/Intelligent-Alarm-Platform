@@ -9,3 +9,5 @@ export { default as PasswordInput } from './PasswordInput';
 export { default as SelectInput } from './SelectInput';
 export { default as Button } from './Button';
 export { default as BenefitList } from './BenefitList';
+export { default as AuthVisual } from './AuthVisual';
+export { default as AuthWakeCard } from './AuthWakeCard';

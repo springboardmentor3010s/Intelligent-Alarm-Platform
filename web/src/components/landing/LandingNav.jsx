@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BrandMark, MenuIcon, XIcon, ArrowRightIcon } from '../ui';
+import ThemeToggle from '../auth/ThemeToggle';
 import { NAV_LINKS } from './demo';
 
 /**
- * Landing navigation: compact left brand, anchor links in the center, auth
- * actions on the right. Becomes solid + shadowed after scrolling. Mobile gets
- * a keyboard-accessible menu (button + Escape-to-close + focus management).
+ * Landing navigation: compact left brand, centered anchor links, single
+ * "Get Started" CTA on the right, plus an inline light/dark theme toggle.
+ * Becomes solid + shadowed after scrolling. Mobile gets a keyboard-accessible
+ * menu (button + Escape-to-close + focus management).
  */
 export default function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
@@ -51,26 +53,25 @@ export default function LandingNav() {
           ))}
         </nav>
 
-        <div className="lp-nav__actions">
-          <Link to="/auth" className="btn btn-ghost lp-nav__signin" onClick={closeMenu}>
-            Sign in
-          </Link>
-          <Link to="/auth" className="btn btn-primary" onClick={closeMenu}>
-            Get Started
-          </Link>
-        </div>
+        <div className="lp-nav__right">
+          <ThemeToggle />
 
-        <button
-          type="button"
-          className="lp-nav__toggle"
-          ref={setMenuBtn}
-          onClick={() => setOpen(v => !v)}
-          aria-expanded={open}
-          aria-controls="lp-mobile-menu"
-          aria-label={open ? 'Close menu' : 'Open menu'}
-        >
-          {open ? <XIcon size={20} /> : <MenuIcon size={20} />}
-        </button>
+          <Link to="/auth" className="btn btn-primary lp-nav__cta" onClick={closeMenu}>
+            Get Started <ArrowRightIcon size={15} />
+          </Link>
+
+          <button
+            type="button"
+            className="lp-nav__toggle"
+            ref={setMenuBtn}
+            onClick={() => setOpen(v => !v)}
+            aria-expanded={open}
+            aria-controls="lp-mobile-menu"
+            aria-label={open ? 'Close menu' : 'Open menu'}
+          >
+            {open ? <XIcon size={20} /> : <MenuIcon size={20} />}
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -81,9 +82,6 @@ export default function LandingNav() {
             </a>
           ))}
           <div className="lp-nav__mobile-actions">
-            <Link to="/auth" className="btn btn-ghost btn--block" onClick={closeMenu}>
-              Sign in
-            </Link>
             <Link to="/auth" className="btn btn-primary btn--block" onClick={closeMenu}>
               Get Started <ArrowRightIcon size={15} />
             </Link>

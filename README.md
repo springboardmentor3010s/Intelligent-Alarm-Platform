@@ -310,6 +310,24 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 
 ---
 
+## Author
+
+**Pawan Simha R**
+MCA Student, Sapthagiri NPS University
+Infosys Virtual Internship 7.0
+
+| Channel | Link |
+|---|---|
+| Email | [iampawansimha.2004@gmail.com](mailto:iampawansimha.2004@gmail.com) |
+| GitHub | [github.com/PawanSimha](https://github.com/PawanSimha) |
+| LinkedIn | [linkedin.com/in/pawansimha](https://www.linkedin.com/in/pawansimha) |
+| Portfolio | [portfolio-pawansimha.vercel.app](https://portfolio-pawansimha.vercel.app/) |
+| Google Developer | [g.dev/pawansimha](https://g.dev/pawansimha) |
+
+**Project Guide & Mentor**: Shanmukha Priya
+
+---
+
 ## Contributing
 
 Before making changes, review:

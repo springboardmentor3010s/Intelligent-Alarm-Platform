@@ -391,6 +391,24 @@ export function GlobeIcon({ size = 16 }) {
   );
 }
 
+export function MailIcon({ size = 16 }) {
+  return (
+    <Icon size={size}>
+      <rect width="20" height="16" x="2" y="4" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </Icon>
+  );
+}
+
+export function GoogleDevIcon({ size = 16 }) {
+  return (
+    <Icon size={size}>
+      <path d="M9.5 2h5L17 3.5v5l1.5 1.5h3.5v5L17 19v4.5h-3L12 15l-2 8.5H7V19L3 15v-5h4l3-3V2Z" />
+      <circle cx="12" cy="12" r="3" />
+    </Icon>
+  );
+}
+
 export function ArrowUpIcon({ size = 16 }) {
   return (
     <Icon size={size}>

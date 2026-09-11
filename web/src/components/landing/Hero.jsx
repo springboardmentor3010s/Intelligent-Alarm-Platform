@@ -30,7 +30,7 @@ export default function Hero() {
             <em>Build better habits.</em>
           </h1>
           <p className="lp-hero__lead">
-            CerebroKognit turns waking up into a meaningful daily routine — a quick
+            CerebroKognit turns waking up into a meaningful daily routine, a quick
             cognitive challenge sits between your alarm and snooze, backed by a
             habit score that measures what actually works.
           </p>

@@ -116,13 +116,13 @@ export default function CommandCenter({ getChallenge = generateChallenge }) {
       setStreak(0);
       setStatus('incorrect');
       setSolved(false);
-      setNote('Not quite — try again, pace yourself.');
+      setNote('Not quite, try again, pace yourself.');
     }
   }, [challenge, input, option, difficulty, streak]);
 
   const snooze = () => {
     setPhase('snoozed');
-    setNote('Demo snoozed — postponed 5 minutes. A real alarm would ring again.');
+    setNote('Demo snoozed, postponed 5 minutes. A real alarm would ring again.');
   };
 
   const dismiss = () => {
@@ -136,12 +136,12 @@ export default function CommandCenter({ getChallenge = generateChallenge }) {
 
   const nextAction =
     phase === 'armed'
-      ? 'Armed — ready for tomorrow morning.'
+      ? 'Armed, ready for tomorrow morning.'
       : phase === 'ringing'
         ? 'Solve the challenge to unlock dismissal.'
         : phase === 'snoozed'
           ? 'Postponed 5 minutes. Tap to simulate again.'
-          : 'Morning complete — score updated.';
+          : 'Morning complete, score updated.';
 
   return (
     <div className="cc" aria-label="Interactive product demo (sample data)">
@@ -149,7 +149,7 @@ export default function CommandCenter({ getChallenge = generateChallenge }) {
       <div className="cc__top">
         <div className="cc__title">
           <span className="sys-label"><ZapIcon size={12} /> CerebroKognit · Command Center</span>
-          <span className="cc__sub">Everything here uses sample data — it never schedules a real alarm.</span>
+          <span className="cc__sub">Everything here uses sample data; it never schedules a real alarm.</span>
         </div>
         <button type="button" className="btn-icon cc__reset" onClick={resetDemo} title="Reset demo">
           <RotateIcon size={16} />
@@ -282,7 +282,7 @@ export default function CommandCenter({ getChallenge = generateChallenge }) {
               <div className="cc__success">
                 <CheckCircleIcon size={22} />
                 <div>
-                  <strong>Verified — you’re awake.</strong>
+                  <strong>Verified, you’re awake.</strong>
                   <span>Alarm dismissed. Score updated.</span>
                 </div>
               </div>
@@ -352,7 +352,7 @@ export default function CommandCenter({ getChallenge = generateChallenge }) {
 
                 {status === 'correct' && (
                   <div className="cc__feedback cc__feedback--ok" role="status">
-                    <CheckCircleIcon size={15} /> Correct — dismissal unlocked.
+                    <CheckCircleIcon size={15} /> Correct, dismissal unlocked.
                   </div>
                 )}
                 {status === 'incorrect' && (

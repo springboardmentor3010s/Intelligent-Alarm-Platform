@@ -78,7 +78,6 @@ export default function HowItWorks() {
             >
               <span className="lp-step__marker">
                 <span className="lp-step__num tabular">{s.n}</span>
-                {i < STEPS.length - 1 && <span className="lp-step__rail" aria-hidden="true" />}
               </span>
               <span className="lp-step__text">
                 <span className="lp-step__title">{s.title}</span>

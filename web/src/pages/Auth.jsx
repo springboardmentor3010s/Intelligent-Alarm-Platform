@@ -10,12 +10,18 @@ import {
   Button,
   FormField,
   BenefitList,
+  AuthVisual,
+  AuthWakeCard,
 } from '../components/auth';
 import { TimezonePicker } from '../components/ui';
+import { browserTimeZone } from '../utils/timezones';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const DIFFICULTIES = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
+
+const SIGNUP_HEAD = { title: 'Create your account', sub: 'Set up your cognitive wake protocol in under a minute.' };
+const LOGIN_HEAD = { title: 'Welcome back', sub: 'Sign in to stay sharp every morning.' };
 
 export default function Auth({ onAuth }) {
   const [mode, setMode] = useState('login');
@@ -23,29 +29,64 @@ export default function Auth({ onAuth }) {
     email: '',
     password: '',
     full_name: '',
-    timezone: 'UTC',
+timezone: browserTimeZone(),
     difficulty_preference: 'Medium',
   });
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+  const validateField = (field) => {
+    const value = form[field];
+    if (field === 'email') {
+      if (!value.trim()) return 'Email is required.';
+      if (!EMAIL_RE.test(value.trim())) return 'Enter a valid email address.';
+    }
+    if (field === 'password') {
+      if (!value) return 'Password is required.';
+      if (mode === 'register' && value.length < 8) {
+        return 'Password must contain at least 8 characters.';
+      }
+    }
+    if (field === 'full_name' && mode === 'register' && !value.trim()) {
+      return 'Full name is required.';
+    }
+    return null;
+  };
+
+  const setFieldError = (field, err) => {
+    setErrors(prev => {
+      const next = { ...prev };
+      if (err) next[field] = err;
+      else delete next[field];
+      return next;
+    });
+  };
+
+  const update = (field) => (e) => {
+    const value = e.target.value;
+    setForm(prev => ({ ...prev, [field]: value }));
+    if (touched[field] || errors[field]) {
+      setFieldError(field, validateField(field));
+    }
+  };
+
+  const handleBlur = (field) => () => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    setFieldError(field, validateField(field));
+  };
 
   const validate = () => {
-    const e = {};
-    if (!form.email.trim()) e.email = 'Email is required.';
-    else if (!EMAIL_RE.test(form.email.trim())) e.email = 'Enter a valid email address.';
-
-    if (!form.password) e.password = 'Password is required.';
-    else if (mode === 'register' && form.password.length < 8) {
-      e.password = 'Password must contain at least 8 characters.';
-    }
-
-    if (mode === 'register' && !form.full_name.trim()) {
-      e.full_name = 'Full name is required.';
-    }
-    return e;
+    const fields = mode === 'register'
+      ? ['full_name', 'email', 'password']
+      : ['email', 'password'];
+    const next = {};
+    fields.forEach(f => {
+      const err = validateField(f);
+      if (err) next[f] = err;
+    });
+    return next;
   };
 
   const handleSubmit = async (e) => {
@@ -121,6 +162,8 @@ export default function Auth({ onAuth }) {
     }
   };
 
+  const head = mode === 'login' ? LOGIN_HEAD : SIGNUP_HEAD;
+
   const hero = (
     <>
       <AuthBranding />
@@ -128,84 +171,130 @@ export default function Auth({ onAuth }) {
         <h1>Win your mornings with a smarter alarm.</h1>
         <p>
           An AI-powered cognitive alarm that wakes you with adaptive,
-          brain-engaging challenges — and turns waking up into a daily habit.
+          brain-engaging challenges, and turns waking up into a daily habit.
         </p>
       </div>
       <BenefitList />
+      <div className="hero-stats">
+        <div className="hero-stat">
+          <strong>7</strong>
+          <span>Cognitive challenge modes</span>
+        </div>
+        <div className="hero-stat">
+          <strong>5</strong>
+          <span>Difficulty tiers</span>
+        </div>
+        <div className="hero-stat">
+          <strong>ML</strong>
+          <span>Personalized difficulty</span>
+        </div>
+      </div>
+      <p className="hero-note">
+        Each morning&apos;s challenge is tuned by a trained neural difficulty engine;
+        your wake-up data keeps it sharper every day.
+      </p>
+      <AuthWakeCard />
+      <AuthVisual />
     </>
   );
 
   const formEl = (
     <div className="auth-form">
+      <div className="auth-form__head">
+        <h2>{head.title}</h2>
+        <p>{head.sub}</p>
+      </div>
+
       <AuthTabs mode={mode} onChange={setMode} />
 
       {message && (
         <div
           className={`banner ${message.type === 'error' ? 'banner-error' : 'banner-success'}`}
           role="alert"
+          aria-live="assertive"
         >
           {message.type === 'error' ? '⚠️' : '✓'} {message.text}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} noValidate>
-        {mode === 'register' && (
-          <>
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        id="auth-tabpanel"
+        role="tabpanel"
+        aria-labelledby={`auth-tab-${mode}`}
+        aria-busy={loading || undefined}
+      >
+        <div className="auth-form__fields">
+          {mode === 'register' && (
             <TextInput
               id="full_name"
               label="Full name"
               value={form.full_name}
               onChange={update('full_name')}
+              onBlur={handleBlur('full_name')}
               placeholder="e.g. Alex Morgan"
               autoComplete="name"
+              disabled={loading}
               error={errors.full_name}
             />
-            <SelectInput
-              id="difficulty_preference"
-              label="Preferred difficulty"
-              value={form.difficulty_preference}
-              onChange={update('difficulty_preference')}
-              error={errors.difficulty_preference}
-            >
-              {DIFFICULTIES.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </SelectInput>
-            <FormField id="timezone" label="Timezone" error={errors.timezone}>
-              <TimezonePicker
-                id="timezone"
-                value={form.timezone}
-                onChange={tz => setForm({ ...form, timezone: tz })}
-                error={errors.timezone}
-              />
-            </FormField>
-          </>
-        )}
+          )}
 
-        <TextInput
-          id="email"
-          label="Email"
-          type="email"
-          value={form.email}
-          onChange={update('email')}
-          placeholder="you@example.com"
-          autoComplete="email"
-          error={errors.email}
-        />
+          <TextInput
+            id="email"
+            label="Email"
+            type="email"
+            value={form.email}
+            onChange={update('email')}
+            onBlur={handleBlur('email')}
+            placeholder="you@example.com"
+            autoComplete="email"
+            disabled={loading}
+            error={errors.email}
+          />
 
-        <PasswordInput
-          id="password"
-          label="Password"
-          value={form.password}
-          onChange={update('password')}
-          placeholder={mode === 'register' ? 'At least 8 characters' : 'Enter your password'}
-          minLength={mode === 'register' ? 8 : undefined}
-          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          error={errors.password}
-        />
+          <PasswordInput
+            id="password"
+            label="Password"
+            value={form.password}
+            onChange={update('password')}
+            onBlur={handleBlur('password')}
+            placeholder={mode === 'register' ? 'At least 8 characters' : 'Enter your password'}
+            minLength={mode === 'register' ? 8 : undefined}
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            disabled={loading}
+            hint={mode === 'register' ? 'Minimum 8 characters' : undefined}
+            error={errors.password}
+          />
+
+          {mode === 'register' && (
+            <>
+              <SelectInput
+                id="difficulty_preference"
+                label="Preferred difficulty"
+                value={form.difficulty_preference}
+                onChange={update('difficulty_preference')}
+                disabled={loading}
+                error={errors.difficulty_preference}
+              >
+                {DIFFICULTIES.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </SelectInput>
+              <FormField id="timezone" label="Timezone" error={errors.timezone}>
+                <TimezonePicker
+                  id="timezone"
+                  value={form.timezone}
+                  onChange={tz => setForm({ ...form, timezone: tz })}
+                  error={errors.timezone}
+                />
+              </FormField>
+            </>
+          )}
+        </div>
 
         <div className="auth-form__actions">
-          <Button loading={loading}>
+          <Button loading={loading} disabled={loading}>
             {loading
               ? (mode === 'login' ? 'Logging in…' : 'Creating account…')
               : (mode === 'login' ? 'Login' : 'Create Account')}

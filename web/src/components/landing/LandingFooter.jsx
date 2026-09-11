@@ -10,6 +10,8 @@ import {
   GlobeIcon,
   GraduationCapIcon,
   LinkedinIcon,
+  MailIcon,
+  GoogleDevIcon,
   SparklesIcon,
   TargetIcon,
 } from '../ui';
@@ -17,13 +19,12 @@ import { BrandMark } from '../ui';
 
 /**
  * Landing footer: brand, product & resource navigation, academic project
- * attribution, connect, an attribution badge strip, disclaimer and a
- * copyright bar. Links that have no real destination are rendered as
- * clearly-labeled non-interactive placeholders — never a fake action.
+ * attribution, connect (for real sponsor/owner links), an attribution badge
+ * strip, disclaimer and a copyright bar.
  */
 
-const PROJECT_URL = 'https://github.com/PawanSimha/CerebroKognit-InfosysInternship-B3';
-const OWNER_PROFILE = 'https://github.com/PawanSimha';
+const PROJECT_URL =
+  'https://github.com/PawanSimha/CerebroKognit-InfosysInternship-B3';
 
 const HIGHLIGHTS = [
   { icon: SparklesIcon, label: 'Smarter mornings' },
@@ -43,8 +44,8 @@ const PRODUCT_LINKS = [
 ];
 
 const RESOURCE_LINKS = [
-  { href: '#how-it-works', label: 'How it works' },
   { href: '#features', label: 'Features' },
+  { href: '#how-it-works', label: 'How it works' },
   { href: '#faq', label: 'FAQ' },
   { href: '#faq', label: 'Privacy Policy', title: 'See “Is my data private?” in the FAQ' },
   { href: '#principles', label: 'Terms of Use', title: 'Product behavior & scope' },
@@ -53,32 +54,41 @@ const RESOURCE_LINKS = [
 
 const BADGES = [
   { icon: BriefcaseIcon, label: 'Infosys Virtual Internship 7.0' },
-  { icon: AwardIcon, label: 'Academic Project' },
+  { icon: AwardIcon, label: 'Internship Project' },
   { icon: GraduationCapIcon, label: 'MCA Student' },
   { icon: BuildingIcon, label: 'Sapthagiri NPS University' },
 ];
 
 const SOCIALS = [
   {
+    key: 'email',
+    icon: MailIcon,
+    label: 'Email',
+    href: 'mailto:iampawansimha.2004@gmail.com',
+  },
+  {
     key: 'github',
     icon: GithubIcon,
     label: 'GitHub',
-    href: OWNER_PROFILE,
-    note: null,
+    href: 'https://github.com/PawanSimha',
   },
   {
     key: 'linkedin',
     icon: LinkedinIcon,
     label: 'LinkedIn',
-    href: null,
-    note: 'not linked',
+    href: 'https://www.linkedin.com/in/pawansimha',
   },
   {
     key: 'portfolio',
     icon: GlobeIcon,
     label: 'Portfolio',
-    href: null,
-    note: 'not linked',
+    href: 'https://portfolio-pawansimha.vercel.app',
+  },
+  {
+    key: 'googledev',
+    icon: GoogleDevIcon,
+    label: 'Google Developer',
+    href: 'https://g.dev/pawansimha',
   },
 ];
 
@@ -170,10 +180,11 @@ export default function LandingFooter() {
             CerebroKognit is an internship project developed as part of the Infosys Virtual
             Internship 7.0 program by Pawan Simha, an MCA student at Sapthagiri NPS University.
           </p>
+          <p>Project Guide and Mentor: Shanmukha Priya.</p>
           <div className="lp-footer__status-wrap">
             <span className="sys-label sys-label--mint">Project Status</span>
             <p>
-              Academic internship project. Product concepts, interface, and demonstration
+              Internship project. Product concepts, interface, and demonstration
               features are presented for educational purposes.
             </p>
           </div>
@@ -184,24 +195,17 @@ export default function LandingFooter() {
           <ul className="lp-footer__socials">
             {SOCIALS.map(s => {
               const Icon = s.icon;
-              return s.href ? (
+              return (
                 <li key={s.key}>
                   <a
                     className="lp-footer__social"
                     href={s.href}
-                    aria-label={`${s.label} — CerebroKognit project owner`}
+                    aria-label={`${s.label} - CerebroKognit project owner`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <Icon size={15} /> {s.label}
                   </a>
-                </li>
-              ) : (
-                <li key={s.key}>
-                  <span className="lp-footer__social lp-footer__social--muted" aria-disabled="true">
-                    <Icon size={15} /> {s.label}
-                    <span className="lp-footer__social-note">{s.note}</span>
-                  </span>
                 </li>
               );
             })}

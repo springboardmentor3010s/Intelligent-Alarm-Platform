@@ -21,13 +21,13 @@ export default function Insights() {
       id="insights"
       eyebrow="Personal insights"
       title="Your habits, visualized."
-      subtitle="Weekly streaks, wake consistency and challenge accuracy at a glance — using illustrative sample data, clearly labeled."
+      subtitle="Weekly streaks, wake consistency and challenge accuracy at a glance, using illustrative sample data, clearly labeled."
     >
       <div className="lp-insights">
         <div className="lp-insights__chart">
           <div className="lp-insights__chart-head">
             <div>
-              <span className="sys-label">Weekly habit score — last 7 days</span>
+              <span className="sys-label">Weekly habit score - last 7 days</span>
               <h3 className="lp-insights__chart-title">Trend, 0 – 100</h3>
             </div>
             <DemoPill>Sample data</DemoPill>
@@ -46,7 +46,7 @@ export default function Insights() {
             </div>
           ))}
           <p className="lp-insights__note">
-            Sample numbers only — your real dashboard shows your actual morning data.
+            Sample numbers only; your real dashboard shows your actual morning data.
           </p>
         </div>
       </div>
