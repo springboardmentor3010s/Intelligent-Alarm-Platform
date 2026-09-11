@@ -2,10 +2,25 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../../context/AuthContext';
-import { BRAND, ui } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
+import { SysLabel, StatusPill, SectionHeader, ConnectRow } from '../../components/ui';
+
+const LINKS = [
+  {
+    icon: 'mail-outline',
+    label: 'Email',
+    sublabel: 'iampawansimha.2004@gmail.com',
+    url: 'mailto:iampawansimha.2004@gmail.com',
+  },
+  { icon: 'logo-github', label: 'GitHub', sublabel: 'github.com/PawanSimha', url: 'https://github.com/PawanSimha' },
+  { icon: 'logo-linkedin', label: 'LinkedIn', sublabel: 'linkedin.com/in/pawansimha', url: 'https://www.linkedin.com/in/pawansimha' },
+  { icon: 'globe-outline', label: 'Portfolio', sublabel: 'portfolio-pawansimha.vercel.app', url: 'https://portfolio-pawansimha.vercel.app' },
+  { icon: 'logo-google', label: 'Google Developer', sublabel: 'g.dev/pawansimha', url: 'https://g.dev/pawansimha' },
+];
 
 export default function ProfileTab({ navigation }) {
   const { user, logout } = useAuthContext();
+  const { colors, ui, fonts } = useTheme();
 
   const confirmLogout = () => {
     Alert.alert('Log out', 'End this session?', [
@@ -24,102 +39,112 @@ export default function ProfileTab({ navigation }) {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.sysLabel}>
-        <Ionicons name="person-outline" size={12} color={BRAND.primary} /> OPERATOR IDENTITY
-      </Text>
-      <Text style={styles.title}>Profile</Text>
+      <SysLabel icon="person-outline" tone="violet">Operator identity</SysLabel>
+      <Text style={[styles.title, { color: colors.text, fontFamily: fonts.displayBold }]}>Profile</Text>
 
-      <View style={[ui.card, styles.idCard]}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials || 'U'}</Text>
+      <View style={[ui.card, styles.idCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.avatar, { backgroundColor: colors.violetSoft, borderColor: colors.violet }]}>
+          <Text style={[styles.avatarText, { color: colors.violet }]}>{initials || 'U'}</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{user?.full_name || 'Cerebro Operator'}</Text>
-          <Text style={styles.email}>{user?.email || '—'}</Text>
+          <Text style={[styles.name, { color: colors.text }]}>{user?.full_name || 'Cerebro Operator'}</Text>
+          <Text style={[styles.email, { color: colors.textFaint, fontFamily: fonts.monoMedium }]} numberOfLines={1}>
+            {user?.email || 'No email set'}
+          </Text>
         </View>
-        <View style={styles.statusChip}>
-          <View style={styles.statusDot} />
-          <Text style={styles.statusText}>VERIFIED</Text>
-        </View>
+        <StatusPill label="Verified" tone="emerald" />
       </View>
 
-      <View style={styles.infoCard}>
-        <InfoRow label="TIME ZONE" value={user?.timezone || 'UTC'} />
-        <View style={styles.divider} />
-        <InfoRow label="DIFFICULTY PREFS" value={user?.difficulty_preference || 'Medium'} />
-        <View style={styles.divider} />
-        <InfoRow label="HABIT ENGINE" value="35 / 25 / 20 / 20" />
+      <View style={[styles.infoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <InfoRow label="TIME ZONE" value={user?.timezone || 'UTC'} colors={colors} fonts={fonts} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <InfoRow label="DIFFICULTY PREFS" value={user?.difficulty_preference || 'Medium'} colors={colors} fonts={fonts} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <InfoRow label="HABIT ENGINE" value="35 / 25 / 20 / 20" colors={colors} fonts={fonts} />
       </View>
 
-      <Text style={styles.sectionLabel}>CONTROLS</Text>
-      <TouchableOpacity style={styles.actionRow} onPress={() => navigation.navigate('Profile')}>
-        <Ionicons name="create-outline" size={20} color={BRAND.textDim} />
-        <Text style={styles.actionText}>Edit Profile</Text>
-        <Ionicons name="chevron-forward" size={18} color={BRAND.textFaint} />
+      <SectionHeader tone="violet" style={styles.sectionHeader}>About</SectionHeader>
+      <View style={[ui.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[styles.aboutText, { color: colors.textMuted }]}>
+          CerebroKognit is an intelligent cognitive alarm and habit platform. Built by Pawan Simha, MCA student at Sapthagiri
+          NPS University, as part of the Infosys Virtual Internship 7.0 program. Project mentor: Shanmukha Priya.
+        </Text>
+      </View>
+
+      <SectionHeader tone="violet" style={styles.sectionHeader}>Connect</SectionHeader>
+      {LINKS.map((l) => (
+        <ConnectRow key={l.label} icon={l.icon} label={l.label} sublabel={l.sublabel} url={l.url} accessibilityLabel={`${l.label} - CerebroKognit project owner`} />
+      ))}
+
+      <SectionHeader tone="violet" style={styles.sectionHeader}>Controls</SectionHeader>
+      <TouchableOpacity
+        style={[styles.actionRow, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        onPress={() => navigation.navigate('Profile')}
+        accessibilityRole="button"
+        accessibilityLabel="Edit profile"
+      >
+        <Ionicons name="create-outline" size={20} color={colors.textMuted} />
+        <Text style={[styles.actionText, { color: colors.text }]}>Edit profile</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.actionRow} onPress={() => navigation.navigate('Settings')}>
-        <Ionicons name="settings-outline" size={20} color={BRAND.textDim} />
-        <Text style={styles.actionText}>Settings</Text>
-        <Ionicons name="chevron-forward" size={18} color={BRAND.textFaint} />
+      <TouchableOpacity
+        style={[styles.actionRow, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        onPress={() => navigation.navigate('Settings')}
+        accessibilityRole="button"
+        accessibilityLabel="Settings"
+      >
+        <Ionicons name="settings-outline" size={20} color={colors.textMuted} />
+        <Text style={[styles.actionText, { color: colors.text }]}>Settings</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.actionRow, styles.dangerRow]} onPress={confirmLogout}>
-        <Ionicons name="log-out-outline" size={20} color={BRAND.danger} />
-        <Text style={[styles.actionText, { color: BRAND.danger }]}>Log Out</Text>
+      <TouchableOpacity
+        style={[styles.actionRow, styles.dangerRow, { backgroundColor: colors.surface, borderColor: colors.roseSoft }]}
+        onPress={confirmLogout}
+        accessibilityRole="button"
+        accessibilityLabel="Log out"
+      >
+        <Ionicons name="log-out-outline" size={20} color={colors.rose} />
+        <Text style={[styles.actionText, { color: colors.rose }]}>Log out</Text>
         <View style={{ flex: 1 }} />
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-function InfoRow({ label, value }) {
+function InfoRow({ label, value, colors, fonts }) {
   return (
     <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+      <Text style={[styles.infoLabel, { color: colors.textFaint, fontFamily: fonts.monoSemi }]}>{label}</Text>
+      <Text style={[styles.infoValue, { color: colors.textMuted }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: BRAND.space },
+  screen: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
-  sysLabel: { color: BRAND.primary, fontSize: 11, fontWeight: '700', letterSpacing: 2.5, marginBottom: 8, textTransform: 'uppercase' },
-  title: { ...ui.title },
-  idCard: { flexDirection: 'row', alignItems: 'center', borderColor: 'rgba(244,164,66,0.4)' },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(244,164,66,0.2)',
-    borderWidth: 2,
-    borderColor: BRAND.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  avatarText: { color: BRAND.text, fontSize: 20, fontWeight: '800' },
-  name: { color: BRAND.text, fontSize: 18, fontWeight: '700' },
-  email: { color: BRAND.textFaint, fontSize: 13, marginTop: 2 },
-  statusChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: BRAND.surface2, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
-  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: BRAND.success, marginRight: 6 },
-  statusText: { color: BRAND.success, fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-  infoCard: { backgroundColor: BRAND.surface, borderRadius: 16, borderWidth: 1, borderColor: BRAND.border, padding: 18, marginBottom: 18 },
+  title: { fontSize: 26, marginTop: 4, marginBottom: 18 },
+  idCard: { flexDirection: 'row', alignItems: 'center', borderWidth: 1 },
+  avatar: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  avatarText: { fontSize: 20, fontWeight: '800' },
+  name: { fontSize: 18, fontWeight: '700' },
+  email: { fontSize: 12, marginTop: 2 },
+  infoCard: { borderRadius: 16, borderWidth: 1, padding: 18, marginBottom: 18 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  infoLabel: { color: BRAND.textFaint, fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
-  infoValue: { color: BRAND.textDim, fontSize: 14, fontWeight: '600' },
-  divider: { height: 1, backgroundColor: BRAND.border, marginVertical: 12 },
-  sectionLabel: { color: BRAND.textFaint, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 10, textTransform: 'uppercase' },
+  infoLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
+  infoValue: { fontSize: 14, fontWeight: '600' },
+  divider: { height: 1, marginVertical: 12 },
+  sectionHeader: { marginTop: 6, marginBottom: 10 },
+  aboutText: { fontSize: 13, lineHeight: 20 },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: BRAND.surface,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: BRAND.border,
     padding: 16,
     marginBottom: 10,
   },
-  actionText: { flex: 1, color: BRAND.text, fontSize: 15, fontWeight: '600' },
-  dangerRow: { borderColor: 'rgba(240,107,130,0.35)' },
+  actionText: { flex: 1, fontSize: 15, fontWeight: '600' },
+  dangerRow: { borderWidth: 1 },
 });

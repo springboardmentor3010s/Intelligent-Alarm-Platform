@@ -139,10 +139,10 @@ export const describeFetchError = (error) => {
   const msg = (error && error.message) || '';
   const name = (error && error.name) || '';
   if (name === 'AbortError' || msg.includes('Aborted')) {
-    return `Request timed out after 10s — server (${server}) did not respond.`;
+    return `Request timed out after 10s - server (${server}) did not respond.`;
   }
   if (msg.includes('has been canceled')) {
-    return `Request was canceled — the server (${server}) did not respond in time. Is the backend running and reachable?`;
+    return `Request was canceled - the server (${server}) did not respond in time. Is the backend running and reachable?`;
   }
   if (
     msg.includes('Network request failed') ||

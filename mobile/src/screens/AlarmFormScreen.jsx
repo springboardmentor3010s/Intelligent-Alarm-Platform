@@ -4,7 +4,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
-import { BRAND, ui } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
+import { SysLabel, ChipRow } from '../components/ui';
 
 const TYPES = ['Daily', 'Weekday', 'Weekend', 'One-Time', 'Smart Adaptive'];
 const CHALLENGE_TYPES = ['Math', 'Logic', 'Memory', 'Word', 'Pattern', 'Riddle', 'QuickQuiz'];
@@ -13,6 +14,7 @@ const COUNTS = [3, 4, 5];
 
 export default function AlarmFormScreen({ route, navigation }) {
   const { token } = useAuthContext();
+  const { colors, ui, fonts } = useTheme();
   const alarmId = route.params?.alarmId;
 
   const [title, setTitle] = useState('');
@@ -73,11 +75,11 @@ export default function AlarmFormScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.sysLabel}><Ionicons name="settings-outline" size={12} color={BRAND.primary} /> WAKE-UP CONFIG</Text>
-      <Text style={styles.title}>{alarmId ? 'Edit Alarm' : 'New Alarm'}</Text>
-      <Text style={styles.subtitle}>Configure the window that gates your wake-up.</Text>
+      <SysLabel icon="settings-outline" tone="violet">Wake-up config</SysLabel>
+      <Text style={[styles.title, { color: colors.text, fontFamily: fonts.displayBold }]}>{alarmId ? 'Edit alarm' : 'New alarm'}</Text>
+      <Text style={[styles.subtitle, { color: colors.textMuted }]}>Configure the window that gates your wake-up.</Text>
 
-      <Text style={styles.fieldLabel}>TITLE</Text>
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>TITLE</Text>
       <TextInput
         style={ui.input}
         value={title}
@@ -86,7 +88,7 @@ export default function AlarmFormScreen({ route, navigation }) {
         placeholderTextColor={ui.inputPlaceholder}
       />
 
-      <Text style={styles.fieldLabel}>TIME (HH:MM, 24H)</Text>
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>TIME (HH:MM, 24H)</Text>
       <TextInput
         style={ui.input}
         value={time}
@@ -97,60 +99,32 @@ export default function AlarmFormScreen({ route, navigation }) {
         maxLength={5}
       />
 
-      <Text style={styles.fieldLabel}>RECURRENCE</Text>
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>RECURRENCE</Text>
       <ChipRow options={TYPES} active={type} onSelect={setType} />
 
-      <Text style={styles.fieldLabel}>CHALLENGE ENGINE</Text>
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>CHALLENGE ENGINE</Text>
       <ChipRow options={CHALLENGE_TYPES} active={challengeType} onSelect={setChallengeType} />
 
-      <Text style={styles.fieldLabel}>DIFFICULTY</Text>
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>DIFFICULTY</Text>
       <ChipRow options={DIFFICULTY} active={difficulty} onSelect={setDifficulty} />
 
-      <Text style={styles.fieldLabel}>QUESTIONS PER WINDOW</Text>
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>QUESTIONS PER WINDOW</Text>
       <ChipRow options={COUNTS.map(String)} active={String(count)} onSelect={(c) => setCount(Number(c))} />
 
-      <TouchableOpacity style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={save} disabled={saving}>
-        {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>{alarmId ? 'SAVE CHANGES' : 'CREATE ALARM'}</Text>}
+      <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.violet }, saving && styles.saveBtnDisabled]} onPress={save} disabled={saving} accessibilityRole="button">
+        {saving ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.saveText}>{alarmId ? 'Save changes' : 'Create alarm'}</Text>}
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-function ChipRow({ options, active, onSelect }) {
-  return (
-    <View style={styles.chipWrap}>
-      {options.map((opt) => {
-        const isActive = opt === active;
-        return (
-          <TouchableOpacity key={opt} style={[styles.chip, isActive && styles.chipActive]} onPress={() => onSelect(opt)}>
-            <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{opt}</Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: BRAND.space },
+  screen: { flex: 1 },
   content: { padding: 20, paddingBottom: 48 },
-  sysLabel: { color: BRAND.primary, fontSize: 11, fontWeight: '700', letterSpacing: 2.5, marginBottom: 8, textTransform: 'uppercase' },
-  title: { ...ui.title },
-  subtitle: { ...ui.subtitle, marginBottom: 24 },
-  fieldLabel: { color: BRAND.textFaint, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginTop: 18, marginBottom: 10 },
-  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    backgroundColor: BRAND.surface2,
-    borderWidth: 1,
-    borderColor: BRAND.border,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
-  chipActive: { backgroundColor: BRAND.deepPurple, borderColor: BRAND.primary },
-  chipText: { color: BRAND.textDim, fontSize: 13, fontWeight: '600' },
-  chipTextActive: { color: BRAND.text },
-  saveBtn: { backgroundColor: BRAND.primary, borderRadius: 12, alignItems: 'center', paddingVertical: 16, marginTop: 28 },
+  title: { fontSize: 26, marginTop: 6 },
+  subtitle: { fontSize: 14, marginTop: 4, marginBottom: 12 },
+  fieldLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginTop: 18, marginBottom: 10 },
+  saveBtn: { borderRadius: 12, alignItems: 'center', paddingVertical: 16, marginTop: 28 },
   saveBtnDisabled: { opacity: 0.5 },
-  saveText: { color: '#fff', fontWeight: '700', fontSize: 16, letterSpacing: 1 },
+  saveText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16, letterSpacing: 0.3 },
 });

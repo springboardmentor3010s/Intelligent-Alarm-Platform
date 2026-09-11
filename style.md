@@ -1,9 +1,10 @@
-# Style Guide: CerebroKognit Web
+# Style Guide: CerebroKognit (Web + Mobile)
 
 Canonical design reference for every page, component, and line of CSS in this
 repository. If a decision here conflicts with an old habit, this file wins.
-Source of truth for tokens: `web/src/index.css` (`:root` and
-`html[data-theme='dark']`).
+Source of truth for web tokens: `web/src/index.css` (`:root` and
+`html[data-theme='dark']`). Source of truth for mobile tokens:
+`mobile/src/theme/tokens.js` + `mobile/src/theme/ThemeContext.jsx`.
 
 ---
 
@@ -311,3 +312,68 @@ npm run build   # must be clean (CSS + JS emitted)
 Then spot-check Light and Dark at narrow (320-480px), tablet (768-1024px), and
 desktop (>=1280px) widths, and check the live dev server refresh
 (`http://localhost:5173`) reflects the change.
+
+For mobile work, also run `./mobile` gates:
+
+```
+npm test                     # jest-expo suite (currently 39 passing)
+npx expo export --platform android   # must bundle cleanly
+npx expo export --platform ios
+```
+
+---
+
+## 12. Mobile (React Native) Expression
+
+The mobile app renders the same system with React Native. Tokens live in
+`mobile/src/theme/tokens.js`; consume them through `useTheme()` from
+`mobile/src/theme/ThemeContext.jsx`, never hard-coded hex.
+
+### 12.1 Token Mapping
+
+| System (web CSS) | Mobile (`useTheme()` → `colors`) |
+|---|---|
+| `--c-violet` | `colors.violet` (`#6366f1`) |
+| `--c-violet-dark` | `colors.violetDark` (`#4f46e5`) |
+| `--c-violet-light` | `colors.violetLight` (`#818cf8`) |
+| `--c-violet-soft` | `colors.violetSoft` (`rgba(99,102,241,0.12)`) |
+| `--c-violet-glow` | `colors.violetGlow` (`rgba(99,102,241,0.28)`) |
+| `--c-emerald` | `colors.emerald` (`#10b981`) |
+| `--c-cyan` | `colors.cyan` (`#06b6d4`) |
+| `--c-amber` | `colors.amber` (`#f59e0b`) |
+| `--c-rose` / `--c-rose-dark` | `colors.rose` (`#ef4444`) / `colors.roseDark` (`#dc2626`) |
+| `--bg` / `--surface` | `colors.bg` / `colors.surface` |
+| `--surface-2` / `--surface-3` | `colors.surface2` / `colors.surface3` |
+| `--border` / `--border-strong` | `colors.border` / `colors.borderStrong` |
+| `--text` / `--text-muted` / `--text-faint` | `colors.text` / `colors.textMuted` / `colors.textFaint` |
+| `--font-display` / `--font-body` | `fonts.display*` / `fonts.body*` (Plus Jakarta Sans) |
+| `--font-mono` | `fonts.mono*` (JetBrains Mono) |
+| shadows `--shadow-*` | `useTheme()` → `shadows` |
+| radii `--radius-*` (6/8/12/16/20/full) | `radii.md` / `radii.lg` / `radii.xl` in tokens |
+| `prefers-reduced-motion` query | `useTheme()` → `reduceMotion` (via `AccessibilityInfo`) |
+
+### 12.2 Theming
+
+- `ThemeProvider` (wraps the app in `mobile/App.js`) resolves `dark`, `light`,
+  or `system`; `dark` is the default. Selection persists to AsyncStorage under
+  `ck-theme` (mirrors web `localStorage["ck-theme"]`).
+- `useTheme()` returns `{ mode, resolved, isDark, colors, ui, shadows,
+  reduceMotion, setMode }`. `ui` is a prebuilt StyleSheet of shared patterns
+  (`card`, `btnPrimary`, `input`, `center`, `inputPlaceholder`, etc.).
+- Fonts load once via `useBrandFonts()` in `App.js` and are safe to mock in
+  jest (see `mobile/jest.setup.js`).
+
+### 12.3 Shared Components
+
+Build on `mobile/src/components/ui/`: `BrandMark`/`BrandLockup`, `SysLabel`
+(mono micro-label chips), `StatusPill` (LED pulse; respects `reduceMotion`),
+`ChipRow` (pill selectors, `accessibilityState.selected`), `ScoreRing`,
+`ConnectRow` (link rows opening via `Linking`), `SectionHeader`. Prefer these
+over ad-hoc styles in screens.
+
+### 12.4 Mobile Copy Rules
+
+Same rules as Section 6: sentence case everywhere, no em dashes in UI copy, `·`
+(middle dot) separators in mono strings, tabular digits for scores/clocks
+(`fontVariant: ['tabular-nums']` on text styles with numbers or `mono` labels),
+no emoji as UI decoration. Retro palette is banned here too (Section 10).

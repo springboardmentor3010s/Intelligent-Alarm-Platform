@@ -5,7 +5,7 @@ import { TabBar } from './MainTabs';
 describe('TabBar', () => {
   it('renders the four bottom-navigation tabs', () => {
     const { getAllByText } = render(<TabBar active="HOME" onChange={() => {}} />);
-    for (const label of ['HOME', 'ALARMS', 'INSIGHTS', 'PROFILE']) {
+    for (const label of ['Home', 'Alarms', 'Insights', 'Profile']) {
       expect(getAllByText(label).length).toBeGreaterThan(0);
     }
   });
@@ -13,7 +13,7 @@ describe('TabBar', () => {
   it('calls onChange when a tab is pressed', () => {
     const onChange = jest.fn();
     const { getByLabelText } = render(<TabBar active="HOME" onChange={onChange} />);
-    fireEvent.press(getByLabelText('ALARMS'));
+    fireEvent.press(getByLabelText('Alarms'));
     expect(onChange).toHaveBeenCalledWith('ALARMS');
   });
 });

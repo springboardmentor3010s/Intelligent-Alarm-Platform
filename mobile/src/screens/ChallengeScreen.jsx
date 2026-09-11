@@ -5,7 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { useChallenge } from '../hooks/useChallenge';
 import { offlineStore } from '../sync/offlineStore';
-import { BRAND, ui } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
+import { SysLabel } from '../components/ui';
 
 const normalizeType = (raw) => {
   if (!raw) return undefined;
@@ -16,6 +17,7 @@ const normalizeType = (raw) => {
 
 export default function ChallengeScreen({ route, navigation }) {
   const { token } = useAuthContext();
+  const { colors, ui, fonts } = useTheme();
   const { type } = route.params || {};
   const { current, loading, fetchChallenge, submitChallenge } = useChallenge(token);
   const [answers, setAnswers] = useState([]);
@@ -81,22 +83,31 @@ export default function ChallengeScreen({ route, navigation }) {
   if (loading) {
     return (
       <View style={ui.center}>
-        <ActivityIndicator size="large" color={BRAND.primary} />
+        <ActivityIndicator size="large" color={colors.violet} />
       </View>
     );
   }
 
   if (result) {
+    const ok = result.correct;
     return (
-      <View style={[ui.center, result.correct ? styles.correctBg : styles.incorrectBg]}>
-        <Ionicons name={result.correct ? 'checkmark-circle' : 'close-circle'} size={64} color="#fff" />
-        <Text style={styles.resultTitle}>{result.correct ? 'CORRECT' : 'INCORRECT'}</Text>
-        <Text style={styles.resultText}>
-          {result.correct ? 'Neural pathway engaged.' : `You got ${result.correctAnswers}/${result.total}. Try again with a new challenge.`}
+      <View style={ui.center}>
+        <Ionicons name={ok ? 'checkmark-circle' : 'close-circle'} size={64} color={ok ? colors.emerald : colors.rose} />
+        <Text style={[styles.resultTitle, { color: colors.text, fontFamily: fonts.displayBold }]}>
+          {ok ? 'Correct' : 'Incorrect'}
         </Text>
-        {!result.correct && (
-          <TouchableOpacity style={styles.retryBtn} onPress={async () => { setResult(null); await loadChallenge(); }}>
-            <Text style={styles.retryText}>TRY AGAIN</Text>
+        <Text style={[styles.resultText, { color: colors.textMuted }]}>
+          {ok
+            ? 'Neural pathway engaged.'
+            : `You got ${result.correctAnswers}/${result.total}. Try again with a new challenge.`}
+        </Text>
+        {!ok && (
+          <TouchableOpacity
+            style={[styles.retryBtn, { backgroundColor: colors.violet }]}
+            onPress={async () => { setResult(null); await loadChallenge(); }}
+            accessibilityRole="button"
+          >
+            <Text style={styles.retryText}>Try again</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -107,33 +118,45 @@ export default function ChallengeScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.sysLabel}><Ionicons name="flash-outline" size={12} color={BRAND.primary} /> COGNITIVE CHALLENGE</Text>
-      <Text style={styles.title}>Wake-Up Drill</Text>
-      <Text style={styles.subtitle}>
+      <SysLabel icon="flash-outline" tone="violet">Cognitive challenge</SysLabel>
+      <Text style={[styles.title, { color: colors.text, fontFamily: fonts.displayBold }]}>Wake-up drill</Text>
+      <Text style={[styles.subtitle, { color: colors.textMuted }]}>
         {current ? `${current.challenge_type} · ${current.difficulty}` : 'Practice'}
       </Text>
 
       {questions.map((q, index) => (
-        <View key={index} style={[ui.card, styles.challengeCard]}>
-          <Text style={styles.questionLabel}>QUESTION {index + 1}</Text>
-          <Text style={styles.questionText}>{q.prompt}</Text>
+        <View key={index} style={[ui.card, styles.challengeCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.questionLabel, { color: colors.violet, fontFamily: fonts.monoBold }]}>QUESTION {index + 1}</Text>
+          <Text style={[styles.questionText, { color: colors.text }]}>{q.prompt}</Text>
           {q.options && q.options.length > 0 ? (
             <View style={styles.optionRow}>
-              {q.options.map((opt) => (
-                <TouchableOpacity
-                  key={opt}
-                  style={[styles.option, answers[index] === opt && styles.optionSelected]}
-                  onPress={() => setAnswerAt(index, opt)}
-                >
-                  <Text style={[styles.optionText, answers[index] === opt && styles.optionTextSelected]}>{opt}</Text>
-                </TouchableOpacity>
-              ))}
+              {q.options.map((opt) => {
+                const selected = answers[index] === opt;
+                return (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[
+                      styles.option,
+                      {
+                        backgroundColor: selected ? colors.violet : colors.surface2,
+                        borderColor: selected ? colors.violet : colors.borderStrong,
+                      },
+                    ]}
+                    onPress={() => setAnswerAt(index, opt)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`Option ${opt}`}
+                  >
+                    <Text style={[styles.optionText, { color: selected ? '#FFFFFF' : colors.textMuted }]}>{opt}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           ) : (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface2, borderColor: colors.borderStrong, color: colors.text }]}
               placeholder="Enter your answer"
-              placeholderTextColor={ui.inputPlaceholder}
+              placeholderTextColor={colors.textFaint}
               value={String(answers[index] || '')}
               onChangeText={(v) => setAnswerAt(index, v)}
               autoFocus={index === 0}
@@ -146,49 +169,29 @@ export default function ChallengeScreen({ route, navigation }) {
         style={[ui.btnPrimary, (submitting || answers.some((a) => !String(a).trim())) && { opacity: 0.5 }]}
         onPress={handleSubmit}
         disabled={submitting}
+        accessibilityRole="button"
+        accessibilityLabel="Submit answer"
       >
-        {submitting ? <ActivityIndicator color="#fff" /> : <Text style={ui.btnPrimaryText}>SUBMIT ANSWER</Text>}
+        {submitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={ui.btnPrimaryText}>Submit answer</Text>}
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: BRAND.space },
+  screen: { flex: 1 },
   content: { padding: 24, paddingBottom: 40 },
-  sysLabel: { color: BRAND.primary, fontSize: 11, fontWeight: '700', letterSpacing: 2.5, marginBottom: 8, textTransform: 'uppercase' },
-  title: { ...ui.title },
-  subtitle: { ...ui.subtitle, marginBottom: 24 },
-  challengeCard: {},
-  questionLabel: { color: BRAND.primarySoft, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8, textTransform: 'uppercase' },
-  questionText: { fontSize: 20, fontWeight: '700', color: BRAND.text, marginBottom: 16, lineHeight: 27 },
+  title: { fontSize: 28, marginTop: 6 },
+  subtitle: { fontSize: 14, marginTop: 4, marginBottom: 24 },
+  challengeCard: { borderWidth: 1 },
+  questionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
+  questionText: { fontSize: 20, fontWeight: '700', marginBottom: 16, lineHeight: 27 },
   optionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  option: {
-    backgroundColor: BRAND.surface2,
-    borderWidth: 1,
-    borderColor: BRAND.borderStrong,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-  },
-  optionSelected: { backgroundColor: BRAND.primary, borderColor: BRAND.primary },
-  optionText: { color: BRAND.textDim, fontWeight: '600', fontSize: 16 },
-  optionTextSelected: { color: '#fff' },
-  input: {
-    backgroundColor: BRAND.inputBg,
-    borderWidth: 1,
-    borderColor: BRAND.borderStrong,
-    borderRadius: 10,
-    padding: 16,
-    fontSize: 18,
-    color: BRAND.text,
-    width: '100%',
-    textAlign: 'center',
-  },
-  correctBg: { backgroundColor: BRAND.success },
-  incorrectBg: { backgroundColor: BRAND.danger },
-  resultTitle: { fontSize: 32, fontWeight: '800', color: '#fff', marginBottom: 8, marginTop: 8 },
-  resultText: { fontSize: 18, color: '#fff', textAlign: 'center', marginBottom: 24, lineHeight: 24 },
-  retryBtn: { backgroundColor: 'rgba(255,255,255,0.2)', paddingVertical: 14, paddingHorizontal: 40, borderRadius: 12, borderWidth: 1, borderColor: '#fff' },
-  retryText: { color: '#fff', fontWeight: '700', fontSize: 14, letterSpacing: 1 },
+  option: { borderWidth: 1, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12 },
+  optionText: { fontWeight: '600', fontSize: 16 },
+  input: { borderWidth: 1, borderRadius: 12, padding: 16, fontSize: 18, width: '100%', textAlign: 'center' },
+  resultTitle: { fontSize: 32, fontWeight: '800', marginTop: 8, marginBottom: 8 },
+  resultText: { fontSize: 18, textAlign: 'center', marginBottom: 24, lineHeight: 24, maxWidth: 300 },
+  retryBtn: { paddingVertical: 14, paddingHorizontal: 40, borderRadius: 12 },
+  retryText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14, letterSpacing: 0.3 },
 });

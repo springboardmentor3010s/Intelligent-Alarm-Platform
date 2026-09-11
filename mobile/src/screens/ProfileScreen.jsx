@@ -4,10 +4,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
-import { BRAND, ui } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
+import { SysLabel, ChipRow } from '../components/ui';
+
+const DIFFICULTY = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
 
 export default function ProfileScreen() {
   const { user, token, logout, updateUser } = useAuthContext();
+  const { colors, ui, fonts } = useTheme();
   const [email, setEmail] = useState(user?.email || '');
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [timezone, setTimezone] = useState(user?.timezone || 'UTC');
@@ -35,7 +39,7 @@ export default function ProfileScreen() {
       if (response.ok) {
         const profile = await response.json();
         await updateUser(profile);
-        Alert.alert('Success', 'Profile updated successfully!');
+        Alert.alert('Profile updated', 'Your profile was saved.');
       } else {
         Alert.alert('Error', 'Failed to update profile');
       }
@@ -47,40 +51,40 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={ui.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.sysLabel}><Ionicons name="person-outline" size={12} color={BRAND.primary} /> OPERATOR PROFILE</Text>
-      <Text style={styles.title}>Edit Profile</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <SysLabel icon="person-outline" tone="violet">Operator profile</SysLabel>
+      <Text style={[styles.title, { color: colors.text, fontFamily: fonts.displayBold }]}>Edit profile</Text>
 
-      <Text style={styles.fieldLabel}>EMAIL</Text>
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>EMAIL</Text>
       <TextInput style={[ui.input, { opacity: 0.6 }]} value={email} editable={false} />
 
-      <Text style={styles.fieldLabel}>FULL NAME</Text>
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>FULL NAME</Text>
       <TextInput style={ui.input} value={fullName} onChangeText={setFullName} placeholder="Enter your name" placeholderTextColor={ui.inputPlaceholder} />
 
-      <Text style={styles.fieldLabel}>TIMEZONE</Text>
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>TIMEZONE</Text>
       <TextInput style={ui.input} value={timezone} onChangeText={setTimezone} placeholder="e.g. UTC, Asia/Kolkata" placeholderTextColor={ui.inputPlaceholder} />
 
-      <Text style={styles.fieldLabel}>DIFFICULTY PREFERENCE</Text>
-      <TextInput style={ui.input} value={difficulty} onChangeText={setDifficulty} placeholder="Beginner/Easy/Medium/Hard/Expert" placeholderTextColor={ui.inputPlaceholder} />
+      <Text style={[styles.fieldLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>DIFFICULTY PREFERENCE</Text>
+      <ChipRow options={DIFFICULTY} active={difficulty} onSelect={setDifficulty} />
 
-      <TouchableOpacity style={[ui.btnPrimary, styles.saveBtn]} onPress={saveProfile} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={ui.btnPrimaryText}>SAVE CHANGES</Text>}
+      <TouchableOpacity style={[ui.btnPrimary, styles.saveBtn]} onPress={saveProfile} disabled={loading} accessibilityRole="button">
+        {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={ui.btnPrimaryText}>Save changes</Text>}
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-        <Ionicons name="log-out-outline" size={18} color={BRAND.danger} />
-        <Text style={styles.logoutText}>Log Out</Text>
+      <TouchableOpacity style={styles.logoutBtn} onPress={logout} accessibilityRole="button" accessibilityLabel="Log out">
+        <Ionicons name="log-out-outline" size={18} color={colors.rose} />
+        <Text style={[styles.logoutText, { color: colors.rose }]}>Log out</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1 },
   content: { padding: 24, paddingBottom: 48 },
-  sysLabel: { color: BRAND.primary, fontSize: 11, fontWeight: '700', letterSpacing: 2.5, marginBottom: 8, textTransform: 'uppercase' },
-  title: { ...ui.title, marginBottom: 24 },
-  fieldLabel: { color: BRAND.textFaint, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginTop: 16, marginBottom: 8 },
+  title: { fontSize: 26, marginTop: 6, marginBottom: 18 },
+  fieldLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginTop: 16, marginBottom: 8 },
   saveBtn: { marginTop: 28 },
   logoutBtn: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24, padding: 12 },
-  logoutText: { color: BRAND.danger, fontWeight: '700', fontSize: 15 },
+  logoutText: { fontWeight: '700', fontSize: 15 },
 });

@@ -71,11 +71,11 @@ export function makeChartOptions() {
     ? getComputedStyle(document.documentElement)
     : null;
   const theme = (v, fallback) => (cs ? (cs.getPropertyValue(v).trim() || fallback) : fallback);
-  const text = theme('--text', '#f2efe7');
-  const muted = theme('--text-muted', '#a8b89d');
-  const faint = theme('--text-faint', '#8c9d80');
-  const surface = theme('--surface-2', '#1e6b1a');
-  const border = theme('--border', 'rgba(158,178,133,0.14)');
+  const text = theme('--text', '#f1f5f9');
+  const muted = theme('--text-muted', '#94a3b8');
+  const faint = theme('--text-faint', '#64748b');
+  const surface = theme('--surface-2', 'rgba(49,64,90,0.5)');
+  const border = theme('--border', 'rgba(255,255,255,0.1)');
 
   return {
     responsive: true,
@@ -124,7 +124,7 @@ export const chartOptions = {
     title: { display: false },
   },
   scales: {
-    y: { min: 0, max: 100, grid: { color: 'rgba(62, 124, 23, 0.1)' } },
+    y: { min: 0, max: 100, grid: { color: 'rgba(99,102,241,0.12)' } },
     x: { grid: { display: false } },
   },
 };

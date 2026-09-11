@@ -1,110 +1,190 @@
 import { StyleSheet } from 'react-native';
+import { fonts } from './fonts';
 
 /**
- * CerebroKognit design tokens.
- * Mirrors the web design system: amber + green spectrum, cream neutrals on
- * deep-green space backgrounds. Flat colors only — no gradients, no glow.
+ * CerebroKognit design tokens (React Native mirror of the web system).
+ * The single source of truth is `web/src/index.css`. Every screen must read
+ * colors from the active theme via `useTheme()` — never hard-code hex values.
  */
-export const BRAND = {
-  // Palette
-  amber: '#F4A442',
-  green: '#3E7C17',
-  greenSoft: '#4D8A1F',
-  greenDeep: '#125C13',
-  cream: '#E8E1D9',
-  space: '#0F1410',
-  spaceDeep: '#0A0D09',
 
-  // Primary alias
-  primary: '#F4A442',
-  primarySoft: '#F4A442',
-  primaryDark: '#C7761A',
-
-  // Legacy aliases (kept for compat)
-  purple: '#3E7C17',
-  purpleSoft: '#4D8A1F',
-  deepPurple: '#125C13',
-  deepPurple2: '#0F1410',
-
-  // Surfaces / lines
-  surface: '#125C13',
-  surface2: '#1E6B1A',
-  surface3: '#2A7D20',
-  border: '#9EB285',
-  borderStrong: '#92AC76',
-  inputBg: '#16201A',
-
-  // Text
-  text: '#F2EFE7',
-  textDim: '#A8B89D',
-  textFaint: '#8C9D80',
-
-  // Semantic
-  success: '#6CBF52',
-  warm: '#F4A442',
-  danger: '#E05A5A',
-
-  // Fonts
-  fontDisplay: 'System',
-  fontBody: 'System',
+export const radii = {
+  xs: 6,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  full: 9999,
 };
 
-export const ui = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BRAND.space, padding: 24 },
-  container: { flex: 1, backgroundColor: BRAND.space, padding: 20 },
-  screen: { flex: 1, backgroundColor: BRAND.space },
-  title: { fontSize: 26, fontWeight: '700', color: BRAND.text, letterSpacing: -0.3 },
-  subtitle: { fontSize: 14, color: BRAND.textFaint, marginTop: 6, lineHeight: 20 },
-  sysLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 2, color: BRAND.textFaint, textTransform: 'uppercase' },
-  label: { fontSize: 13, fontWeight: '600', color: BRAND.textDim, marginBottom: 6 },
-  card: {
-    backgroundColor: BRAND.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BRAND.border,
-    padding: 18,
-    marginBottom: 14,
-  },
-  input: {
-    backgroundColor: BRAND.inputBg,
-    borderWidth: 1,
-    borderColor: BRAND.borderStrong,
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 15,
-    color: BRAND.text,
-    width: '100%',
-  },
-  inputPlaceholder: BRAND.textFaint,
-  btnPrimary: {
-    backgroundColor: BRAND.primary,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  btnPrimaryText: { color: '#0B0D0A', fontWeight: '700', fontSize: 16, letterSpacing: 0.2 },
-  btnGhost: {
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: BRAND.borderStrong,
-    backgroundColor: 'transparent',
-  },
-  btnGhostText: { color: BRAND.text, fontWeight: '600', fontSize: 15 },
-  pill: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  divider: { height: 1, backgroundColor: BRAND.border, marginVertical: 16 },
-  row: { flexDirection: 'row', alignItems: 'center' },
-});
-
-export const SHADOWS = {
-  card: { elevation: 3, shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 6 } },
-  orangeGlow: { elevation: 3, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
 };
 
-export default { BRAND, ui, SHADOWS };
+const base = { fonts, radii, spacing };
+
+/* Light: porcelain surfaces on #f8fafc, indigo/violet brand, semantic accents. */
+const light = {
+  ...base,
+  bg: '#F8FAFC',
+  bgSoft: '#F1F5F9',
+  surface: '#FFFFFF',
+  surface2: '#F1F5F9',
+  surface3: '#E2E8F0',
+  border: '#E2E8F0',
+  borderStrong: '#CBD5E1',
+  borderFocus: 'rgba(99,102,241,0.5)',
+  text: '#0F172A',
+  textMuted: '#64748B',
+  textFaint: '#94A3B8',
+  violet: '#6366F1',
+  violetDark: '#4F46E5',
+  violetLight: '#818CF8',
+  deepViolet: '#7C3AED',
+  indigo: '#4F46E5',
+  lavender: '#A5B4FC',
+  violetSoft: 'rgba(99,102,241,0.08)',
+  indigoSoft: 'rgba(79,70,229,0.10)',
+  violetGlow: 'rgba(99,102,241,0.22)',
+  emerald: '#10B981',
+  emeraldSoft: 'rgba(16,185,129,0.12)',
+  cyan: '#06B6D4',
+  cyanSoft: 'rgba(6,182,212,0.12)',
+  amber: '#F59E0B',
+  amberSoft: 'rgba(245,158,11,0.14)',
+  rose: '#EF4444',
+  roseDark: '#DC2626',
+  roseSoft: 'rgba(239,68,68,0.12)',
+  tintBand: '#EEF1FF',
+  tintSection: '#EEF2FA',
+  tintBandfade: 'rgba(238,241,255,0)',
+  tabBar: '#FFFFFF',
+  tabBarBorder: '#E2E8F0',
+};
+
+/* Dark: obsidian slate, translucent surfaces, violet-glow focus. */
+const dark = {
+  ...base,
+  bg: '#111826',
+  bgSoft: '#182133',
+  surface: 'rgba(31,42,62,0.8)',
+  surface2: 'rgba(49,64,90,0.5)',
+  surface3: 'rgba(64,82,112,0.45)',
+  border: 'rgba(255,255,255,0.1)',
+  borderStrong: 'rgba(255,255,255,0.16)',
+  borderFocus: 'rgba(99,102,241,0.6)',
+  text: '#F1F5F9',
+  textMuted: '#94A3B8',
+  textFaint: '#64748B',
+  violet: '#6366F1',
+  violetDark: '#4F46E5',
+  violetLight: '#818CF8',
+  deepViolet: '#7C3AED',
+  indigo: '#4F46E5',
+  lavender: '#C7D2FE',
+  violetSoft: 'rgba(99,102,241,0.18)',
+  indigoSoft: 'rgba(79,70,229,0.20)',
+  violetGlow: 'rgba(129,140,248,0.22)',
+  emerald: '#10B981',
+  emeraldSoft: 'rgba(16,185,129,0.18)',
+  cyan: '#06B6D4',
+  cyanSoft: 'rgba(6,182,212,0.18)',
+  amber: '#F59E0B',
+  amberSoft: 'rgba(245,158,11,0.18)',
+  rose: '#EF4444',
+  roseDark: '#DC2626',
+  roseSoft: 'rgba(239,68,68,0.16)',
+  tintBand: '#1C2136',
+  tintSection: '#1A2032',
+  tintBandfade: 'rgba(28,33,54,0)',
+  tabBar: '#182133',
+  tabBarBorder: 'rgba(255,255,255,0.08)',
+};
+
+export const THEMES = { light, dark };
+
+/**
+ * Shared style primitives built per theme so components can re-theme without
+ * duplicating layout rules. Prefer `useUi()` from the theme context.
+ */
+export function makeUi(t) {
+  return StyleSheet.create({
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.bg, padding: 24 },
+    container: { flex: 1, backgroundColor: t.bg, padding: spacing.xl },
+    screen: { flex: 1, backgroundColor: t.bg },
+    title: { fontSize: 26, fontWeight: '700', color: t.text, letterSpacing: -0.3 },
+    subtitle: { fontSize: 14, color: t.textMuted, marginTop: 6, lineHeight: 20 },
+    sysLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 2, color: t.textFaint, textTransform: 'uppercase' },
+    label: { fontSize: 13, fontWeight: '600', color: t.textMuted, marginBottom: 6 },
+    card: {
+      backgroundColor: t.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: t.border,
+      padding: spacing.lg,
+      marginBottom: spacing.md,
+    },
+    input: {
+      backgroundColor: t.surface2,
+      borderWidth: 1,
+      borderColor: t.borderStrong,
+      borderRadius: radii.md,
+      padding: 14,
+      fontSize: 15,
+      color: t.text,
+      width: '100%',
+    },
+    inputPlaceholder: t.textFaint,
+    btnPrimary: {
+      backgroundColor: t.violet,
+      paddingVertical: 16,
+      borderRadius: radii.md,
+      alignItems: 'center',
+    },
+    btnPrimaryText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16, letterSpacing: 0.2 },
+    btnGhost: {
+      paddingVertical: 14,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: t.borderStrong,
+      backgroundColor: 'transparent',
+    },
+    btnGhostText: { color: t.text, fontWeight: '600', fontSize: 15 },
+    pill: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: radii.full, overflow: 'hidden' },
+    divider: { height: 1, backgroundColor: t.border, marginVertical: 16 },
+    row: { flexDirection: 'row', alignItems: 'center' },
+  });
+}
+
+export function makeShadows(t, mode) {
+  const isLight = mode === 'light';
+  return {
+    card: {
+      elevation: 3,
+      shadowColor: isLight ? '#0F172A' : '#000000',
+      shadowOpacity: isLight ? 0.08 : 0.35,
+      shadowRadius: isLight ? 8 : 14,
+      shadowOffset: { width: 0, height: isLight ? 2 : 6 },
+    },
+    lifted: {
+      elevation: 5,
+      shadowColor: isLight ? '#0F172A' : '#000000',
+      shadowOpacity: isLight ? 0.12 : 0.4,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+    },
+  };
+}
+
+/* Backwards-compatible default (dark) exports. Real components use useTheme(). */
+export const BRAND = THEMES.dark;
+export const ui = makeUi(THEMES.dark);
+export const SHADOWS = makeShadows(THEMES.dark, 'dark');
+export const fontsRoles = fonts;
+
+export default { THEMES, makeUi, BRAND, ui };

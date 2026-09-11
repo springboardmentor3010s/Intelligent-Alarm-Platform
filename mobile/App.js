@@ -1,7 +1,10 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ActivityIndicator, View } from 'react-native';
 import { AuthProvider, useAuthContext } from './src/context/AuthContext';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { useBrandFonts } from './src/theme/fonts';
 import MainTabs from './src/components/MainTabs';
 import AlarmScreen from './src/screens/AlarmScreen';
 import AlarmFormScreen from './src/screens/AlarmFormScreen';
@@ -9,18 +12,26 @@ import ChallengeScreen from './src/screens/ChallengeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LoginScreen from './src/screens/LoginScreen';
-import { ActivityIndicator, View } from 'react-native';
-import { BRAND } from './src/theme/tokens';
 
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   const { isLoggedIn, loading: authLoading } = useAuthContext();
+  const { colors } = useTheme();
+  const [fontsLoaded, fontError] = useBrandFonts();
+
+  if (!fontsLoaded && !fontError) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator size="large" color={colors.violet} />
+      </View>
+    );
+  }
 
   if (authLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BRAND.space }}>
-        <ActivityIndicator size="large" color={BRAND.primary} />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator size="large" color={colors.violet} />
       </View>
     );
   }
@@ -29,21 +40,21 @@ function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: BRAND.deepPurple },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: '700' },
-          contentStyle: { backgroundColor: BRAND.space },
+          headerStyle: { backgroundColor: colors.bg },
+          headerTintColor: colors.violet,
+          headerTitleStyle: { fontFamily: fonts.displaySemi, fontWeight: '700', color: colors.text },
+          contentStyle: { backgroundColor: colors.bg },
         }}
       >
         {!isLoggedIn ? (
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         ) : (
           <>
-            <Stack.Screen name="Main" component={MainTabs} options={{ title: 'CEREBROKOGNIT', headerTitleAlign: 'center' }} />
-            <Stack.Screen name="Alarm" component={AlarmScreen} options={{ title: 'Wake Up!' }} />
-            <Stack.Screen name="AlarmForm" component={AlarmFormScreen} options={{ title: 'Configure Alarm' }} />
+            <Stack.Screen name="Main" component={MainTabs} options={{ title: 'CerebroKognit', headerTitleAlign: 'center' }} />
+            <Stack.Screen name="Alarm" component={AlarmScreen} options={{ title: 'Solve to dismiss' }} />
+            <Stack.Screen name="AlarmForm" component={AlarmFormScreen} options={{ title: 'Configure alarm' }} />
             <Stack.Screen name="Challenge" component={ChallengeScreen} options={{ title: 'Challenge' }} />
-            <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Edit Profile' }} />
+            <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Edit profile' }} />
             <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
           </>
         )}
@@ -54,8 +65,10 @@ function AppNavigator() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppNavigator />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

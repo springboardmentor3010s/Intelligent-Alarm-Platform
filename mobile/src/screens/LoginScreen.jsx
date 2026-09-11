@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
-import { BRAND, ui } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
+import { BrandLockup } from '../components/ui';
 
 export default function LoginScreen() {
   const { login } = useAuthContext();
+  const { colors, ui, fonts } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -13,7 +15,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
+      Alert.alert('Sign in', 'Please enter both email and password');
       return;
     }
 
@@ -22,19 +24,23 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Login Failed', result.error || 'Invalid credentials');
+      Alert.alert('Sign in failed', result.error || 'Invalid credentials');
     }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.badge}>
-        <View style={styles.badgeDot} />
-        <Text style={styles.badgeText}>COGNITIVE ALARM SYSTEM</Text>
+      <View style={styles.brandWrap}>
+        <BrandLockup icon="flash" wordmark="CerebroKognit" wordmarkSize={22} />
       </View>
 
-      <Text style={styles.title}>CerebroKognit</Text>
-      <Text style={styles.subtitle}>Wake with purpose. Build better habits.</Text>
+      <View style={styles.badge}>
+        <View style={[styles.badgeDot, { backgroundColor: colors.violet }]} accessibilityElementsHidden />
+        <Text style={[styles.badgeText, { color: colors.violet, fontFamily: fonts.monoBold }]}>COGNITIVE ALARM SYSTEM</Text>
+      </View>
+
+      <Text style={[styles.hero, { color: colors.text, fontFamily: fonts.displayExtra }]}>Wake with purpose.</Text>
+      <Text style={[styles.subtitle, { color: colors.textMuted }]}>Build better habits, one morning at a time.</Text>
 
       <View style={styles.form}>
         <TextInput
@@ -45,6 +51,7 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
+          accessibilityLabel="Email"
         />
         <View style={styles.passwordContainer}>
           <TextInput
@@ -54,39 +61,45 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
+            accessibilityLabel="Password"
           />
           <TouchableOpacity
             style={styles.eyeButton}
             onPress={() => setShowPassword((prev) => !prev)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
           >
-            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={BRAND.textFaint} />
+            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.textFaint} />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={ui.btnPrimary} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={ui.btnPrimaryText}>LOGIN</Text>}
+        <TouchableOpacity style={ui.btnPrimary} onPress={handleLogin} disabled={loading} accessibilityRole="button">
+          {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={ui.btnPrimaryText}>Log in</Text>}
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.foot}>
-        Demo session: <Text style={styles.footAccent}>demo@cerebro.com</Text>
+      <Text style={[styles.foot, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>
+        Demo session: <Text style={[styles.footAccent, { color: colors.violet }]}>demo@cerebro.com</Text>
       </Text>
+      <Text style={[styles.credit, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>Built by Pawan Simha · Infosys Internship 7.0</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BRAND.space, justifyContent: 'center', padding: 24 },
-  badge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 22, gap: 8 },
-  badgeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: BRAND.primary },
-  badgeText: { color: BRAND.primary, fontSize: 11, fontWeight: '700', letterSpacing: 3 },
-  title: { fontSize: 34, fontWeight: '800', color: BRAND.text, textAlign: 'center', letterSpacing: -0.5 },
-  subtitle: { fontSize: 14, color: BRAND.textFaint, textAlign: 'center', marginBottom: 40, marginTop: 4 },
+  container: { flex: 1, backgroundColor: 'transparent', justifyContent: 'center', padding: 24 },
+  brandWrap: { alignItems: 'center', marginBottom: 24 },
+  badge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 14, gap: 8 },
+  badgeDot: { width: 8, height: 8, borderRadius: 4 },
+  badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 3 },
+  hero: { fontSize: 32, fontWeight: '800', textAlign: 'center', letterSpacing: -0.6, lineHeight: 40 },
+  subtitle: { fontSize: 14, textAlign: 'center', marginBottom: 32, marginTop: 6 },
   form: { gap: 16 },
   passwordContainer: { position: 'relative', justifyContent: 'center' },
   passwordInput: { paddingRight: 48 },
   eyeButton: { position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center', padding: 4 },
-  foot: { color: BRAND.textFaint, fontSize: 12, textAlign: 'center', marginTop: 28 },
-  footAccent: { color: BRAND.purpleSoft, fontWeight: '600' },
+  foot: { fontSize: 12, textAlign: 'center', marginTop: 28 },
+  footAccent: { fontWeight: '600' },
+  credit: { fontSize: 11, textAlign: 'center', marginTop: 14 },
 });
