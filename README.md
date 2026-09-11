@@ -27,7 +27,7 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 ### Known Critical Issues (remaining after M4)
 1. Mobile offline-first sync + push-token registration are wired and jest-tested (31) but **not yet on-device E2E-verified** — remote push needs an Expo **dev build** (Expo Go disables it)
-2. Test coverage now exists for backend (pytest 32), web (Vitest 18) and mobile (jest 31); remaining: broader flow-level alarm-dismiss component coverage
+2. Test coverage now exists for backend (pytest 34), web (Vitest 42) and mobile (jest 33); remaining: broader flow-level alarm-dismiss component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Web settings are saved to `/users/settings` + `/users/{key}` (theme, notifications, auto-dismiss, vibrate) — completed 2026-09-08
 5. Local alarm scheduling + FCM/APNs delivery provider not yet implemented (needs dev build; M4 backlog)
@@ -49,11 +49,11 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 |  (iOS/Android)       |       |  (Python 3.11)       |       |  (schemas in models)|
 +----------------------+       +----------------------+       +----------------------+
         |                            |                            |
-        |          HTTPS/JSON        |          asyncpg           |
+        |          HTTPS/JSON        |        psycopg2-binary     |
         v                            v                            v
 +----------------------+       +----------------------+       +----------------------+
 |  Web Dashboard (React)|       |  Redis (optional)    |       |  MongoDB Collections |
-|  (Tailwind, Chart.js) |<----->|  (caching/inference) |<----->|  (user sessions,    |
+|  (custom CSS, Chart.js)|<----->|  (caching/inference) |<----->|  (user sessions,    |
 +----------------------+       +----------------------+       |   telemetry logs)    |
                                            |                            +----------------------+
                                            |
@@ -65,8 +65,8 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 ```
 > Redis, MongoDB, and the ML model cache are **planned components** — not implemented in the current codebase.
 
-**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 30 REST endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications (P5).
-**Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **§21 grouped navigation**.
+**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 34 HTTP endpoints (30 unique paths) under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications.
+**Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **5 nav sections (Track/Plan/Insights/Account/Administration)**.
 **Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); **offline-first sync + Expo push-token registration wired & jest-tested (2026-09-07)**; native push delivery pending (needs an Expo dev build).
 **Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 9 ORM tables with performance indexes.
 
@@ -77,9 +77,7 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 ### Local Development
 - **Python 3.11** installed
 - **Node.js 20+** and **npm** installed
-- **Expo CLI** installed globally: `npm install -g expo-cli`
-- **Docker** and **Docker Compose** installed
-- **PostgreSQL 15** installed (or use Docker)
+- **Docker** and **Docker Compose** installed (optional; local SQLite works without Docker)
 
 ### IDE Recommendations
 - **VS Code** with extensions:
@@ -262,7 +260,7 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 | **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migrations, 22/22 smoke (`smoke_m1.py`) |
 | **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ✅ Complete — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, 25/25 smoke (`smoke_m2.py`) |
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ✅ Complete — analytics service (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories), web wired to live data |
-| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — pytest (32), error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration (jest 31), web Vitest (18), sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; remaining: real cloud deploy |
+| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — pytest (34), error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration (jest 33), web Vitest (42), sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; remaining: real cloud deploy |
 
 Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone).
 
@@ -278,7 +276,7 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
 | `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
 | `python scripts/smoke_m2.py` | In-process M2 smoke test (25 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
-| `python -m pytest tests/` | Backend unit test suite (32 tests: auth, alarms, challenges, analytics, sync, reports) — verified on Python 3.11 + 3.14 |
+| `python -m pytest tests/` | Backend unit test suite (34 tests: auth, alarms, challenges, analytics, sync, reports, notifications) — verified on Python 3.11 + 3.14 |
 | `ruff check app tests scripts` | Lint the backend (E/F/W pragmatic rule set, clean) |
 
 ### Web
@@ -286,14 +284,14 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 |---|---|
 | `npm run dev` | Start Vite dev server |
 | `npm run build` | Build for production |
-| `npm test` | Run Vitest frontend unit tests (18) |
+| `npm test` | Run Vitest frontend unit tests (42) |
 
 ### Mobile
 | Command | Description |
 |---|---|
 | `npx expo start` | Start Expo dev server |
 | `npx expo start --android` | Launch Android emulator |
-| `npx jest --ci` | Run jest-expo mobile tests (31) |
+| `npx jest --ci` | Run jest-expo mobile tests (33) |
 
 ---
 

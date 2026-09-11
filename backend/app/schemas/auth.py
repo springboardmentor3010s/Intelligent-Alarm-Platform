@@ -1,12 +1,12 @@
 """Pydantic v2 schemas for authentication module."""
 
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 
 class AuthRegisterReq(BaseModel):
     """Request schema for user registration."""
-    email: str = Field(..., description="User email (unique)")
+    email: EmailStr = Field(..., description="User email (unique)")
     password: str = Field(..., min_length=8, description="Plaintext password (will be hashed)")
     full_name: Optional[str] = Field(None, description="Optional full name")
     timezone: str = Field("UTC", description="IANA time zone name, e.g. America/Los_Angeles")
@@ -15,7 +15,7 @@ class AuthRegisterReq(BaseModel):
 
 class AuthLoginReq(BaseModel):
     """Request schema for user login."""
-    email: str = Field(..., description="User email")
+    email: EmailStr = Field(..., description="User email")
     password: str = Field(..., description="Plaintext password for verification")
 
 

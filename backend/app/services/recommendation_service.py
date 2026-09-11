@@ -165,8 +165,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
 
     # --- FR-RE-003: Habit improvement guidance (behavioural thresholds) ---
     # Week-over-week snooze comparison.
-    cutoff_prev = (now - timedelta(days=14)).replace(tzinfo=None)
-    cutoff_cur = (now - timedelta(days=7)).replace(tzinfo=None)
+    cutoff_prev = now - timedelta(days=14)
+    cutoff_cur = now - timedelta(days=7)
     prev_attempts = db.query(ChallengeAttempt).filter(
         ChallengeAttempt.user_id == user_id,
         ChallengeAttempt.created_at >= cutoff_prev,

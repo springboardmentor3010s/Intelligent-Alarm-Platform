@@ -1,8 +1,8 @@
 # SRS.md - Software Requirements Specification (IEEE Format)
 
 **System**: Intelligent Cognitive Alarm Platform  
-**Version**: 1.4  
-**Date**: 2026-09-08  
+**Version**: 1.5  
+**Date**: 2026-09-10  
 **Organization**: CerebroKognit Project  
 **Contact**: architect@cerebrokognit.local
 
@@ -19,7 +19,7 @@ This Software Requirements Specification (SRS) documents the functional and non-
 This document covers:
 - Backend FastAPI service (Python 3.11, SQLAlchemy 2.0, PostgreSQL 15)
 - Mobile React Native/Expo client (iOS and Android)
-- Web React.js dashboard (Tailwind CSS, Chart.js/Plotly)
+- Web React.js dashboard (Custom CSS, Chart.js)
 - Offline-first data synchronization
 - JWT-based authentication and RBAC
 - Adaptive difficulty and habit scoring engines
@@ -136,8 +136,8 @@ This document covers:
 |---|---|---|---|
 | FR-DD-001 | The system shall provide a User Dashboard displaying: habit scores, alarm history, wake-up statistics, challenge performance. | High | React.js component consuming `/api/v1/habits/score` and `/api/v1/analytics/me`. |
 | FR-DD-002 | The system shall provide a Wellness Coach Dashboard displaying: user behavior insights, habit adherence analytics, sleep trend reports, progress monitoring. | High | ⚠️ **NOT IMPLEMENTED.** Admin-lite access and coach user cohort filtering do not exist. |
-| FR-DD-003 | The system shall provide an Admin Dashboard displaying: user management, platform analytics, recommendation monitoring, system reports. | High | ⚠️ **PARTIAL.** Backend endpoints exist and RBAC is now enforced (M1). Remaining: no Admin UI page in the web dashboard (M4). |
-| FR-DD-004 | Dashboards shall support responsive design for mobile, tablet, and desktop form factors. | Medium | Tailwind CSS utility-first responsive utilities. |
+| FR-DD-003 | The system shall provide an Admin Dashboard displaying: user management, platform analytics, recommendation monitoring, system reports. | High | ✅ **COMPLETE (M4).** Backend endpoints + RBAC enforced; admin UI page (`web/src/pages/Admin.jsx`) with metric cards, top challenge types, users table, RBAC-gated 403 panel. |
+| FR-DD-004 | Dashboards shall support responsive design for mobile, tablet, and desktop form factors. | Medium | ✅ Custom CSS media queries + viewport-based grid/flex layouts (`index.css`); sidebar collapses, cards restack, nav switches to mobile drawer. |
 
 ### 2.9 Notification & Reminder System
 
@@ -240,12 +240,12 @@ All API endpoints follow the contract registry in `context.md` Section 7 and PRD
 
 #### 4.1.1 Base Response Structure
 
-All successful responses follow:
+All successful responses return the domain object directly (no wrapper envelope):
 ```json
 {
-  "success": true,
-  "data": {...},
-  "timestamp": "2026-08-23T14:30:00Z"
+  "id": 1,
+  "email": "user@example.com",
+  ...
 }
 ```
 
@@ -254,7 +254,8 @@ All error responses follow:
 {
   "detail": "human readable error",
   "error_code": "ERR_XXX",
-  "timestamp": "2026-08-23T14:30:00Z"
+  "timestamp": "2026-08-23T14:30:00Z",
+  "status_code": 401
 }
 ```
 
@@ -298,10 +299,8 @@ class UserProfileRes(BaseModel):
     id: int
     email: str
     full_name: str | None
-    preferred_wake_up_time: str | None  # HH:MM format
-    sleep_duration: int | None  # minutes
-    time_zone: str
-    difficulty_preference: str  # Beginner/Easy/Medium/Hard/Expert
+    timezone: str  # IANA timezone, default "UTC"
+    difficulty_preference: str  # Beginner/Easy/Medium/Hard/Expert, default "Medium"
     is_active: bool
     is_verified: bool
     created_at: datetime
@@ -341,9 +340,11 @@ The habit/wake-up/challenge report endpoints accept `?format=csv|json|pdf|excel`
 class AlarmCreateReq(BaseModel):
     title: str = Field(..., min_length=1, max_length=200, description="Alarm title/label")
     type: str = Field(..., description="Daily/Weekday/Weekend/One-Time/Smart Adaptive")
+    time: str = Field(..., description="HH:MM format, e.g. '07:00'")
     recurrence: str | None = Field(None, description="Recurrence rule (iCalendar format)")
     challenge_type: str | None = Field(None, description="Math/Logic/Memory/Word/Pattern/Riddle/QuickQuiz")
     difficulty: str | None = Field(None, description="Beginner/Easy/Medium/Hard/Expert")
+    question_count: int = Field(3, ge=1, le=5, description="Number of questions per challenge")
     next_trigger: datetime | None = Field(None, description="Override computed next trigger")
 ```
 
@@ -493,11 +494,11 @@ class SyncRecordRes(BaseModel):
 
 | Endpoint | Method | Path | Auth | Request | Response |
 |---|---|---|---|---|---|
-| List All Users (Admin) | GET | `/api/v1/dashboard/users` | Bearer (is_superuser) | — | `List[AdminUserRes]` |
-| Platform Analytics (Admin) | GET | `/api/v1/dashboard/analytics` | Bearer (is_superuser) | — | `AdminAnalyticsRes` |
-| Habit Report | GET | `/api/v1/dashboard/reports/habits` | Bearer (is_superuser) | `format=json/csv/pdf/excel` | File / JSON |
-| Wake-Up Report | GET | `/api/v1/dashboard/reports/wake-up` | Bearer (is_superuser) | `format=json/csv/pdf/excel` | File / JSON |
-| Challenge Report | GET | `/api/v1/dashboard/reports/challenges` | Bearer (is_superuser) | `format=json/csv/pdf/excel` | File / JSON |
+| List All Users (Admin) | GET | `/api/v1/dashboard/users` | Bearer (Staff+: Admin, Wellness Coach) | — | `List[AdminUserRes]` |
+| Platform Analytics (Admin) | GET | `/api/v1/dashboard/analytics` | Bearer (Admin only) | — | `AdminAnalyticsRes` |
+| Habit Report | GET | `/api/v1/dashboard/reports/habits` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON |
+| Wake-Up Report | GET | `/api/v1/dashboard/reports/wake-up` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON |
+| Challenge Report | GET | `/api/v1/dashboard/reports/challenges` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON |
 | Update User Profile | PUT | `/api/v1/users/profile` | Bearer | `UserProfileUpdateReq` | `UserProfileRes` |
 
 > ✅ **NOTE:** `PUT /api/v1/users/profile` (plus `GET /api/v1/users/profile`, `GET/PUT /api/v1/users/settings`, `PUT /api/v1/users/{key}`) is **IMPLEMENTED as of M1** in `backend/app/api/users.py`. FR-REP-005 (PDF + Excel export) is **IMPLEMENTED as of M4** — all three report endpoints accept `format=csv|json|pdf|excel` via `backend/app/services/report_export.py`.
@@ -595,12 +596,20 @@ erDiagram
     CHALLENGE ||--|{ CHALLENGE_ATTEMPT : has_attempts
     CHALLENGE ||--|{ ALARM : triggers
     ALARM ||--|{ CHALLENGE : uses_challenge
+    ALARM ||--|{ ALARM_ROLES : assigned_roles
+    ROLE ||--|{ ALARM_ROLES : assigned_to_alarms
+    USER ||--|{ PUSH_TOKEN : owns_push_tokens
 
     USER {
         int id PK
         string email UK
         string hashed_password
+        string full_name
+        string timezone
+        string difficulty_preference
+        json settings
         bool is_active
+        bool is_superuser
         bool is_verified
         datetime created_at
         datetime updated_at
@@ -627,6 +636,7 @@ erDiagram
         bool is_enabled
         int challenge_id FK
         int times_snoozed
+        string recurrence
         datetime created_at
         datetime updated_at
     }
@@ -639,6 +649,7 @@ erDiagram
         string difficulty
         bool is_active
         datetime created_at
+        datetime generated_at
     }
 
     CHALLENGE_ATTEMPT {
@@ -652,6 +663,9 @@ erDiagram
         datetime start_time
         datetime end_time
         int time_taken_seconds
+        json puzzle_payload
+        json expected_answers
+        json user_answers
         datetime created_at
     }
 
@@ -664,6 +678,20 @@ erDiagram
         int snooze_reduction 0-100
         int sleep_schedule_adherence 0-100
         int overall_score 0-100
+        datetime created_at
+    }
+
+    ALARM_ROLES {
+        int id PK
+        int alarm_id FK
+        int role_id FK
+    }
+
+    PUSH_TOKEN {
+        int id PK
+        int user_id FK
+        string token UK
+        string platform
         datetime created_at
     }
 ```
@@ -865,6 +893,7 @@ FUNCTION sync_pending_records(records):
 | 1.2 | 2026-09-05 | architect | Marked M1-resolved items (RBAC enforced, env JWT/CORS, `PUT /users/profile` implemented, migration regenerated, Dockerfile CMD fixed); updated known-issues and implementation status matrices to verified post-M1 state |
 | 1.3 | 2026-09-06 | architect | Refreshed to post-M2 state: `POST /challenges/submit`, no-answer-leak `/next`, and mobile E2E dismiss marked complete; corrected `load_dotenv` note in issue #6; migration HEAD `1c584bd4a5b0`; `smoke_m2.py` 25/25 added to testing matrix |
 | 1.4 | 2026-09-08 | architect | Refreshed to post-M4/build state: offline/-first sync + push-token registration rows implemented; testing matrix (pytest 32, Vitest 18, jest-expo 31, ruff, GitHub Actions CI); web app-shell/global-theme/Profile additions; migration HEAD `992b0ec03dba` |
+| 1.5 | 2026-09-10 | architect | Full audit pass: corrected UserProfileRes/AlarmCreateReq schemas, added push_tokens + alarm_roles to ER diagram, fixed admin dashboard status (complete), updated RBAC descriptions (staff+/admin/authenticated), corrected success response format (no wrapper envelope), fixed Tailwind reference, updated test counts (pytest 34, Vitest 42, jest 33) |
 
 ---
 
@@ -899,7 +928,7 @@ FUNCTION sync_pending_records(records):
 | ~~13~~ | 🟡 | ~~Web dashboard renders hardcoded mock chart data~~ | `web/src/utils/chartUtils.js` | **RESOLVED (M3):** Home/Dashboard/Reports wired to live `/habits/score/history` | — |
 | ~~14~~ | 🟡 | ~~Web silently substitutes fake scores (70) on API failure~~ | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | **RESOLVED (M3):** `'—'` fallback removed; real API data only | — |
 | 18 | 🟢 | Triplicated divergent schema definitions | `schemas/__init__.py`, `schemas/all.py`, `schemas/auth.py` | Drift risk; consolidation required | Level 2 |
-| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + backlog):** pytest (32), Vitest (18), jest-expo (31), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
+| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + backlog):** pytest (34), Vitest (42), jest-expo (33), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
 
 ---
 
@@ -926,8 +955,8 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | ML Inference | ✅ Complete (M3) | Trained `difficulty_model.pt` served; rule-based fallback in container (no torch) | 85% |
 | Database Models + Migrations | ✅ Complete | 9 ORM tables (incl. `push_tokens` + `alarm_roles`); migration current (`992b0ec03dba`); 0→head verified fresh | 95% |
 | Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
-| Testing (pytest) | ✅ Complete (M4) | 32 tests (auth, alarms, challenges, analytics, notifications, sync, reports); verified Python 3.11 + 3.14 | 90% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 18) + mobile jest (31) | 90% |
+| Testing (pytest) | ✅ Complete (M4) | 34 tests (auth, alarms, challenges, analytics, notifications, sync, reports); verified Python 3.11 + 3.14 | 90% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 42) + mobile jest (33) | 90% |
 
 ### Web Dashboard
 
@@ -940,7 +969,9 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Reports | ✅ Complete (M4) | CSV/PDF/Excel/JSON downloads wired + export cards + trend state | 90% |
 | Settings (Profile/Settings) | ✅ Complete | Paged Profile (`PUT /users/profile`) + Settings (`/users/settings`, `/users/{key}`, theme control) | 90% |
 | Admin Dashboard | ✅ Complete (M4) | `web/src/pages/Admin.jsx` — metric cards, top challenge types, users table, RBAC 403 panel, `/admin` route | 85% |
-| App Shell | ✅ Complete (2026-09-08) | Collapsible sidebar (§21 groups), global Light/Dark theme (`theme.js`), mobile drawer + ESC, session restore | 95% |
+| App Shell | ✅ Complete (2026-09-10) | Collapsible sidebar (5 nav sections), global Light/Dark theme (`theme.js`), mobile drawer + ESC, session restore, LiveClock, responsive overflow pass | 95% |
+| Landing Page | ✅ Complete (2026-09-10) | Marketing hero ("WAKE WITH PURPOSE."), 4 feature cards, 3-step protocol, CTA, footer | 90% |
+| Timezone System | ✅ Complete (2026-09-08) | Searchable timezone picker, 12/24h format, LiveClock, TimeInput, timeFormat.js | 90% |
 
 ### Mobile App
 
@@ -961,6 +992,6 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 |---|---|---|---|
 | Docker | ✅ Complete (M4) | CMD fixed, `.dockerignore`, compose up-tested (Postgres + migrations entrypoint + lean image + healthcheck) | 90% |
 | Database Migrations | ✅ Complete | Migration current (`992b0ec03dba`); `upgrade head` verified on fresh DB | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (32) + smoke_m1 (22) + smoke_m2 (25) + web test (18)/build + mobile jest (31) | 90% |
-| Testing | ✅ Complete (M4-backlog) | pytest 32 + Vitest 18 + jest 31; smoke_m1 (22) + smoke_m2 (25) regression gates | 90% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (34) + smoke_m1 (22) + smoke_m2 (25) + web test (42)/build + mobile jest (33) | 90% |
+| Testing | ✅ Complete (M4-backlog) | pytest 34 + Vitest 42 + jest 33; smoke_m1 (22) + smoke_m2 (25) regression gates | 90% |
 | Environment Config | ✅ Complete | Secrets/CORS from env; 3 postgres vars honored for compose; `AUTO_INIT` SQLite auto-init | 90% |

@@ -247,8 +247,14 @@ def dismiss_alarm(
     # Compute next trigger for recurring alarms, preserving the alarm's wake-up time
     if alarm.alarm_type != "One-Time":
         tz = _user_tz(user)
-        hour = alarm.next_trigger.hour if alarm.next_trigger else 7
-        minute = alarm.next_trigger.minute if alarm.next_trigger else 0
+        if alarm.next_trigger:
+            nt = alarm.next_trigger
+            if nt.tzinfo is None:
+                nt = nt.replace(tzinfo=timezone.utc)
+            local_nt = nt.astimezone(tz)
+            hour, minute = local_nt.hour, local_nt.minute
+        else:
+            hour, minute = 7, 0
         wake_time = dtime(hour=hour, minute=minute)
         next_trigger = _compute_next_trigger(alarm.alarm_type, wake_time, tz).astimezone(timezone.utc)
         alarm.next_trigger = next_trigger

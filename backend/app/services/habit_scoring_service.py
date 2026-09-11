@@ -22,7 +22,7 @@ def _compute_wake_up_consistency(db: Session, user_id: int, target_date: str) ->
     Weight: 35% of overall habit score.
     Scoring: % of alarms dismissed within 15 min of trigger, penalized by snoozes.
     """
-    day_start = datetime.strptime(target_date, "%Y-%m-%d")
+    day_start = datetime.strptime(target_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     day_end = day_start + timedelta(days=1)
 
     # Get alarms triggered on this day
@@ -61,7 +61,7 @@ def _compute_challenge_completion(db: Session, user_id: int, target_date: str) -
     blended with answer accuracy, plus a streak bonus of up to 10% of the
     component for consecutive completed attempts (FR-WV-003).
     """
-    day_start = datetime.strptime(target_date, "%Y-%m-%d")
+    day_start = datetime.strptime(target_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     day_end = day_start + timedelta(days=1)
 
     attempts = db.query(ChallengeAttempt).filter(
@@ -114,7 +114,7 @@ def _compute_snooze_reduction(db: Session, user_id: int, target_date: str) -> in
     Scoring: inverse of total snoozes today vs 7-day average.
     Lower snooze count = higher score.
     """
-    day_start = datetime.strptime(target_date, "%Y-%m-%d")
+    day_start = datetime.strptime(target_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     day_end = day_start + timedelta(days=1)
     week_ago = day_start - timedelta(days=7)
 
@@ -136,9 +136,11 @@ def _compute_snooze_reduction(db: Session, user_id: int, target_date: str) -> in
     if not week_alarms:
         return 70  # Default / no data
 
-    # Count total snoozes across the week
+    # Count total snoozes across the week; guard against None next_trigger
     total_week_snoozes = sum(a.times_snoozed for a in week_alarms)
-    days_with_alarms = len(set(a.next_trigger.date() for a in week_alarms))
+    days_with_alarms = len(set(
+        a.next_trigger.date() for a in week_alarms if a.next_trigger is not None
+    ))
     avg_daily_snoozes = total_week_snoozes / max(days_with_alarms, 1)
 
     if avg_daily_snoozes == 0:
@@ -157,7 +159,7 @@ def _compute_sleep_adherence(db: Session, user_id: int, target_date: str) -> int
     Scoring: consistency of alarm trigger times relative to user's preferred wake-up window.
     Uses cron-like regularity of alarm next_trigger times.
     """
-    day_start = datetime.strptime(target_date, "%Y-%m-%d")
+    day_start = datetime.strptime(target_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     week_ago = day_start - timedelta(days=7)
     day_end = day_start + timedelta(days=1)
 

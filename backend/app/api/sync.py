@@ -11,9 +11,10 @@ from ..database import get_db
 from ..Models import User, Alarm, ChallengeAttempt, HabitScore
 from ..schemas import SyncPendingReq, SyncRes
 from ..api.deps import get_current_user
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import json
+from ..Models import Challenge
 
 router = APIRouter(prefix="/sync", tags=["sync"])
 
@@ -34,17 +35,20 @@ def _upsert_alarm(db: Session, user_id: int, payload: dict, client_timestamp: da
         existing = None
 
     if existing:
-        # Update only if client data is newer
-        if client_timestamp and existing.updated_at and client_timestamp > existing.updated_at:
-            existing.title = payload.get("title", existing.title)
-            existing.alarm_type = payload.get("alarm_type", payload.get("type", existing.alarm_type))
-            existing.is_enabled = payload.get("is_enabled", existing.is_enabled)
-            existing.times_snoozed = payload.get("times_snoozed", existing.times_snoozed)
-            if payload.get("next_trigger"):
-                existing.next_trigger = datetime.fromisoformat(payload["next_trigger"]) if isinstance(payload["next_trigger"], str) else payload["next_trigger"]
-            existing.updated_at = datetime.utcnow()
-            db.commit()
-            db.refresh(existing)
+        # Update only if client data is newer (normalizing timezone awareness)
+        if client_timestamp and existing.updated_at:
+            c_ts = client_timestamp.replace(tzinfo=timezone.utc) if client_timestamp.tzinfo is None else client_timestamp
+            e_ts = existing.updated_at.replace(tzinfo=timezone.utc) if existing.updated_at.tzinfo is None else existing.updated_at
+            if c_ts > e_ts:
+                existing.title = payload.get("title", existing.title)
+                existing.alarm_type = payload.get("alarm_type", payload.get("type", existing.alarm_type))
+                existing.is_enabled = payload.get("is_enabled", existing.is_enabled)
+                existing.times_snoozed = payload.get("times_snoozed", existing.times_snoozed)
+                if payload.get("next_trigger"):
+                    existing.next_trigger = datetime.fromisoformat(payload["next_trigger"]) if isinstance(payload["next_trigger"], str) else payload["next_trigger"]
+                existing.updated_at = datetime.now(timezone.utc)
+                db.commit()
+                db.refresh(existing)
         return existing, False
     else:
         new_alarm = Alarm(
@@ -79,20 +83,25 @@ def _upsert_challenge_attempt(db: Session, user_id: int, payload: dict, client_t
             existing.completed = True
             existing.correct_answers = payload.get("correct_answers", existing.correct_answers)
             existing.total_questions = payload.get("total_questions", existing.total_questions)
-            existing.end_time = datetime.utcnow()
+            existing.end_time = datetime.now(timezone.utc)
             existing.time_taken_seconds = payload.get("time_taken_seconds", existing.time_taken_seconds)
             db.commit()
             db.refresh(existing)
         return existing, False
     else:
+        ch_id = payload.get("challenge_id")
+        if not ch_id:
+            first_ch = db.query(Challenge).first()
+            ch_id = first_ch.id if first_ch else 1
+
         new_attempt = ChallengeAttempt(
             user_id=user_id,
-            challenge_id=payload.get("challenge_id", 1),
+            challenge_id=ch_id,
             attempt_number=payload.get("attempt_number", 1),
             completed=payload.get("completed", False),
             correct_answers=payload.get("correct_answers", 0),
             total_questions=payload.get("total_questions", 1),
-            start_time=datetime.fromisoformat(payload["start_time"]) if payload.get("start_time") and isinstance(payload["start_time"], str) else payload.get("start_time", datetime.utcnow()),
+            start_time=datetime.fromisoformat(payload["start_time"]) if payload.get("start_time") and isinstance(payload["start_time"], str) else payload.get("start_time", datetime.now(timezone.utc)),
             end_time=datetime.fromisoformat(payload["end_time"]) if payload.get("end_time") and isinstance(payload["end_time"], str) else payload.get("end_time"),
             time_taken_seconds=payload.get("time_taken_seconds", 0),
         )
@@ -104,7 +113,7 @@ def _upsert_challenge_attempt(db: Session, user_id: int, payload: dict, client_t
 
 def _upsert_habit_score(db: Session, user_id: int, payload: dict, client_timestamp: datetime) -> tuple:
     """Idempotent upsert for habit score records (unique per user+date)."""
-    date = payload.get("date", datetime.utcnow().strftime("%Y-%m-%d"))
+    date = payload.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
 
     existing = db.query(HabitScore).filter(
         HabitScore.user_id == user_id,
@@ -263,5 +272,5 @@ def sync_pull(
             }
             for h in habits
         ],
-        "server_timestamp": datetime.utcnow().isoformat(),
+        "server_timestamp": datetime.now(timezone.utc).isoformat(),
     }

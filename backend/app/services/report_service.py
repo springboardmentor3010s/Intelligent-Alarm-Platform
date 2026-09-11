@@ -5,7 +5,7 @@ either the JSON envelope or a streaming CSV/PDF/Excel file via the low-level
 `report_export` helpers.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any
 
 from sqlalchemy.orm import Session
@@ -16,7 +16,7 @@ from .report_export import export_report  # noqa: F401  (re-exported convenience
 
 def habits_report_records(db: Session, user_id: int, days: int) -> List[Dict[str, Any]]:
     """Habit scores for the last N days, most recent first."""
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     scores = []
 
     for i in range(days):
@@ -41,7 +41,7 @@ def habits_report_records(db: Session, user_id: int, days: int) -> List[Dict[str
 
 def wake_up_report_records(db: Session, user_id: int, days: int) -> List[Dict[str, Any]]:
     """Alarm/wake-up records for the last N days."""
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     week_ago = today - timedelta(days=days)
 
     alarms = db.query(Alarm).filter(
@@ -65,7 +65,7 @@ def wake_up_report_records(db: Session, user_id: int, days: int) -> List[Dict[st
 
 def challenges_report_records(db: Session, user_id: int, days: int) -> List[Dict[str, Any]]:
     """Challenge attempt records for the last N days."""
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     week_ago = today - timedelta(days=days)
 
     attempts = db.query(ChallengeAttempt).filter(
@@ -105,7 +105,7 @@ def report_response(
             "report_type": report_type,
             "days": days,
             "data": records,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     return export_report(records, file_format, base_name, title)
@@ -126,6 +126,6 @@ def build_report(
     the record fetch + envelope/file assembly used by both sync and async paths.
     """
     records = builder(db, user_id, days)
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     base_name = f"{report_type}_report_{today}"
     return report_response(records, file_format, base_name, title, report_type, days)

@@ -18,13 +18,14 @@ async def register(
     db: Session = Depends(get_db),
 ):
     """Register a new user."""
-    existing = db.query(User).filter(User.email == payload.email).first()
+    normalized_email = payload.email.lower().strip()
+    existing = db.query(User).filter(User.email == normalized_email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed_pw = AuthService._hash_password(payload.password)
     user = User(
-        email=payload.email,
+        email=normalized_email,
         full_name=payload.full_name,
         hashed_password=hashed_pw,
         timezone=payload.timezone,
@@ -69,7 +70,8 @@ async def login(
     db: Session = Depends(get_db),
 ):
     """Login user and issue JWT tokens."""
-    user = db.query(User).filter(User.email == payload.email).first()
+    normalized_email = payload.email.lower().strip()
+    user = db.query(User).filter(User.email == normalized_email).first()
     if not user or not AuthService._verify_password(payload.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

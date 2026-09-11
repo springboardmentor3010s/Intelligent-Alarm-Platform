@@ -3,7 +3,7 @@
 ## Vision
 To build an AI-powered Intelligent Cognitive Alarm Platform that helps users develop consistent wake-up habits by requiring them to solve personalized puzzles, riddles, memory challenges, logic problems, or math exercises before dismissing alarms. The platform adapts challenge difficulty based on user behavior, wake-up performance, snooze patterns, sleep schedules, and cognitive engagement levels to improve productivity, reduce oversleeping, and encourage healthy sleep routines.
 
-> **Document Status (2026-09-06, post-M2)**: Sections below describe the intended product. The **Current Implementation Status** and **Known Gaps** sections at the end reflect actual codebase state from a deep analysis. See `context.md` → Implementation Priority Order for the prioritized fix roadmap.
+> **Document Status (2026-09-10, post-M4 + retro-futuristic redesign)**: Sections below describe the intended product. The **Current Implementation Status** and **Known Gaps** sections at the end reflect actual codebase state from a deep analysis. See `context.md` → Implementation Priority Order for the prioritized fix roadmap.
 
 ### Success Metrics
 - **Wake-up Improvement**: Reduce snooze frequency and improve successful wake-up rates.
@@ -155,12 +155,12 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 
 ## Release Milestones
 
-| Milestone | Duration | Key Deliverables | Actual Status (2026-09-06) |
+| Milestone | Duration | Key Deliverables | Actual Status (2026-09-10) |
 |---|---|---|---|
 | **M1: Foundation** | Weeks 1–2 | Project initialization, auth system, DB schema, user profiles, basic alarm scheduling | ✅ **Complete** — auth+RBAC, profiles/settings, tz-aware alarms, regenerated migration `732e5cb49bcf`, 22/22 smoke test |
 | **M2: Cognitive Engine** | Weeks 3–4 | Challenge engine operational, puzzle generation workflows, wake-up verification mechanisms, challenge evaluation | ✅ **Complete** — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, `smoke_m2.py` 25/25 |
 | **M3: Adaptive Intelligence** | Weeks 5–6 | Adaptive difficulty engine functional, habit scoring system operational, recommendation workflows completed, habit tracking dashboards | ✅ **Complete** — analytics service refactor (real sleep/wake estimates), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (sleep/wake-up/habit/challenge), web real-data wiring; smokes 22/22 + 25/25 green |
-| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | ✅ **Core delivered (2026-09-07)** — pytest suite (32 tests, 3.11+3.14), error envelope, GitHub Actions CI, Docker up-tested, admin UI, PDF/Excel reports, **architecture alignment P1–P7 landed** (gateway hardening, service modularization, `ai_engine`, infra scaffolds, push-token notification API, §21 web nav). **M4 backlog delivered (2026-09-07/08)**: mobile offline sync + push registration, web Vitest (18) + mobile jest (31) coverage, web sidebar/theme UI pass, Profile page, shared-auth mobile fix, `run_all` one-terminal launcher, final presentation + Milestone 3/4 notes. Remaining: cloud deployment, on-device E2E (native push) |
+| **M4: Deployment** | Weeks 7–8 | Executive dashboards operational, reports and visualization modules, end-to-end workflow demonstrated, production deployment via Docker, final documentation and presentation | ✅ **Core delivered (2026-09-07)** — pytest suite (34 tests, 3.11+3.14), error envelope, GitHub Actions CI, Docker up-tested, admin UI, PDF/Excel reports, **architecture alignment P1–P7 landed** (gateway hardening, service modularization, `ai_engine`, infra scaffolds, push-token notification API, §21 web nav). **M4 backlog delivered (2026-09-07/08)**: mobile offline sync + push registration, web Vitest (42) + mobile jest (33) coverage, web sidebar/theme UI pass, Profile page, shared-auth mobile fix, `run_all` one-terminal launcher, final presentation + Milestone 3/4 notes. Remaining: cloud deployment, on-device E2E (native push) |
 
 ---
 
@@ -219,7 +219,7 @@ Sidebar navigation (collapsible 248/76px) with §21 groups · global Light/Dark 
 1. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; ✅ resolved — M3 analytics service returns real sleep/wake estimates + trends.
 2. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; ✅ resolved — M3 wired real data; 2026-09-07 pass removed remaining hardcoded series.
 3. **No trained ML model file (M3)** — ✅ resolved — `difficulty_model.pt` trained + loaded (`ml-status model_loaded=true`).
-4. **Zero tests and no CI/CD (M4)** — ✅ resolved — pytest 32 + Vitest 18 + jest 31 + GitHub Actions.
+4. **Zero tests and no CI/CD (M4)** — ✅ resolved — pytest 34 + Vitest 42 + jest 33 + GitHub Actions.
 5. **Docker container up-test pending (M4)** — ✅ resolved — compose up-tested end-to-end (Postgres + migrations + lean image, PDF/Excel verified in container).
 6. **Offline sync & notifications (M4)** — ✅ resolved 2026-09-07 — mobile sync engine + push-token registration wired and jest-tested.
 10. **Notifications & offline sync not wired (M4)** — ✅ resolved — see #6.

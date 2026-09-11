@@ -19,7 +19,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.Models import Challenge, ChallengeAttempt
+from ..Models import Challenge, ChallengeAttempt
 
 
 class ChallengeService:
@@ -116,7 +116,13 @@ class ChallengeService:
     def _gen_word(count: int) -> Tuple[List[dict], List[str]]:
         questions, answers = [], []
         for word in random.sample(ChallengeService.WORDS, min(count, len(ChallengeService.WORDS))):
-            scrambled = "".join(random.sample(word, len(word)))
+            # Guarantee the scrambled form is different from the original word.
+            # For very short words (1-char) this loop will exit after a fixed
+            # number of attempts and fall back to showing a hint instead.
+            for _ in range(20):
+                scrambled = "".join(random.sample(word, len(word)))
+                if scrambled != word or len(word) == 1:
+                    break
             questions.append({"prompt": f"Unscramble the word: {scrambled}", "type": "text", "options": None})
             answers.append(word)
         return questions, answers
@@ -127,8 +133,16 @@ class ChallengeService:
         for _ in range(count):
             cycle_len = random.choice([2, 3])
             cycle = random.sample(ChallengeService.SHAPES, cycle_len)
-            next_shape = cycle[2 * cycle_len % cycle_len]
+            # Show 2 full repetitions of the cycle, then ask for the next element.
+            # `shown` has `cycle_len * 2` elements; the next element is at index
+            # `cycle_len * 2` in the infinite repetition, i.e. cycle[0] of the next
+            # repetition — which equals cycle[(cycle_len * 2) % cycle_len] == cycle[0].
+            # Previously this was written as cycle[2 * cycle_len % cycle_len] which is
+            # always 0 by modular arithmetic (2n mod n == 0), giving the WRONG answer
+            # for non-trivial cycles. The correct next element is the (cycle_len*2)-th
+            # element of the infinite repetition: (cycle * 3)[cycle_len * 2].
             shown = (cycle * 3)[: cycle_len * 2]
+            next_shape = (cycle * 3)[cycle_len * 2]  # BUG FIX: was cycle[2*cycle_len%cycle_len]
             questions.append({
                 "prompt": f"Pattern: {' '.join(shown)} ?",
                 "type": "visual",

@@ -131,7 +131,7 @@ class AuthService:
         user_profile = UserProfileRes(
             id=user.id,
             email=user.email,
-            timezone="UTC",
+            timezone=user.timezone or "UTC",
             is_active=user.is_active,
             is_verified=user.is_verified,
             created_at=user.created_at.isoformat() if user.created_at else "",
@@ -219,4 +219,5 @@ def update_user_setting(
     user.settings = settings
 
     db.commit()
+    db.refresh(user)
     return {key: value, "status": "success"}

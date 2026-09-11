@@ -30,11 +30,19 @@ async def get_current_user(
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        user_id: int = payload_data.get("sub")
-        if user_id is None:
+        sub_val = payload_data.get("sub")
+        if sub_val is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        try:
+            user_id = int(sub_val)
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid user ID in token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
     except PyJWTError:
