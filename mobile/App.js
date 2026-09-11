@@ -17,7 +17,7 @@ const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   const { isLoggedIn, loading: authLoading } = useAuthContext();
-  const { colors } = useTheme();
+  const { colors, fonts } = useTheme();
   const [fontsLoaded, fontError] = useBrandFonts();
 
   if (!fontsLoaded && !fontError) {
