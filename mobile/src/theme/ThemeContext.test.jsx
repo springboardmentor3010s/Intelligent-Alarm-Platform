@@ -5,12 +5,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeProvider, useTheme } from './ThemeContext';
 
 function Probe() {
-  const { mode, resolved, colors, setMode } = useTheme();
+  const { mode, resolved, colors, fonts, setMode } = useTheme();
   return (
     <>
       <Text testID="mode">{mode}</Text>
       <Text testID="resolved">{resolved}</Text>
       <Text testID="bg">{colors.bg}</Text>
+      <Text testID="font">{fonts.displaySemi}</Text>
       <Text testID="choose-light" onPress={() => setMode('light')} />
     </>
   );
@@ -26,6 +27,7 @@ describe('ThemeProvider', () => {
     expect(getByTestId('mode').props.children).toBe('dark');
     expect(getByTestId('resolved').props.children).toBe('dark');
     expect(getByTestId('bg').props.children).toBe('#111826');
+    expect(getByTestId('font').props.children).toBe('PlusJakartaSans_600SemiBold');
   });
 
   it('persists the selected mode and re-resolves the palette', async () => {

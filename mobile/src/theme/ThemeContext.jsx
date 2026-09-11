@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { AccessibilityInfo, useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { THEMES, makeUi, makeShadows } from './tokens';
+import { fonts as fontsRoles } from './fonts';
 
 export const THEME_MODES = ['dark', 'light', 'system'];
 
@@ -14,6 +15,7 @@ const defaultDark = {
   colors: THEMES.dark,
   ui: makeUi(THEMES.dark),
   shadows: makeShadows(THEMES.dark, 'dark'),
+  fonts: fontsRoles,
   reduceMotion: false,
   setMode: () => {},
 };
@@ -68,6 +70,7 @@ export function ThemeProvider({ children }) {
       colors,
       ui: makeUi(colors),
       shadows: makeShadows(colors, resolved),
+      fonts: fontsRoles,
       reduceMotion,
       setMode,
     };
