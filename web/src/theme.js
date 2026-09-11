@@ -11,7 +11,7 @@ export function getTheme() {
   return (
     document.documentElement.getAttribute('data-theme') ||
     localStorage.getItem(THEME_KEY) ||
-    'dark'
+    'light'
   );
 }
 

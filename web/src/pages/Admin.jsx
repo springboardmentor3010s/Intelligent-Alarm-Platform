@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Grid } from '../styles';
-import { CardSkeleton, ErrorState, ProgressBar, Badge, ShieldIcon } from '../components/ui';
+import {
+  CardSkeleton,
+  ErrorState,
+  ProgressBar,
+  Badge,
+  ShieldIcon,
+  SectionHeader,
+  ActivityIcon,
+} from '../components/ui';
 import { formatDate } from '../utils/timeFormat';
 
 async function getJSON(path) {
@@ -40,12 +48,10 @@ export default function Admin() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Admin</h1>
-          <div className="subtitle">Platform overview & user management</div>
-        </div>
-      </div>
+      <SectionHeader
+        title="Admin"
+        subtitle="Platform oversight, algorithmic telemetry & user role management"
+      />
 
       {loadState === 'loading' && (
         <div className="grid-cards grid-cards--metrics">
@@ -55,27 +61,31 @@ export default function Admin() {
 
       {loadState === 'error' && (
         <ErrorState
-          description="Could not load admin data. Is the backend running?"
+          description="Could not load administrative telemetry. Verify backend connectivity."
           onRetry={load}
         />
       )}
 
       {loadState === 'denied' && (
-        <div className="state-card">
-          <div className="state-icon"><ShieldIcon size={22} /></div>
-          <div className="state-title">Access Restricted</div>
-          <p className="state-desc">
-            This page requires Administrator or Wellness Coach privileges. If you believe this is an
-            error, contact your system administrator.
+        <Card className="p-6 text-center" style={{ maxWidth: '520px', margin: '2rem auto' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-md)', background: 'var(--c-rose-soft)', color: 'var(--c-rose)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+            <ShieldIcon size={24} />
+          </div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.5rem' }}>
+            Access Restricted
+          </div>
+          <p className="text-sm text-muted-600 mb-6" style={{ lineHeight: 1.5 }}>
+            This command center requires Administrator or Wellness Coach privileges. If you need elevated access, contact your administrator.
           </p>
-          <div className="state-action">
+          <div>
             <Link className="btn btn-primary" to="/">Return to Dashboard</Link>
           </div>
-        </div>
+        </Card>
       )}
 
       {loadState === 'ok' && (
         <>
+          {/* Key Administrative Telemetry Strip */}
           {analytics && (
             <Grid className="mb-6 grid-cards--metrics">
               <Metric label="Total Users" value={analytics.total_users} />
@@ -89,7 +99,7 @@ export default function Admin() {
                 max={100}
               />
               <Metric
-                label="Avg Habit Score"
+                label="Platform Avg Habit Score"
                 value={`${analytics.platform_habit_score_avg}`}
                 suffix="/100"
                 progress={Math.round(analytics.platform_habit_score_avg || 0)}
@@ -100,19 +110,28 @@ export default function Admin() {
             </Grid>
           )}
 
+          {/* Top Challenge Types Breakdown */}
           {analytics?.top_challenge_types?.length > 0 && (
             <Card className="p-4 mb-6">
-              <div className="card-label mb-4">Top Challenge Types</div>
+              <div className="card-label mb-3"><span className="sys-label">Top Cognitive Challenge Types</span></div>
               <div className="table-wrap">
                 <table className="table">
                   <thead>
-                    <tr><th>Challenge Type</th><th>Attempts</th></tr>
+                    <tr><th>Challenge Type</th><th>Attempt Count</th><th>Distribution</th></tr>
                   </thead>
                   <tbody>
                     {analytics.top_challenge_types.map((t, i) => (
                       <tr key={i}>
-                        <td>{t.challenge_type}</td>
-                        <td>{t.attempt_count}</td>
+                        <td><strong>{t.challenge_type}</strong></td>
+                        <td className="tabular">{t.attempt_count}</td>
+                        <td style={{ width: '40%' }}>
+                          <ProgressBar
+                            value={t.attempt_count}
+                            max={Math.max(...analytics.top_challenge_types.map(x => x.attempt_count || 1))}
+                            tone="brand"
+                            label={t.challenge_type}
+                          />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -121,28 +140,44 @@ export default function Admin() {
             </Card>
           )}
 
+          {/* User Directory Table */}
           {users && (
             <Card className="p-4">
-              <div className="card-label mb-4">Registered Users</div>
+              <div className="card-label mb-3"><span className="sys-label">Registered Users Directory</span></div>
               <div className="table-wrap">
                 <table className="table">
                   <thead>
                     <tr>
-                      <th>ID</th><th>Email</th><th>Role</th>
-                      <th>Active</th><th>Verified</th><th>Joined</th>
+                      <th>ID</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Verification</th>
+                      <th>Joined</th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.map(u => (
                       <tr key={u.id}>
-                        <td>{u.id}</td>
+                        <td className="tabular">{u.id}</td>
                         <td>{u.email}</td>
                         <td>
                           <Badge tone={ROLE_TONE[u.role] || 'subtle'}>{u.role || 'User'}</Badge>
                         </td>
-                        <td>{u.is_active ? '✓' : '—'}</td>
-                        <td>{u.is_verified ? '✓' : '—'}</td>
-                        <td>{u.created_at ? formatDate(u.created_at) : '—'}</td>
+                        <td>
+                          <span className={`pill ${u.is_active ? 'pill-success' : 'pill-neutral'}`}>
+                            <span className="led led--on" style={{ marginRight: '0.2rem' }} />
+                            {u.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td>
+                          {u.is_verified ? (
+                            <span className="text-xs" style={{ color: 'var(--c-emerald)', fontWeight: 600 }}>✓ Verified</span>
+                          ) : (
+                            <span className="text-xs text-muted-600">Pending</span>
+                          )}
+                        </td>
+                        <td className="tabular text-muted-600">{u.created_at ? formatDate(u.created_at) : '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -160,12 +195,12 @@ function Metric({ label, value, suffix, progress, tone, max }) {
   return (
     <Card className="p-4">
       <div className="card-label">{label}</div>
-      <div className="metric-row">
+      <div className="metric-row" style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem' }}>
         <span className="metric-value">{value}</span>
         {suffix && <span className="metric-denom">{suffix}</span>}
       </div>
       {typeof progress === 'number' && (
-        <div className="mt-2"><ProgressBar value={progress} max={max || 100} tone={tone} label={label} /></div>
+        <div className="mt-3"><ProgressBar value={progress} max={max || 100} tone={tone} label={label} /></div>
       )}
     </Card>
   );

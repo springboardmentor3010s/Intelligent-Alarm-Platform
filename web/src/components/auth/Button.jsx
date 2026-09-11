@@ -6,7 +6,7 @@ import React from 'react';
  * duplicate submissions.
  */
 export default function Button({ variant = 'primary', loading = false, className = '', children, ...props }) {
-  const cls = variant === 'secondary' ? 'auth-btn-secondary' : 'auth-btn-primary';
+  const cls = variant === 'secondary' ? 'btn btn-secondary' : 'btn btn-primary';
   return (
     <button
       type={props.type || 'submit'}

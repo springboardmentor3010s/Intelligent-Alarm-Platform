@@ -11,7 +11,7 @@ export default function AuthTabs({ mode, onChange }) {
         type="button"
         role="tab"
         aria-selected={mode === 'login'}
-        className="auth-tab"
+        className={`auth-tab ${mode === 'login' ? 'is-active' : ''}`}
         onClick={() => onChange('login')}
       >
         Login
@@ -20,7 +20,7 @@ export default function AuthTabs({ mode, onChange }) {
         type="button"
         role="tab"
         aria-selected={mode === 'register'}
-        className="auth-tab"
+        className={`auth-tab ${mode === 'register' ? 'is-active' : ''}`}
         onClick={() => onChange('register')}
       >
         Register

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Alarms from './pages/AlarmManagement';
 import Challenges from './pages/ChallengeGenerator';
@@ -11,6 +11,7 @@ import Auth from './pages/Auth';
 import Admin from './pages/Admin';
 import Landing from './pages/Landing';
 import Sidebar from './components/layout/Sidebar';
+import { NAV_SECTIONS } from './navSections';
 import { BrandMark, MenuIcon, LiveClock } from './components/ui';
 
 function initialsOf(user) {
@@ -18,6 +19,50 @@ function initialsOf(user) {
   const clean = source.split(/[@\s_]+/).filter(Boolean);
   const chars = clean.length >= 2 ? [clean[0], clean[1]] : [clean[0].slice(0, 2)];
   return chars.map(c => c[0]?.toUpperCase() || '').join('').slice(0, 2);
+}
+
+/** Resolve the current route to the matching nav section & page label. */
+function resolveBreadcrumb(pathname) {
+  for (const section of NAV_SECTIONS) {
+    const match = section.links.find(l =>
+      l.to === '/' ? pathname === '/' : pathname.startsWith(l.to)
+    );
+    if (match) {
+      return { section: section.label, page: match.label };
+    }
+  }
+  return { section: 'Workspace', page: 'Overview' };
+}
+
+/** Google Workspace-style topbar: brand + breadcrumb tag + live clock. */
+function Topbar({ onMenuToggle, mobileNavOpen }) {
+  const { pathname } = useLocation();
+  const crumb = resolveBreadcrumb(pathname);
+  return (
+    <header className="app-topbar">
+      <div className="app-topbar__left">
+        <button
+          type="button"
+          className="nav-menu-toggle"
+          onClick={onMenuToggle}
+          aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'}
+          aria-expanded={mobileNavOpen}
+        >
+          <MenuIcon size={20} />
+        </button>
+        <span className="brand app-topbar__brand">
+          <BrandMark size={26} />
+          CerebroKognit
+        </span>
+        <span className="breadcrumb-tag">
+          <span className="breadcrumb-tag__section">{crumb.section}</span>
+          <span className="breadcrumb-tag__slash">/</span>
+          <span className="breadcrumb-tag__page">{crumb.page}</span>
+        </span>
+      </div>
+      <LiveClock />
+    </header>
+  );
 }
 
 function App() {
@@ -107,7 +152,12 @@ function App() {
     );
   }
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  let user = {};
+  try {
+    user = JSON.parse(localStorage.getItem('user') || '{}');
+  } catch (e) {
+    user = {};
+  }
   const name = user.full_name || user.email?.split('@')[0] || 'User';
   const email = user.email || '';
   const initials = initialsOf(user);
@@ -131,8 +181,6 @@ function App() {
           onLogout={handleLogout}
         />
 
-        <LiveClock />
-
         {mobileNavOpen && (
           <button
             type="button"
@@ -143,21 +191,10 @@ function App() {
         )}
 
         <div className="app-main">
-          <header className="app-topbar">
-            <button
-              type="button"
-              className="nav-menu-toggle"
-              onClick={() => setMobileNavOpen(v => !v)}
-              aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'}
-              aria-expanded={mobileNavOpen}
-            >
-              <MenuIcon size={20} />
-            </button>
-            <span className="brand app-topbar__brand">
-              <BrandMark size={26} />
-              CerebroKognit
-            </span>
-          </header>
+          <Topbar
+            onMenuToggle={() => setMobileNavOpen(v => !v)}
+            mobileNavOpen={mobileNavOpen}
+          />
 
           <main className="app-content">
             <Routes>

@@ -47,9 +47,9 @@ describe('App navigation (§21 grouping)', () => {
     mockFetch({ '/api/v1/habits/score': habitScore });
     render(<App />);
 
-    await waitFor(() => expect(screen.getByText('Track')).toBeInTheDocument());
-    expect(screen.getByText('Plan')).toBeInTheDocument();
-    expect(screen.getByText('Account')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getAllByText('Track').length).toBeGreaterThan(0));
+    expect(screen.getAllByText('Plan').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Account').length).toBeGreaterThan(0);
 
     for (const label of ['Dashboard', 'Insights', 'Alarms', 'Challenges', 'History', 'Profile', 'Admin']) {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0);

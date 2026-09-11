@@ -2,15 +2,38 @@ import React, { useEffect, useState } from 'react';
 import { Card, Grid, MetricCard } from '../styles';
 import { Line } from 'react-chartjs-2';
 import { buildHabitCharts, makeChartOptions } from '../utils/chartUtils';
-import { CardSkeleton, Badge } from '../components/ui';
+import { CardSkeleton, Badge, SectionHeader } from '../components/ui';
 import ErrorState from '../components/ui/ErrorState';
 
-const PRIORITY_TONE = { high: 'danger', medium: 'warm', low: 'success' };
+const PRIORITY_TONE = { high: 'danger', medium: 'warm', low: 'success', 1: 'danger', 2: 'warm', 3: 'success' };
 const CATEGORY_LABEL = {
-  sleep: 'Sleep',
-  wake_up: 'Wake-up',
-  habit: 'Habit',
-  challenge: 'Challenge',
+  sleep: 'Sleep Routine',
+  wake_up: 'Wake-up Discipline',
+  habit: 'Habit Consistency',
+  challenge: 'Cognitive Challenge',
+};
+
+const PILLAR_METADATA = {
+  'Wake-up Consistency': {
+    weight: '35% Composite Weight',
+    interpretation: 'Measures scheduled dismissals without snooze delays. Snooze cycles fragment wakefulness and trigger sleep inertia.',
+    recommendedAction: 'Dismiss on your initial ring. Consistent first-ring dismissals anchor your biological morning rhythm.',
+  },
+  'Challenge Completion': {
+    weight: '25% Composite Weight',
+    interpretation: 'Measures prefrontal puzzle accuracy and problem-solving speed immediately after waking up.',
+    recommendedAction: 'Practice varied puzzle types (e.g. Logic, Patterns) to maintain neuroplastic engagement.',
+  },
+  'Snooze Reduction': {
+    weight: '20% Composite Weight',
+    interpretation: 'Tracks snooze frequency relative to your rolling 7-day behavioral baseline.',
+    recommendedAction: 'Target zero snoozes for 3 consecutive days to reinforce rapid cortisol awakening response.',
+  },
+  'Sleep Schedule Adherence': {
+    weight: '20% Composite Weight',
+    interpretation: 'Calculates the circadian variance and standard deviation of your scheduled wake-up times.',
+    recommendedAction: 'Maintain wake times within a 30-minute window across both weekdays and weekends.',
+  },
 };
 
 export default function Dashboard() {
@@ -48,7 +71,7 @@ export default function Dashboard() {
 
     fetch('/api/v1/analytics/recommendations', { headers })
       .then(res => (res.ok ? res.json() : []))
-      .then(setRecommendations)
+      .then(data => setRecommendations(Array.isArray(data) ? data : []))
       .catch(console.error);
   };
 
@@ -60,12 +83,7 @@ export default function Dashboard() {
   if (error && !habitScore) {
     return (
       <div className="page">
-        <div className="page-header">
-          <div>
-            <h1>Dashboard</h1>
-            <div className="subtitle">Habit analytics & personal insights</div>
-          </div>
-        </div>
+        <SectionHeader title="Dashboard" subtitle="Habit analytics & personal insights" />
         <ErrorState description={error} onRetry={load} />
       </div>
     );
@@ -74,12 +92,7 @@ export default function Dashboard() {
   if (!habitScore) {
     return (
       <div className="page">
-        <div className="page-header">
-          <div>
-            <h1>Loading…</h1>
-            <div className="subtitle" role="status">Loading analytics…</div>
-          </div>
-        </div>
+        <SectionHeader title="Dashboard" subtitle="Loading behavioral intelligence…" />
         <div className="grid-cards grid-cards--metrics">
           {Array.from({ length: 4 }, (_, i) => <CardSkeleton key={i} showChart />)}
         </div>
@@ -89,76 +102,160 @@ export default function Dashboard() {
 
   const available = history.filter(h => h.overall_score !== null).length;
   const charts = [
-    { label: 'Wake-up Consistency', data: habitCharts.wakeUp },
-    { label: 'Challenge Completion', data: habitCharts.challenge },
-    { label: 'Snooze Reduction', data: habitCharts.snooze },
-    { label: 'Sleep Schedule Adherence', data: habitCharts.sleep },
+    { label: 'Wake-up Consistency', key: 'wake_up_consistency', data: habitCharts.wakeUp },
+    { label: 'Challenge Completion', key: 'challenge_completion', data: habitCharts.challenge },
+    { label: 'Snooze Reduction', key: 'snooze_reduction', data: habitCharts.snooze },
+    { label: 'Sleep Schedule Adherence', key: 'sleep_schedule_adherence', data: habitCharts.sleep },
   ];
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Dashboard</h1>
-          <div className="subtitle">Why your performance is improving — and what to do next</div>
-        </div>
-      </div>
+      <SectionHeader
+        title="Dashboard"
+        subtitle="Behavioral intelligence, circadian trajectory & personalized recommendations"
+      />
 
       {error && <div className="banner banner-warning">{error}</div>}
 
+      {/* Top Intelligence Overview (Google Bento Grid) */}
       <Grid className="mb-6 grid-cards--duo">
-        <MetricCard label="Overall Score" value={habitScore.overall_score} suffix="/100">
-          Weighted from four habit pillars
-        </MetricCard>
+        <Card className="p-5 bento-hero-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div className="card-label">Composite Habit Score</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '0.25rem' }}>
+                <span className="metric-value" style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1 }}>
+                  {habitScore.overall_score}
+                </span>
+                <span className="metric-denom" style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                  /100
+                </span>
+              </div>
+            </div>
+            <Badge tone={habitScore.overall_score >= 80 ? 'success' : habitScore.overall_score >= 60 ? 'brand' : 'warm'}>
+              {habitScore.overall_score >= 80 ? 'Optimal Trajectory' : habitScore.overall_score >= 60 ? 'Active Discipline' : 'Calibrating'}
+            </Badge>
+          </div>
+
+          <div style={{ marginTop: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
+              <span>Circadian Efficiency</span>
+              <span className="tabular">{habitScore.overall_score}%</span>
+            </div>
+            <div style={{ height: '8px', background: 'var(--surface-3)', borderRadius: '9999px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: '100%',
+                  width: `${Math.min(100, Math.max(0, habitScore.overall_score))}%`,
+                  background: 'var(--grad-primary)',
+                  borderRadius: '9999px',
+                  transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+            <strong>Weighted formula:</strong> 35% Consistency · 25% Challenge · 20% Snooze · 20% Adherence
+          </div>
+        </Card>
+
         {analytics && (
-          <Card className="p-4">
-            <div className="card-label">Analytics Summary</div>
-            <div className="metric-grid">
-              <div>
-                <div className="text-xs text-muted-600">Total Alarms</div>
-                <div className="metric-value">{analytics.total_alarms}</div>
+          <Card className="p-5">
+            <div className="card-label mb-3">Cognitive Telemetry Summary</div>
+            <div className="telemetry-grid">
+              <div className="telemetry-item">
+                <span className="text-xs text-muted-600" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span className="led led--on" /> Total Alarms
+                </span>
+                <span className="metric-value">{analytics.total_alarms}</span>
               </div>
-              <div>
-                <div className="text-xs text-muted-600">Successful Dismissals</div>
-                <div className="metric-value">{analytics.total_dismissals}</div>
+              <div className="telemetry-item">
+                <span className="text-xs text-muted-600" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span className="led led--on" /> Successful Dismissals
+                </span>
+                <span className="metric-value">{analytics.total_dismissals}</span>
               </div>
-              <div>
-                <div className="text-xs text-muted-600">Avg Snooze</div>
-                <div className="metric-value">{analytics.average_snooze_count?.toFixed(1)}</div>
+              <div className="telemetry-item">
+                <span className="text-xs text-muted-600" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span className="led led--on led--live" style={{ background: 'var(--c-amber)' }} /> Avg Snooze Count
+                </span>
+                <span className="metric-value">{analytics.average_snooze_count?.toFixed(1)}</span>
               </div>
-              <div>
-                <div className="text-xs text-muted-600">Challenge Accuracy</div>
-                <div className="metric-value">{((analytics.challenge_accuracy || 0) * 100).toFixed(0)}%</div>
+              <div className="telemetry-item">
+                <span className="text-xs text-muted-600" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span className="led led--on" /> Challenge Accuracy
+                </span>
+                <span className="metric-value">{((analytics.challenge_accuracy || 0) * 100).toFixed(0)}%</span>
               </div>
             </div>
           </Card>
         )}
       </Grid>
 
-      <Grid className="grid-cards--metrics">
-        {charts.map(c => (
-          <Card key={c.label} className="p-4">
-            <div className="card-label">{c.label}</div>
-            <div className="chart-card"><Line data={c.data} options={chartOpts} /></div>
-          </Card>
-        ))}
-      </Grid>
-      <div className="chart-note">Available data: {available} of 7 days. Only real recorded days are plotted.</div>
-
-      {recommendations.length > 0 && (
-        <div className="mt-6">
-          <div className="card-label mb-4">Recommendations</div>
-          <Grid>
-            {recommendations.map(r => (
-              <Card key={r.id} className="p-4">
-                <div className="rec-header">
-                  <Badge tone="subtle">{CATEGORY_LABEL[r.category] || r.category}</Badge>
-                  <Badge tone={PRIORITY_TONE[r.priority] || 'subtle'}>{r.priority}</Badge>
+      {/* Pillar Charts with Full Context: Value, Trend, Interpretation, and Action */}
+      <div className="card-label mb-2"><span className="sys-label">Detailed Habit Pillars · Intelligence Breakdown</span></div>
+      <Grid className="grid-cards--duo">
+        {charts.map(c => {
+          const meta = PILLAR_METADATA[c.label] || {};
+          const currentVal = habitScore[c.key] ?? '—';
+          return (
+            <Card key={c.label} className="p-4">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <div>
+                  <div className="card-label" style={{ marginBottom: '0.2rem' }}>{c.label}</div>
+                  <span className="text-xs text-muted-600">{meta.weight}</span>
                 </div>
-                <div className="title mt-2" style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{r.title}</div>
-                <p className="text-sm text-muted-600 mt-2">{r.message}</p>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="metric-value" style={{ fontSize: '1.45rem' }}>{currentVal}<span className="metric-denom">/100</span></div>
+                </div>
+              </div>
+
+              <div className="chart-card">
+                <Line data={c.data} options={chartOpts} />
+              </div>
+
+              <div className="pillar-meta">
+                <div className="pillar-meta__row">
+                  <span className="pillar-meta__tag">Interpretation</span>
+                  <p className="pillar-meta__text">{meta.interpretation}</p>
+                </div>
+                <div className="pillar-meta__row">
+                  <span className="pillar-meta__tag pillar-meta__tag--action">Recommended Action</span>
+                  <p className="pillar-meta__action">{meta.recommendedAction}</p>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </Grid>
+      <div className="chart-note">
+        Tracking {available} of 7 recorded days. Only real server-verified habit scoring events are plotted.
+      </div>
+
+      {/* Actionable Recommendations Module (Google Gemini Style) */}
+      {recommendations.length > 0 && (
+        <div className="mt-8">
+          <div className="card-label mb-3">
+            <span className="sys-label">Personalized AI Recommendations</span>
+          </div>
+          <Grid className="grid-cards--3">
+            {recommendations.map(r => (
+              <Card key={r.id} className="p-5 rec-card">
+                <div className="rec-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <Badge tone="brand">{CATEGORY_LABEL[r.category] || r.category}</Badge>
+                  <Badge tone={PRIORITY_TONE[r.priority] || 'subtle'}>
+                    {typeof r.priority === 'number' ? `P${r.priority}` : r.priority}
+                  </Badge>
+                </div>
+                <div className="rec-title mt-2">
+                  {r.title}
+                </div>
+                <p className="text-sm text-muted-600 mt-2" style={{ lineHeight: 1.55 }}>{r.message}</p>
                 {r.suggested_action && (
-                  <p className="text-sm mt-2" style={{ color: 'var(--accent)' }}>{r.suggested_action}</p>
+                  <div className="rec-action mt-4">
+                    <span>→</span> {r.suggested_action}
+                  </div>
                 )}
               </Card>
             ))}

@@ -5,10 +5,10 @@
  */
 
 const chartConfigs = {
-  wakeUp: { label: 'Wake-up Consistency (%)', border: '#f4a442', bg: 'rgba(244, 164, 66, 0.14)', dataKey: 'wake_up_consistency' },
-  challenge: { label: 'Challenge Completion (%)', border: '#3e7c17', bg: 'rgba(62, 124, 23, 0.18)', dataKey: 'challenge_completion' },
-  snooze: { label: 'Snooze Reduction (%)', border: '#6cbf52', bg: 'rgba(108, 191, 82, 0.12)', dataKey: 'snooze_reduction' },
-  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#c7761a', bg: 'rgba(199, 118, 26, 0.16)', dataKey: 'sleep_schedule_adherence' },
+  wakeUp: { label: 'Wake-up Consistency (%)', border: '#6366f1', bg: 'rgba(99, 102, 241, 0.12)', dataKey: 'wake_up_consistency' },
+  challenge: { label: 'Challenge Completion (%)', border: '#06b6d4', bg: 'rgba(6, 182, 212, 0.12)', dataKey: 'challenge_completion' },
+  snooze: { label: 'Snooze Reduction (%)', border: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', dataKey: 'snooze_reduction' },
+  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', dataKey: 'sleep_schedule_adherence' },
 };
 
 function dayLabel(date) {

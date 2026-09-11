@@ -1,14 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Grid } from '../styles';
-import { Toggle, SunIcon, MoonIcon } from '../components/ui';
+import { Toggle, SunIcon, MoonIcon, SectionHeader, Badge } from '../components/ui';
 import { getTheme, setTheme as applyTheme } from '../theme';
 
 const SETTING_KEYS = ['notifications', 'auto_dismiss', 'vibrate'];
 
 const SETTING_META = {
-  notifications: { label: 'Alarm notifications', desc: 'Receive alerts for scheduled alarms' },
-  auto_dismiss: { label: 'Auto-dismiss on challenge', desc: 'Dismiss the alarm once the challenge is solved' },
-  vibrate: { label: 'Haptic feedback', desc: 'Vibrate when the alarm triggers' },
+  notifications: {
+    label: 'Alarm Notifications',
+    desc: 'Receive alerts when scheduled wake-up routines fire.',
+    scope: 'Cloud-synced · Affects notifications',
+  },
+  auto_dismiss: {
+    label: 'Auto-dismiss on Challenge Completion',
+    desc: 'Automatically silence and dismiss the alarm once all puzzle answers are verified.',
+    scope: 'Cloud-synced · Affects alarms',
+  },
+  vibrate: {
+    label: 'Haptic & Vibration Alerts',
+    desc: 'Vibrate device continuously during active alarm sounding.',
+    scope: 'Cloud-synced · Affects device alerts',
+  },
 };
 
 export default function Settings() {
@@ -43,71 +55,98 @@ export default function Settings() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Settings</h1>
-          <div className="subtitle">Personalize your alarm & notification preferences</div>
-        </div>
-      </div>
+      <SectionHeader
+        title="Settings"
+        subtitle="Manage alarm automation, notification routing, and local interface preferences"
+      />
 
       <Grid className="grid-cards--3">
+        {/* Category 1: Alarm Automation & Behavior */}
         <Card className="p-4">
-          <div className="card-label mb-2">Alarm Behavior</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div className="card-label mb-0"><span className="sys-label">Alarm Automation</span></div>
+            <Badge tone="brand">Affects Alarms</Badge>
+          </div>
+
           <div className="settings-list">
             {SETTING_KEYS.map(key => (
-              <Toggle
-                key={key}
-                checked={settings[key]}
-                onChange={() => toggleSetting(key)}
-                label={SETTING_META[key].label}
-                desc={SETTING_META[key].desc}
-              />
+              <div key={key} style={{ paddingBottom: '0.65rem' }}>
+                <Toggle
+                  checked={settings[key]}
+                  onChange={() => toggleSetting(key)}
+                  label={SETTING_META[key].label}
+                  desc={SETTING_META[key].desc}
+                />
+                <span className="text-xs text-muted-600" style={{ fontSize: '0.725rem', marginTop: '0.2rem', display: 'block' }}>
+                  {SETTING_META[key].scope}
+                </span>
+              </div>
             ))}
           </div>
         </Card>
 
+        {/* Category 2: Appearance & Display */}
         <Card className="p-4">
-          <div className="card-label mb-3">Appearance</div>
-          <div className="text-sm text-muted-600 mb-4">Choose how CerebroKognit looks. Applied instantly across the app.</div>
-          <div className="segmented" role="radiogroup" aria-label="Theme">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={theme === 'dark'}
-              className={`segmented__option ${theme === 'dark' ? 'is-active' : ''}`}
-              onClick={() => setTheme('dark')}
-            >
-              <MoonIcon size={15} /> Dark
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div className="card-label mb-0"><span className="sys-label">Appearance</span></div>
+            <Badge tone="subtle">Local Storage</Badge>
+          </div>
+
+          <p className="text-sm text-muted-600 mb-4" style={{ lineHeight: 1.5 }}>
+            Select your preferred visual mode. Changes take effect immediately across all screens and persist on this device.
+          </p>
+
+          <div className="segmented" role="radiogroup" aria-label="Theme" style={{ width: '100%' }}>
             <button
               type="button"
               role="radio"
               aria-checked={theme === 'light'}
               className={`segmented__option ${theme === 'light' ? 'is-active' : ''}`}
+              style={{ flex: 1, justifyContent: 'center' }}
               onClick={() => setTheme('light')}
             >
               <SunIcon size={15} /> Light
             </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={theme === 'dark'}
+              className={`segmented__option ${theme === 'dark' ? 'is-active' : ''}`}
+              style={{ flex: 1, justifyContent: 'center' }}
+              onClick={() => setTheme('dark')}
+            >
+              <MoonIcon size={15} /> Dark
+            </button>
           </div>
-          <div className="text-xs text-muted-600 mt-4">
-            Theme is stored locally on this device.
+
+          <div className="text-xs text-muted-600 mt-4" style={{ lineHeight: 1.45 }}>
+            Active theme: <strong>{theme === 'light' ? 'Light (Porcelain / Violet)' : 'Dark (Obsidian / Violet)'}</strong>. Applied immediately.
           </div>
         </Card>
 
+        {/* Category 3: System & Synchronization Telemetry */}
         <Card className="p-4">
-          <div className="card-label mb-2">About</div>
-          <div className="settings-list">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div className="card-label mb-0"><span className="sys-label">System Telemetry</span></div>
+            <span className="pill pill-success"><span className="led led--on" style={{ marginRight: '0.25rem' }} /> Connected</span>
+          </div>
+
+          <div className="settings-list" style={{ marginTop: '0.75rem' }}>
             <div className="settings-row">
-              <div className="settings-row__label">Application</div>
-              <div className="text-sm text-muted-600">CerebroKognit</div>
+              <div className="settings-row__label">Platform</div>
+              <div className="text-sm font-semibold" style={{ color: 'var(--text)' }}>CerebroKognit v2.4</div>
             </div>
             <div className="settings-row">
-              <div className="settings-row__label">Version</div>
-              <div className="text-sm text-muted-600">{import.meta.env.VITE_APP_VERSION || '1.0.0'}</div>
+              <div className="settings-row__label">Sync Protocol</div>
+              <div className="text-sm text-muted-600">REST API · Bearer JWT</div>
             </div>
             <div className="settings-row">
-              <div className="settings-row__label">Data</div>
-              <div className="text-sm text-muted-600">Synced to your account</div>
+              <div className="settings-row__label">AI Engine</div>
+              <div className="text-sm text-muted-600">PyTorch Difficulty ML</div>
+            </div>
+            <div className="settings-row">
+              <div className="settings-row__label">Offline Storage</div>
+              <div className="text-sm text-muted-600">Active (Web LocalStorage)</div>
             </div>
           </div>
         </Card>

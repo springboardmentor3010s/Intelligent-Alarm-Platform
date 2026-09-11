@@ -127,33 +127,33 @@ export default function Landing() {
 function MockDashboard() {
   return (
     <CardMock>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <span className="sys-label"><span className="led led--on led--live" /> Live · Dashboard</span>
-        <span className="pill pill-success">07:00 AM</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+        <span className="sys-label"><span className="led led--on led--live" /> Live · Command Center</span>
+        <span className="pill pill-success"><span className="led led--on" style={{ marginRight: '0.25rem' }} /> 07:00 AM Active</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.6rem', flexWrap: 'wrap' }}>
-        <div className="score-ring" style={{ ['--p']: 72, width: 108, height: 108 }}>
-          <div className="score-ring__inner">
-            <div className="score-ring__num">72</div>
-            <div className="score-ring__cap">Score</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.75rem', flexWrap: 'wrap' }}>
+        <div className="score-ring" style={{ ['--p']: 78, width: 110, height: 110 }}>
+          <div className="score-ring__inner" style={{ width: 88, height: 88 }}>
+            <div className="score-ring__num" style={{ fontSize: '1.85rem' }}>78</div>
+            <div className="score-ring__cap" style={{ fontSize: '0.6rem' }}>Habit Score</div>
           </div>
         </div>
         <div style={{ flex: 1, minWidth: 220 }}>
           <div className="next-alarm__time" style={{ fontSize: '2.4rem' }}>07:00 AM</div>
           <div className="next-alarm__meta">
-            <span>Wake Up · Cognitive Challenge Required</span>
+            <span>Morning Boost · Adaptive Math Challenge</span>
             <span className="countdown">in 8h 24m</span>
           </div>
         </div>
       </div>
-      <div style={{ marginTop: '1.2rem' }}>
-        <ProgressBar value={72} max={100} tone="brand" label="Habit Score" />
-        <ProgressBar value={88} max={100} tone="cyan" label="Challenge Completion" />
-        <ProgressBar value={41} max={100} tone="warm" label="Snooze Reduction" />
+      <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+        <ProgressBar value={85} max={100} tone="brand" label="Wake-up Consistency (35%)" />
+        <ProgressBar value={90} max={100} tone="success" label="Challenge Completion (25%)" />
+        <ProgressBar value={65} max={100} tone="warm" label="Snooze Reduction (20%)" />
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '1rem', color: 'var(--text-faint)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.25rem', color: 'var(--text-muted)' }}>
         <ActivityIcon size={14} />
-        <span className="sys-label">7-day streak maintained</span>
+        <span className="sys-label">Prefrontal cortex readiness: Optimal · 7-day streak</span>
       </div>
     </CardMock>
   );
@@ -167,10 +167,10 @@ function CardMock({ children }) {
         maxWidth: 680,
         margin: '0 auto',
         textAlign: 'left',
-        padding: '1.6rem 1.7rem',
-        background: 'rgba(13, 20, 10, 0.9)',
-        backdropFilter: 'blur(10px)',
-        boxShadow: '0 24px 60px -30px rgba(0, 0, 0, 0.6)',
+        padding: '1.75rem 2rem',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        boxShadow: 'var(--shadow-lg)',
       }}
     >
       {children}

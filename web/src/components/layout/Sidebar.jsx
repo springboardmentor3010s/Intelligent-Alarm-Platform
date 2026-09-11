@@ -48,6 +48,19 @@ export default function Sidebar({
         </button>
       </div>
 
+      <div className="sidebar-cta-wrap" style={{ padding: '0.75rem 0.75rem 0' }}>
+        <NavLink
+          to="/alarms"
+          onClick={onNavigate}
+          className="btn btn-primary sidebar-quick-btn"
+          style={{ width: '100%', justifyContent: collapsed ? 'center' : 'center', padding: '0.6rem 0.875rem' }}
+          title="Create or set a new alarm"
+        >
+          <span style={{ fontSize: '1rem', fontWeight: 700 }}>+</span>
+          {!collapsed && <span>New Alarm</span>}
+        </NavLink>
+      </div>
+
       <nav className="sidebar-nav" aria-label="Primary navigation">
         {NAV_SECTIONS.map(section => (
           <div className="sidebar-section" key={section.label}>
