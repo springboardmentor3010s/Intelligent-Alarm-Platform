@@ -4,7 +4,7 @@ import { useTheme } from '../../theme/ThemeContext';
 
 /**
  * Single-select chip row (recurrence, challenge engine, difficulty, counts).
- * Active chip fills indigo-violet with white text; inactive is a tonal surface.
+ * Active chip fills violet with white text; inactive is a tonal surface.
  */
 export default function ChipRow({ options, active, onSelect, labelTransform = 'none' }) {
   const { colors } = useTheme();

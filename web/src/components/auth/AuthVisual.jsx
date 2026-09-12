@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * Decorative "cognitive wake signal" for the auth brand panel: an abstract
- * EEG-like waveform with neuron nodes, a traveling amber pulse that rides the
+ * EEG-like waveform with neuron nodes, a traveling pulse that rides the
  * primary trace, and a few static constellation dots. Purely illustrative
  * (aria-hidden); every animation is disabled by CSS under
  * prefers-reduced-motion.
@@ -43,8 +43,8 @@ export default function AuthVisual() {
         <circle className="auth-visual__const" cx="120" cy="40" r="1.8" />
         <circle className="auth-visual__const" cx="240" cy="166" r="1.6" />
         <circle className="auth-visual__const" cx="368" cy="34" r="2" />
-        <circle className="auth-visual__const--green" cx="448" cy="150" r="2" />
-        <circle className="auth-visual__const--green" cx="512" cy="46" r="1.7" />
+        <circle className="auth-visual__const--mint" cx="448" cy="150" r="2" />
+        <circle className="auth-visual__const--mint" cx="512" cy="46" r="1.7" />
       </svg>
       <span className="auth-visual__label">Adaptive protocol · cognitive wake</span>
     </div>

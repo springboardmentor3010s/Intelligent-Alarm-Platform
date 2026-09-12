@@ -132,7 +132,7 @@ export default function LandingFooter() {
         </div>
 
         <nav className="lp-footer__col lp-footer__col--product" aria-label="Product">
-          <span className="sys-label sys-label--indigo">Product</span>
+          <span className="sys-label sys-label--violet">Product</span>
           <ul className="lp-footer__links">
             {PRODUCT_LINKS.map(l => (
               <li key={l.to}>
@@ -148,7 +148,7 @@ export default function LandingFooter() {
         </nav>
 
         <nav className="lp-footer__col lp-footer__col--resources" aria-label="Resources">
-          <span className="sys-label sys-label--indigo">Resources</span>
+          <span className="sys-label sys-label--violet">Resources</span>
           <ul className="lp-footer__links">
             {RESOURCE_LINKS.map(l =>
               l.external ? (
@@ -174,7 +174,7 @@ export default function LandingFooter() {
         </nav>
 
         <div className="lp-footer__attrib">
-          <span className="sys-label sys-label--indigo">Project Attribution</span>
+          <span className="sys-label sys-label--violet">Project Attribution</span>
           <p>
             CerebroKognit is an internship project developed as part of the Infosys Virtual
             Internship 7.0 program by Pawan Simha, an MCA student at Sapthagiri NPS University.
@@ -190,7 +190,7 @@ export default function LandingFooter() {
         </div>
 
         <address className="lp-footer__connect">
-          <span className="sys-label sys-label--indigo">Connect</span>
+          <span className="sys-label sys-label--violet">Connect</span>
           <ul className="lp-footer__socials">
             {SOCIALS.map(s => {
               const Icon = s.icon;

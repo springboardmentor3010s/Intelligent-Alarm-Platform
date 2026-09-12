@@ -27,7 +27,7 @@ export const spacing = {
 
 const base = { fonts, radii, spacing };
 
-/* Light: porcelain surfaces on #f8fafc, indigo/violet brand, semantic accents. */
+/* Light: porcelain surfaces on #f8fafc, violet/mint brand, semantic accents. */
 const light = {
   ...base,
   bg: '#F8FAFC',
@@ -44,11 +44,7 @@ const light = {
   violet: '#6844FD',
   violetDark: '#4E28E0',
   violetLight: '#58F6CA',
-  deepViolet: '#7C3AED',
-  indigo: '#4F46E5',
-  lavender: '#A5B4FC',
   violetSoft: 'rgba(104,68,253,0.08)',
-  indigoSoft: 'rgba(79,70,229,0.10)',
   violetGlow: 'rgba(104,68,253,0.22)',
   rose: '#EF4444',
   roseDark: '#DC2626',
@@ -80,11 +76,7 @@ const dark = {
   violet: '#6844FD',
   violetDark: '#4E28E0',
   violetLight: '#58F6CA',
-  deepViolet: '#7C3AED',
-  indigo: '#4F46E5',
-  lavender: '#C7D2FE',
   violetSoft: 'rgba(104,68,253,0.18)',
-  indigoSoft: 'rgba(79,70,229,0.20)',
   violetGlow: 'rgba(88,246,202,0.22)',
   rose: '#EF4444',
   roseDark: '#DC2626',

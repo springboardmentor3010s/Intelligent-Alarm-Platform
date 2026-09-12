@@ -5,7 +5,7 @@ import { useTheme } from '../../theme/ThemeContext';
 
 /**
  * Brand lockup: violet brand tile + wordmark. Mirrors the web `.brand-logo`.
- * `variant="solid"` renders a filled indigo-violet tile (brand CTA); `soft`
+ * `variant="solid"` renders a filled violet tile (brand CTA); `soft`
  * renders a violet-soft tint tile with a violet glyph (header/hero use).
  */
 function BrandMark({ icon = 'flash', size = 44, variant = 'soft' }) {

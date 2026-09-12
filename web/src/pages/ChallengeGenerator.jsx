@@ -28,7 +28,7 @@ const TYPE_CONFIG = {
   Memory: {
     objective: 'Short-term Recall & Sequence Retention',
     desc: 'Visual recall and spatial patterns targeting hippocampal activation and focus stabilization.',
-    badgeTone: 'success',
+    badgeTone: 'mint',
     icon: '◈',
   },
   Word: {

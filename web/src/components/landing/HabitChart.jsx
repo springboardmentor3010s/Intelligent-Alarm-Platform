@@ -12,7 +12,7 @@ const MAX = 100;
  * Lightweight SVG area/line chart for the landing insights section.
  * Illustrative weekly habit-score trend (0–100). Pure SVG — no chart library —
  * so it renders crisply and stays dependency-free while matching the app's
- * indigo/mint language. Draws in once it scrolls into view.
+ * violet/mint language. Draws in once it scrolls into view.
  */
 export default function HabitChart({ data }) {
   const [ref, visible] = useReveal();

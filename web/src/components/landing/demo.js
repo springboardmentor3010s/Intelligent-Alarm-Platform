@@ -31,7 +31,7 @@ export const FEATURES = [
     icon: BrainIcon,
     title: 'Cognitive Challenges',
     kicker: 'Tuned to your performance',
-    tone: 'emerald',
+    tone: 'mint',
     desc: 'Seven brain-training formats keep your response sharp instead of a tap-and-snooze ritual.',
     detail: 'Adaptive difficulty learns from accuracy and solve time; easier when you struggle, harder when you’re on fire.',
   },
@@ -39,7 +39,7 @@ export const FEATURES = [
     icon: TargetIcon,
     title: 'Habit Tracking',
     kicker: 'One score, your whole morning',
-    tone: 'deep',
+    tone: 'dark',
     desc: 'A weighted 35/25/20/20 habit score turns waking up consistently into something you can measure.',
     detail: 'Wake-up consistency, challenge completion, snooze reduction and sleep adherence, all rolled into one number.',
   },
@@ -254,7 +254,7 @@ export const SAMPLE_INSIGHTS = {
 export const PILLARS = [
   { label: 'Wake-up', value: 90, tone: 'violet' },
   { label: 'Challenges', value: 72, tone: 'mint' },
-  { label: 'Snooze cut', value: 68, tone: 'deep' },
+  { label: 'Snooze cut', value: 68, tone: 'dark' },
   { label: 'Sleep', value: 82, tone: 'mint' },
 ];
 

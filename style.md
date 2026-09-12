@@ -14,12 +14,13 @@ Source of truth for web tokens: `web/src/index.css` (`:root` and
   decorative. No noise, no clutter.
 - Theme-aware always. Every surface and every text color must come from CSS
   variables so Light and Dark themes both work with zero per-element overrides.
-- Brand colors follow the logo: Primary Violet (`#6844FD`) with Secondary Mint
-  (`#58F6CA`), plus DeepMind Violet (`#7C3AED`) as a gradient endpoint. Accent
-  tones (violet, mint, emerald) are semantic indicators, never decorative rainbow.
-- No orange/amber and no blue/cyan anywhere: decorative and semantic color
-  comes only from the purple family (violet, deep violet, violet-dark, indigo)
-  and the green family (mint `#58F6CA`, emerald `#10B981`).
+- Brand colors follow the logo: Primary Violet (`#6844FD`), Primary Dark Violet
+  (`#4E28E0`), and Secondary Mint (`#58F6CA`). These three are the ONLY brand
+  colors — everywhere, in both themes.
+- No deep violet (`#7C3AED`), no indigo (`#4F46E5`), no orange/amber and no
+  blue/cyan anywhere. Green is reserved strictly for semantics: online/offline,
+  up/down, good/bad. Emerald (`#10B981`) and rose (`#EF4444`) are indicators,
+  never decorative rainbow.
 - One bold accent per screen. Gradients are reserved for the brand surface
   (buttons, the brand tile, gradient headings) and are silently disabled where
   a flat fill reads better.
@@ -36,46 +37,40 @@ Source of truth for web tokens: `web/src/index.css` (`:root` and
 All colors below are defined as tokens in `web/src/index.css`. New work must
 reference tokens, never hard-coded hex values.
 
-### 2.1 Primary Brand: Violet + Secondary Mint (logo palette)
+### 2.1 Primary Brand: Violet, Violet-Dark + Mint (logo palette)
 
 | Token | Hex | Usage |
 |---|---|---|
-| `--c-violet` | `#6844FD` | Primary brand action, active nav, focus accents, buttons |
-| `--c-violet-light` | `#58F6CA` | Secondary mint accent, highlights, node fills, pillar gradients |
-| `--c-violet-dark` | `#4E28E0` | Violet hover/pressed and dark-theme gradient end |
+| `--c-violet` | `#6844FD` | Primary brand action, active nav, focus accents, buttons, icon glyphs |
+| `--c-violet-light` | `#58F6CA` | Secondary mint accent, highlights, node fills, pillar fills |
+| `--c-violet-dark` | `#4E28E0` | Violet hover/pressed, dark-theme gradient end, dark tiles |
 | `--c-violet-soft` | `rgba(104,68,253,0.08)` | Tinted icon tiles and chip backgrounds |
 | `--c-violet-glow` | `rgba(104,68,253,0.22)` | Restrained ring/glow (dark theme: mint `rgba(88,246,202,…)`) |
-| `--c-indigo` | `#4f46e5` | Secondary brand tone |
-| `--c-indigo-soft` | `rgba(79,70,229,0.1)` | Tint surface |
-| DeepMind Violet | `#7c3aed` | Gradient endpoint in `--grad-primary` (light) |
-| Lavender | `#a5b4fc` / `#c7d2fe` | Soft pulses, muted markers |
+| `--c-mint-soft` | `rgba(88,246,202,0.14)` | Tint tile for mint surfaces |
 
-The purple family is the default accent for: buttons (`.btn-primary`), the
+The violet family is the default accent for: buttons (`.btn-primary`), the
 brand tile (`.brand-logo`), logo mark, gradient headings (`.gradient-text`,
 `.lp-hero h1 em` — mint->violet sunrise), active states, `sys-label--violet`,
 stat numbers, waveform strokes, and links on hover. Mint (`#58F6CA`) is the
 secondary brand accent and pairs with violet exactly as in the logo.
 
-### 2.2 Semantic Status: Greens and Violets
+### 2.2 Semantic Status: Emerald and Rose (Indicators Only)
 
 | Token | Hex | Usage |
 |---|---|---|
 | `--c-emerald` | `#10b981` | Success, healthy, online, completed, "ARMED/ON" states |
 | `--c-emerald-soft` | `rgba(16,185,129,0.1)` | Badge chips, icon tiles |
-| `--c-violet-light` | `#58F6CA` | Secondary mint accent, echo traces, mint pillars |
-| `--c-mint-soft` | `rgba(88,246,202,0.14)` | Tint tile for mint/green surfaces |
-| `--c-violet-dark` | `#4E28E0` | Attention / "RING/NEXT" states, warnings |
-| `--c-deep-violet` | `#7c3aed` | Deep violet active states, secondary pillars |
 
-Emerald, mint, deep violet and violet are the only status hues allowed.
-Attention reads violet, positive reads emerald/mint; there is no amber and no
-blue/cyan in the system. Use them for status, not ornament.
+Emerald is used ONLY to communicate state: online/offline, up/down, good/bad,
+completed/in-progress. It is never used for decoration, branding, or emphasis.
+Attention reads violet-dark; success reads emerald; failure reads rose. There
+is no amber, no blue/cyan, no deep violet, and no indigo in the system.
 
-**Landing pairing**: Product modules and dashboard pillars use a fixed
-purple/green pairing. Purple = violet or deep violet; green = mint or emerald.
-- Modules: Intelligent Alarms (violet) · Cognitive Challenges (emerald) ·
-  Habit Tracking (deep violet) · Personal Insights (mint).
-- Pillars: Wake-up (violet) · Challenges (emerald) · Snooze cut (deep violet) ·
+**Landing pairing**: Product modules and dashboard pillars use a fixed violet
+pairing. Brand = violet or violet-dark; accent = mint.
+- Modules: Intelligent Alarms (violet) · Cognitive Challenges (mint) ·
+  Habit Tracking (violet-dark) · Personal Insights (mint).
+- Pillars: Wake-up (violet) · Challenges (mint) · Snooze cut (violet-dark) ·
   Sleep (mint).
 
 ### 2.3 Destructive: Rose (Critical Only)
@@ -129,7 +124,7 @@ heading/body color to an arbitrary hex.
 
 ### 2.7 Gradients (Brand Surfaces Only)
 
-- `--grad-primary`: `135deg #6844FD -> #7c3aed` (light) and `#6844FD -> #4E28E0`
+- `--grad-primary`: `135deg #6844FD -> #4E28E0` (light)
   (dark). Used for `.btn-primary`, `.brand-logo` (white text stays readable).
 - `--grad-violet`: `135deg #58F6CA -> #6844FD` (logo sunrise). Used for
   `.gradient-text`, `.lp-hero h1 em`. Emerald gradient only for verified
@@ -228,15 +223,16 @@ Never use neon glow shadows or gradient drop-shadows.
 ## 5. Component Conventions (from the landing page)
 
 - **Buttons**: `.btn` base (0.875rem, 600, radius-md); `.btn-primary`
-  (grad indigo-violet background, white text), `.btn-secondary`, `.btn-ghost`,
-  `.btn-danger` (rose only). Hover lifts `-1px` and deepens shadow.
+  (grad violet background, white or near-black text), `.btn-secondary`,
+  `.btn-ghost`, `.btn-danger` (rose only). Hover lifts `-1px` and deepens
+  shadow.
 - **Focus**: every focusable element shows `outline: 2px solid var(--accent);
   outline-offset: 2px` via `:focus-visible`.
 - **Cards**: flat `--surface`, 1px `--border`, `--radius-lg`, restrained hover
   lift. Icon tiles (`.lp-card__icon`) are 50px, radius-md, soft-tint background
-  with a matching icon tone (violet/emerald/mint/deep variants).
+  with a matching icon tone (violet/mint/dark variants).
 - **Sys-label chips**: mono micro-labels with a tone modifier
-  (`--indigo/--violet/--mint/--emerald/--deep`).
+  (`--violet/--mint/--dark`). No emerald/rose chips except literal status.
 - **Status dots / LEDs**: small full-radius dots; "on" states are emerald;
   "attention" states are violet; idle dots are `--surface-3`. Pulse animations
   are simple opacity blinks, not glows.
@@ -284,8 +280,8 @@ Never use neon glow shadows or gradient drop-shadows.
 - Theme persistence: `localStorage["ck-theme"]` + `data-theme` on `<html>`.
   Theme controls (sidebar switcher, auth toggle, settings) stay in sync via
   `web/src/theme.js`.
-- The auth brand panel mirrors the landing palette: lavender tint band, violet
-  hairlines, indigo-violet brand tile, violet/mint/emerald status tones.
+- The auth brand panel mirrors the landing palette: violet tint band, violet
+  hairlines, violet brand tile, violet/mint status tones.
 
 ---
 
@@ -310,8 +306,8 @@ Never use neon glow shadows or gradient drop-shadows.
 - Do NOT add glow effects, gradients-as-ornament, or neon shadows.
 - Do NOT escape the 8px spacing rhythm with arbitrary px values.
 - Do NOT place new colors in mobile `theme/tokens.js` unless they mirror this
-  system (indigo/violet/emerald/mint/deep). Never add amber, orange, cyan or
-  blue to any token layer.
+  system (violet/violet-dark/mint). Never add amber, orange, cyan, blue, deep
+  violet or indigo to any token layer.
 
 ---
 

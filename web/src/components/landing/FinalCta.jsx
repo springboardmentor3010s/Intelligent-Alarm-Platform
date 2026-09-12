@@ -4,7 +4,7 @@ import { ArrowRightIcon, SparklesIcon } from '../ui';
 import useReveal from './useReveal';
 
 /**
- * Final CTA — a strong deep-indigo band that brings the palette to a close.
+ * Final CTA — a strong violet band that brings the palette to a close.
  */
 export default function FinalCta() {
   const [ref, visible] = useReveal();

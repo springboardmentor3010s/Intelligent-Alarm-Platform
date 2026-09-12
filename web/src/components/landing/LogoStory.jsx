@@ -24,7 +24,7 @@ export default function LogoStory() {
             consistency, and the beginning of a productive day.
           </p>
           <p>
-            I chose deep navy and indigo as the primary colors because they create a calm, focused,
+            I chose violet and violet-dark as the primary brand colors because they create a calm, focused,
             and trustworthy environment. Violet represents innovation and artificial intelligence, and
             mint green represents freshness, progress, and positive change. Together, these colors give
             CerebroKognit a modern, intelligent, and approachable identity that works consistently
@@ -36,7 +36,7 @@ export default function LogoStory() {
           <BrandLogo
             variant="mark"
             className="lp-logo-story__logo"
-            alt="The CerebroKognit JustLogo mark: a brain and sunrise in indigo, violet and mint green"
+            alt="The CerebroKognit JustLogo mark: a brain and sunrise in violet, violet-dark and mint green"
           />
         </div>
       </div>

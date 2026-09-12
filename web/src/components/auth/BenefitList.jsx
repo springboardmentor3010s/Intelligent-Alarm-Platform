@@ -4,7 +4,7 @@ import { CheckIcon } from './icons';
 const BENEFITS = [
   { label: 'Adaptive difficulty, personalized to you', tone: 'brand' },
   { label: '7 challenge types engineered for your brain', tone: 'mint' },
-  { label: 'Habit scoring & progress insights', tone: 'success' },
+  { label: 'Habit scoring & progress insights', tone: 'dark' },
 ];
 
 /**

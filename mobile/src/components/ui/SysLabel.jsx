@@ -6,7 +6,7 @@ import { useTheme } from '../../theme/ThemeContext';
 /**
  * Mono micro-label used above screen headers, mirroring the web `sys-label`.
  * Uppercase, tracked-out, jet-black mono. Tone defaults to the brand violet;
- * pass e.g. `violet`/`lavender`/`rose` for status flavors.
+ * pass e.g. `violet`/`mint`/`rose` for status flavors.
  */
 export default function SysLabel({ icon, tone = 'violet', children, style }) {
   const { colors } = useTheme();
