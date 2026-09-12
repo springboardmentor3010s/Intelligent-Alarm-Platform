@@ -3570,7 +3570,7 @@ html[data-theme='dark'] .lp-hero h1 em .hl--deep { color: #8b5cf6; }
 }
 
 .brand-logo-img--mark {
-  width: 34px;
+  width: auto;
   height: 34px;
 }
 
@@ -3586,7 +3586,7 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
 
 .sidebar-brand__logo--wide { height: 32px; width: auto; }
 
-.sidebar-brand__logo--mark { width: 34px; height: 34px; }
+.sidebar-brand__logo--mark { height: 34px; width: auto; }
 
 .hero-brand__logo { height: 34px; }
 

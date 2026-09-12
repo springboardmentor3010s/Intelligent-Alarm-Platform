@@ -333,6 +333,15 @@ Never use neon glow shadows or gradient drop-shadows.
   next to the sidebar logo — it compresses the mark/wordmark; keep the logo
   unobstructed and use LEDs only as standalone status dots (Admin rows,
   challenge simulator).
+- Logo images are never distorted: the `JustLogo.webp` mark is **751×539**
+  (not square), so `.brand-logo-img--mark`/`.sidebar-brand__logo--mark` use
+  `height: 34px; width: auto` and never a fixed equal-width/height square.
+  Likewise the wide lockups (`WideLight`/`WideDark.webp`) use
+  `height: 32px; width: auto`. Always preserve a logo's native aspect ratio.
+- The sidebar brand shows the wide footer lockup when expanded and the
+  JustLogo mark only in the collapsed rail; the expand chevron crossfades in
+  on hover (or keyboard focus) over the mark at rest. Never keep the chevron
+  visible without hover — blur it after click.
 - Body copy uses generous spacing: base `line-height: 1.7` and
   `letter-spacing: 0.01em`. Long-form/information lines render at ≥1.6 line
   height so text breathes.
