@@ -39,33 +39,39 @@ export default function MainTabs({ navigation }) {
 }
 
 /**
- * Floating bottom navigation. The rounded pill container glides between tabs
- * with a spring so the active accent marks "where the finger is going", while
- * the active tab itself lights up (filled icon + bright label) on top of it.
- * The bar floats with 16px gutters, a soft elevation, and a full-radius
- * container that clips the pill to the capsule.
+ * Floating pill navigation. The capsule bar sits on 16px gutters with a soft
+ * elevation, and the emerald pill glides between tabs (pixel-based spring) so
+ * the active accent visibly rides toward the tapped destination. The active tab
+ * lights up (filled icon + bright label) on top of the sliding pill.
  */
 export function TabBar({ active, onChange }) {
   const { colors, fonts } = useTheme();
   const [barWidth, setBarWidth] = useState(0);
   const slide = useRef(new Animated.Value(0)).current;
+  const lastIndex = useRef(0);
 
   const activeIndex = Math.max(
     0,
     TABS.findIndex((t) => t.key === active)
   );
+  const tabWidth = barWidth > 0 ? barWidth / TABS.length : 0;
 
   useEffect(() => {
-    Animated.spring(slide, {
-      toValue: activeIndex,
-      damping: 20,
-      stiffness: 240,
-      mass: 0.8,
-      useNativeDriver: true,
-    }).start();
-  }, [activeIndex, slide]);
-
-  const tabWidth = barWidth > 0 ? barWidth / TABS.length : 0;
+    if (tabWidth <= 0) return;
+    const target = activeIndex * tabWidth;
+    if (lastIndex.current !== activeIndex) {
+      Animated.spring(slide, {
+        toValue: target,
+        damping: 22,
+        stiffness: 180,
+        mass: 1,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      slide.setValue(target);
+    }
+    lastIndex.current = activeIndex;
+  }, [activeIndex, tabWidth, slide]);
 
   return (
     <SafeAreaView style={styles.floatSafe} edges={['bottom']}>
@@ -74,15 +80,15 @@ export function TabBar({ active, onChange }) {
         style={[styles.floatBar, { backgroundColor: colors.tabBar, borderColor: colors.tabBarBorder }]}
         onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
       >
-        {barWidth > 0 ? (
+        {tabWidth > 0 ? (
           <Animated.View
             testID="tab-slider"
             style={[
               styles.slider,
               {
                 width: tabWidth - 16,
-                backgroundColor: colors.violetSoft,
-                borderColor: colors.violetGlow,
+                backgroundColor: colors.emeraldSoft,
+                borderColor: colors.emeraldGlow,
                 transform: [{ translateX: slide }],
               },
             ]}
@@ -102,12 +108,12 @@ export function TabBar({ active, onChange }) {
               <Ionicons
                 name={isActive ? t.iconActive : t.icon}
                 size={24}
-                color={isActive ? colors.violet : colors.textFaint}
+                color={isActive ? colors.emerald : colors.textFaint}
               />
               <Text
                 style={[
                   styles.tabLabel,
-                  { color: isActive ? colors.violet : colors.textFaint, fontFamily: fonts.displaySemi },
+                  { color: isActive ? colors.emerald : colors.textFaint, fontFamily: fonts.displaySemi },
                   isActive && styles.tabLabelActive,
                 ]}
               >
@@ -132,9 +138,9 @@ const styles = StyleSheet.create({
   floatBar: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 9999,
     overflow: 'hidden',
-    paddingVertical: 6,
+    paddingVertical: 5,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.22,
@@ -144,12 +150,12 @@ const styles = StyleSheet.create({
   slider: {
     position: 'absolute',
     left: 8,
-    top: 6,
-    bottom: 6,
-    borderRadius: 18,
+    top: 5,
+    bottom: 5,
+    borderRadius: 9999,
     borderWidth: 1,
   },
-  tabItem: { flex: 1, height: 54, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  tabItem: { flex: 1, height: 50, alignItems: 'center', justifyContent: 'center', gap: 3 },
   tabLabel: { fontSize: 10, fontWeight: '600', letterSpacing: 0.6 },
   tabLabelActive: { fontWeight: '700' },
 });

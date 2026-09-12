@@ -117,7 +117,7 @@ export default function HomeTab({ navigation }) {
     delta === null
       ? null
       : `${delta > 0 ? '↑' : '↓'} ${Math.abs(delta)}% vs yesterday`;
-  const tone = score >= 75 ? 'emerald' : score >= 50 ? 'cyan' : 'amber';
+  const tone = score >= 75 ? 'emerald' : score >= 50 ? 'amber' : 'rose';
 
   const dueNow = upcoming ? formatCountdown(upcoming.next_trigger) === 'due now' : false;
   const pulse = useRef(new Animated.Value(1)).current;
@@ -150,7 +150,7 @@ export default function HomeTab({ navigation }) {
   if (alarmsLoading || scoreLoading) {
     return (
       <View style={ui.center}>
-        <ActivityIndicator size="large" color={colors.violet} />
+        <ActivityIndicator size="large" color={colors.emerald} />
         <Text style={[styles.loadingText, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>BOOTING SYSTEMS</Text>
       </View>
     );
@@ -232,7 +232,7 @@ export default function HomeTab({ navigation }) {
               accessibilityLabel="Practice"
               style={({ pressed }) => [
                 styles.actionBtn,
-                { backgroundColor: colors.violet },
+                { backgroundColor: colors.emerald },
                 pressed && styles.actionPressed,
               ]}
             >
@@ -277,8 +277,8 @@ export default function HomeTab({ navigation }) {
                       {item.time || 'Not set'}
                     </Text>
                     {isNext ? (
-                      <View style={[styles.nextChip, { backgroundColor: colors.violetSoft, borderColor: colors.violetGlow }]}>
-                        <Text style={[styles.nextChipText, { color: colors.violet, fontFamily: fonts.monoBold }]}>NEXT</Text>
+                      <View style={[styles.nextChip, { backgroundColor: colors.emeraldSoft, borderColor: colors.emeraldGlow }]}>
+                        <Text style={[styles.nextChipText, { color: colors.emerald, fontFamily: fonts.monoBold }]}>NEXT</Text>
                       </View>
                     ) : null}
                   </View>
@@ -310,7 +310,7 @@ export default function HomeTab({ navigation }) {
 
       {(offlineMode || syncing) && (
         <View style={[styles.statusBar, { backgroundColor: colors.surface2, borderTopColor: colors.border }]}>
-          <Text style={[styles.statusText, { color: syncing ? colors.cyan : colors.amber, fontFamily: fonts.monoBold }]}>
+          <Text style={[styles.statusText, { color: syncing ? colors.emerald : colors.amber, fontFamily: fonts.monoBold }]}>
             {syncing ? 'SYNCING' : 'OFFLINE · CACHED DATA'}
           </Text>
         </View>
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   heroMeta: { fontSize: 13, marginTop: 4, lineHeight: 18 },
   metaChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   microBadge: {
-    borderRadius: 8,
+    borderRadius: 9999,
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    borderRadius: 12,
+    borderRadius: 9999,
     height: 48,
     paddingHorizontal: 16,
     flex: 1,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   alarmTimeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   alarmTime: { fontSize: 20, fontWeight: '700' },
   alarmTitle: { fontSize: 13, marginTop: 2 },
-  nextChip: { borderRadius: 7, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 2 },
+  nextChip: { borderRadius: 9999, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 2 },
   nextChipText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.6 },
   alarmRight: { flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 12 },
   emptyText: { textAlign: 'center', marginTop: 20, fontSize: 14, marginBottom: 8 },

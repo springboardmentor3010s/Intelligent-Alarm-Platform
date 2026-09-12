@@ -5,9 +5,8 @@ import { useTheme } from '../../theme/ThemeContext';
 
 /**
  * Right-side header actions for the Main shell: instant Light/Dark toggle plus
- * a shortcut into Settings. Both are uniform 40x40 icon chips (rounded-xl, 12px)
- * on a neutral translucent surface so the actions read as one family instead of
- * competing translucent circles over the gear icon.
+ * a shortcut into Settings. Both are uniform 40x40 pill chips on a neutral
+ * translucent surface with the emerald icon accent (matching the brand accent).
  */
 export default function HeaderActions({ navigation }) {
   const { colors, resolved, setMode } = useTheme();
@@ -26,7 +25,7 @@ export default function HeaderActions({ navigation }) {
         accessibilityLabel={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
         hitSlop={6}
       >
-        <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={20} color={colors.violet} />
+        <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={20} color={colors.emerald} />
       </Pressable>
       <Pressable
         onPress={() => navigation.navigate('Settings')}
@@ -39,7 +38,7 @@ export default function HeaderActions({ navigation }) {
         accessibilityLabel="Settings"
         hitSlop={6}
       >
-        <Ionicons name="settings-outline" size={20} color={colors.violet} />
+        <Ionicons name="settings-outline" size={20} color={colors.emerald} />
       </Pressable>
     </View>
   );
@@ -50,7 +49,7 @@ const styles = StyleSheet.create({
   btn: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 9999,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
