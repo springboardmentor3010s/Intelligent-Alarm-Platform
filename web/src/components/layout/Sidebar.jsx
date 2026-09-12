@@ -6,7 +6,6 @@ import {
   LogOutIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ThemeSwitcher,
 } from '../ui';
 
 /**
@@ -92,7 +91,6 @@ export default function Sidebar({
       </nav>
 
       <div className="sidebar-footer">
-        <ThemeSwitcher />
         <div className="sidebar-user">
           <span className="nav-avatar" aria-hidden="true">
             {initials}

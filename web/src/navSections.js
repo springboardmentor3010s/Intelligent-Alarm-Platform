@@ -10,25 +10,25 @@ import {
 } from './components/ui';
 
 /**
- * Application navigation hierarchy used by the sidebar and mobile drawer —
- * tracks the product dashboard IA: Dashboard · Alarms · Challenges ·
- * History · Profile · Settings · Admin.
+ * Application navigation hierarchy used by the sidebar and mobile drawer:
+ * Overview (Dashboard · Analytics) · Wake (Alarms · Challenges) ·
+ * Insights (History) · Account (Profile · Settings) · Administration (Admin).
  */
 export const NAV_SECTIONS = [
   {
-    label: 'Track',
+    label: 'Overview',
     links: [
       { to: '/', label: 'Dashboard', icon: HomeIcon, title: "Today's cognitive status" },
       {
         to: '/dashboard',
-        label: 'Insights',
+        label: 'Analytics',
         icon: ActivityIcon,
         title: 'Habits (score · tracking) · Sleep · Analytics · Recommendations',
       },
     ],
   },
   {
-    label: 'Plan',
+    label: 'Wake',
     links: [
       { to: '/alarms', label: 'Alarms', icon: AlarmClockIcon, title: 'Active · History · Create' },
       { to: '/challenges', label: 'Challenges', icon: SparklesIcon, title: 'Generator · History · Performance' },

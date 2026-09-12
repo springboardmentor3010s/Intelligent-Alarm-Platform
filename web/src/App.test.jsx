@@ -43,15 +43,15 @@ describe('App navigation (§21 grouping)', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders Track / Plan / Account groups with all destinations', async () => {
+  it('renders Overview / Wake / Account groups with all destinations', async () => {
     mockFetch({ '/api/v1/habits/score': habitScore });
     render(<App />);
 
-    await waitFor(() => expect(screen.getAllByText('Track').length).toBeGreaterThan(0));
-    expect(screen.getAllByText('Plan').length).toBeGreaterThan(0);
+    await waitFor(() => expect(screen.getAllByText('Overview').length).toBeGreaterThan(0));
+    expect(screen.getAllByText('Wake').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Account').length).toBeGreaterThan(0);
 
-    for (const label of ['Dashboard', 'Insights', 'Alarms', 'Challenges', 'History', 'Profile', 'Admin']) {
+    for (const label of ['Dashboard', 'Analytics', 'Alarms', 'Challenges', 'History', 'Profile', 'Admin']) {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
   });
@@ -78,7 +78,7 @@ describe('App navigation (§21 grouping)', () => {
   });
 });
 
-describe('global theme switcher (sidebar)', () => {
+describe('global theme toggle (topbar)', () => {
   beforeEach(() => {
     localStorage.setItem('token', 'test-token');
     localStorage.setItem('user', JSON.stringify({ email: 'demo@test.io', full_name: 'Demo' }));
@@ -97,11 +97,11 @@ describe('global theme switcher (sidebar)', () => {
     render(<App />);
 
     await waitFor(() => expect(screen.getByRole('navigation')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('radio', { name: 'Use Light theme' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to light theme' }));
 
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
     expect(localStorage.getItem('ck-theme')).toBe('light');
-    expect(screen.getByRole('radio', { name: 'Use Light theme' })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('button', { name: 'Switch to dark theme' })).toBeInTheDocument();
   });
 
   it('restores the persisted Light theme on boot', async () => {
@@ -111,7 +111,7 @@ describe('global theme switcher (sidebar)', () => {
     render(<App />);
 
     await waitFor(() =>
-      expect(screen.getByRole('radio', { name: 'Use Light theme' })).toHaveAttribute('aria-checked', 'true')
+      expect(screen.getByRole('button', { name: 'Switch to dark theme' })).toBeInTheDocument()
     );
   });
 });

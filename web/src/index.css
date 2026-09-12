@@ -356,9 +356,41 @@ h4 { font-size: 1rem; font-weight: 600; }
   transition: opacity 0.2s ease;
 }
 
+.app-shell--collapsed .sidebar-head {
+  position: relative;
+  justify-content: center;
+  padding: 0;
+}
+
 .app-shell--collapsed .sidebar-brand__word,
 .app-shell--collapsed .sidebar-brand .led {
   display: none;
+}
+
+.app-shell--collapsed .sidebar-brand,
+.app-shell--collapsed .sidebar-collapse {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.app-shell--collapsed .sidebar-collapse {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-shell--collapsed .sidebar-head:hover .sidebar-brand,
+.app-shell--collapsed .sidebar-head:focus-within .sidebar-brand {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-shell--collapsed .sidebar-head:hover .sidebar-collapse,
+.app-shell--collapsed .sidebar-head:focus-within .sidebar-collapse {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .sidebar-collapse {
@@ -537,16 +569,6 @@ h4 { font-size: 1rem; font-weight: 600; }
   z-index: 30;
 }
 
-.app-topbar__brand {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.15rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  color: var(--text);
-}
-
 .nav-menu-toggle {
   display: none;
   background: none;
@@ -561,6 +583,19 @@ h4 { font-size: 1rem; font-weight: 600; }
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+}
+
+.app-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.app-topbar .theme-toggle {
+  position: static;
+  box-shadow: var(--shadow-sm);
 }
 
 /* Google Workspace-style breadcrumb tag next to the brand */
@@ -671,7 +706,6 @@ h4 { font-size: 1rem; font-weight: 600; }
 
 .led--on {
   background: var(--c-emerald);
-  box-shadow: 0 0 8px var(--c-emerald);
 }
 
 .led--live {
@@ -3488,8 +3522,6 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
 .lp-nav__brand-logo { height: 32px; }
 
 .sidebar-brand__logo { width: 32px; height: 32px; }
-
-.brand-logo--topbar { width: 24px; height: 24px; }
 
 .hero-brand__logo { height: 34px; }
 

@@ -309,13 +309,31 @@ Never use neon glow shadows or gradient drop-shadows.
 - Every new component must be tested in Light and Dark by construction (tokens,
   no hard-coded colors).
 - Theme persistence: `localStorage["ck-theme"]` + `data-theme` on `<html>`.
-  Theme controls (sidebar switcher, auth toggle, settings) stay in sync via
+  Theme controls (topbar toggle, auth toggle, settings) stay in sync via
   `web/src/theme.js`.
 - The auth brand panel mirrors the landing palette: violet tint band, violet
   hairlines, violet brand tile, violet/mint status tones, full-width waveform,
   and theme-aware benefit ticks (mint dark / violet light).
 - Buttons and form fields are pills; the top-right theme toggle is a full
-  circle and the Back pill matches its 38px height.
+  circle and the Back pill matches its 38px height. The authenticated topbar
+  reuses the same 38px circular toggle in its right cluster next to the live
+  clock (`.app-topbar .theme-toggle`), so theming is one tap on every page.
+- LEDs are semantic indicators that blink via opacity only; never add glow
+  box-shadows (`.led--on` is a flat emerald blink).
+
+## 8.1 App shell & navigation
+
+- Sidebar nav IA: **Overview** (Dashboard · Analytics), **Wake** (Alarms ·
+  Challenges), **Insights** (History), **Account** (Profile · Settings),
+  **Administration** (Admin) — defined in `web/src/navSections.js`; the mobile
+  drawer and topbar breadcrumb tag derive from the same source.
+- Sidebar header: expanded shows the full brand lockup (mark + wordmark + LED)
+  with the collapse chevron; collapsed shows only the brand mark, centered, and
+  the expand chevron crossfades in over the mark on hover / keyboard focus
+  (`:focus-within`). No logo is shown in the topbar.
+- Topbar: left cluster is the breadcrumb tag (section / page), right cluster is
+  `[live clock] [theme toggle]` — the theme control lives here, not in the
+  sidebar footer.
 
 ---
 

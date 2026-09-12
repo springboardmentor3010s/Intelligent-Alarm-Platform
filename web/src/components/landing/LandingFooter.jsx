@@ -34,7 +34,7 @@ const HIGHLIGHTS = [
 
 const PRODUCT_LINKS = [
   { to: '/', label: 'Dashboard' },
-  { to: '/dashboard', label: 'Insights' },
+  { to: '/dashboard', label: 'Analytics' },
   { to: '/alarms', label: 'Alarms' },
   { to: '/challenges', label: 'Challenges' },
   { to: '/reports', label: 'History' },

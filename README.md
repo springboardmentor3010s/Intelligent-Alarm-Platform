@@ -66,7 +66,7 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 > Redis, MongoDB, and the ML model cache are **planned components** — not implemented in the current codebase.
 
 **Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 34 HTTP endpoints (30 unique paths) under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications.
-**Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **5 nav sections (Track/Plan/Insights/Account/Administration)**.
+**Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **5 nav sections (Overview/Wake/Insights/Account/Administration)** with a collapsible icon rail and a global circular theme toggle in the topbar.
 **Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); **offline-first sync + Expo push-token registration wired & jest-tested (2026-09-07)**; native push delivery pending (needs an Expo dev build).
 **Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 9 ORM tables with performance indexes.
 

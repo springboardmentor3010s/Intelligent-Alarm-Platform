@@ -12,7 +12,8 @@ import Admin from './pages/Admin';
 import Landing from './pages/Landing';
 import Sidebar from './components/layout/Sidebar';
 import { NAV_SECTIONS } from './navSections';
-import { BrandLogo, MenuIcon, LiveClock } from './components/ui';
+import { MenuIcon, LiveClock } from './components/ui';
+import ThemeToggle from './components/auth/ThemeToggle';
 
 function initialsOf(user) {
   const source = user.full_name || user.email || 'User';
@@ -34,7 +35,7 @@ function resolveBreadcrumb(pathname) {
   return { section: 'Workspace', page: 'Overview' };
 }
 
-/** Google Workspace-style topbar: brand + breadcrumb tag + live clock. */
+/** Google Workspace-style topbar: breadcrumb tag + live clock + theme toggle. */
 function Topbar({ onMenuToggle, mobileNavOpen }) {
   const { pathname } = useLocation();
   const crumb = resolveBreadcrumb(pathname);
@@ -50,17 +51,16 @@ function Topbar({ onMenuToggle, mobileNavOpen }) {
         >
           <MenuIcon size={20} />
         </button>
-        <span className="brand app-topbar__brand">
-          <BrandLogo variant="mark" className="brand-logo--topbar" alt="CerebroKognit" />
-          CerebroKognit
-        </span>
         <span className="breadcrumb-tag">
           <span className="breadcrumb-tag__section">{crumb.section}</span>
           <span className="breadcrumb-tag__slash">/</span>
           <span className="breadcrumb-tag__page">{crumb.page}</span>
         </span>
       </div>
-      <LiveClock />
+      <div className="app-topbar__right">
+        <LiveClock />
+        <ThemeToggle />
+      </div>
     </header>
   );
 }
