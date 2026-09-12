@@ -23,7 +23,7 @@ export const FEATURES = [
     icon: AlarmClockIcon,
     title: 'Intelligent Alarms',
     kicker: 'Wake-up that can’t be ignored',
-    tone: 'indigo',
+    tone: 'violet',
     desc: 'Every alarm is gated by a short cognitive challenge, so dismissal means actually being awake.',
     detail: 'Choose math, memory, logic or word challenges at a difficulty that adapts to your streak.',
   },
@@ -31,7 +31,7 @@ export const FEATURES = [
     icon: BrainIcon,
     title: 'Cognitive Challenges',
     kicker: 'Tuned to your performance',
-    tone: 'violet',
+    tone: 'emerald',
     desc: 'Seven brain-training formats keep your response sharp instead of a tap-and-snooze ritual.',
     detail: 'Adaptive difficulty learns from accuracy and solve time; easier when you struggle, harder when you’re on fire.',
   },
@@ -39,7 +39,7 @@ export const FEATURES = [
     icon: TargetIcon,
     title: 'Habit Tracking',
     kicker: 'One score, your whole morning',
-    tone: 'mint',
+    tone: 'deep',
     desc: 'A weighted 35/25/20/20 habit score turns waking up consistently into something you can measure.',
     detail: 'Wake-up consistency, challenge completion, snooze reduction and sleep adherence, all rolled into one number.',
   },
@@ -47,7 +47,7 @@ export const FEATURES = [
     icon: BarChartIcon,
     title: 'Personal Insights',
     kicker: 'See what your data says',
-    tone: 'blue',
+    tone: 'mint',
     desc: 'Weekly trends and recommendations show you what is working; no guesswork, no dark patterns.',
     detail: 'Sleep windows, streaks and attempt accuracy, surfaced as plain-language coaching, not jargon.',
   },
@@ -252,10 +252,10 @@ export const SAMPLE_INSIGHTS = {
 /* ---- Showcase mock content (strictly illustrative) -------------------- */
 
 export const PILLARS = [
-  { label: 'Wake-up', value: 90, tone: 'indigo' },
-  { label: 'Challenges', value: 72, tone: 'violet' },
-  { label: 'Snooze cut', value: 68, tone: 'mint' },
-  { label: 'Sleep', value: 82, tone: 'blue' },
+  { label: 'Wake-up', value: 90, tone: 'violet' },
+  { label: 'Challenges', value: 72, tone: 'emerald' },
+  { label: 'Snooze cut', value: 68, tone: 'deep' },
+  { label: 'Sleep', value: 82, tone: 'mint' },
 ];
 
 export const CHALLENGE_PREVIEWS = [

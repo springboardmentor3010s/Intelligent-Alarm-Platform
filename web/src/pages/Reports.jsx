@@ -23,7 +23,7 @@ const METRICS = [
   { key: 'wake_up_consistency', label: 'Wake-up Consistency', weight: '35%', tone: 'brand' },
   { key: 'challenge_completion', label: 'Challenge Completion', weight: '25%', tone: 'success' },
   { key: 'snooze_reduction', label: 'Snooze Reduction', weight: '20%', tone: 'warm' },
-  { key: 'sleep_schedule_adherence', label: 'Sleep Adherence', weight: '20%', tone: 'cyan' },
+  { key: 'sleep_schedule_adherence', label: 'Sleep Adherence', weight: '20%', tone: 'mint' },
 ];
 
 const REPORT_TYPES = [

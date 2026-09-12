@@ -22,7 +22,7 @@ const TYPE_CONFIG = {
   Logic: {
     objective: 'Deductive Reasoning & Executive Control',
     desc: 'Structured propositional logic and deductive puzzles to engage the dorsolateral prefrontal cortex.',
-    badgeTone: 'cyan',
+    badgeTone: 'brand',
     icon: '⬡',
   },
   Memory: {
@@ -52,7 +52,7 @@ const TYPE_CONFIG = {
   QuickQuiz: {
     objective: 'Rapid Semantic Fact Retrieval',
     desc: 'Fact verification and quick-fire trivia testing immediate neural responsiveness.',
-    badgeTone: 'cyan',
+    badgeTone: 'brand',
     icon: '⚡',
   },
 };

@@ -30,8 +30,8 @@ export default function Hero() {
             <em>
               An <span className="hl--violet">intelligent</span>{' '}
               <span className="hl--mint">command</span>{' '}
-              <span className="hl--amber">center</span> for your{' '}
-              <span className="hl--cyan">mornings</span>.
+              <span className="hl--deep">center</span> for your{' '}
+              <span className="hl--royal">mornings</span>.
             </em>
           </h1>
           <p className="lp-hero__lead">

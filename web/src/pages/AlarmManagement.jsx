@@ -33,7 +33,7 @@ const ALARM_ROLE = (title, type) => {
   const t = (title || '').toLowerCase();
   if (t.includes('focus') || t.includes('boost')) return { label: 'Focus Boost', tone: 'brand' };
   if (t.includes('deep') || t.includes('recovery')) return { label: 'Deep Recovery', tone: 'success' };
-  if (t.includes('mental') || t.includes('clarity')) return { label: 'Mental Clarity', tone: 'cyan' };
+  if (t.includes('mental') || t.includes('clarity')) return { label: 'Mental Clarity', tone: 'brand' };
   if (t.includes('meditation') || t.includes('mindful')) return { label: 'Mindfulness', tone: 'subtle' };
   return { label: type === 'Weekend' ? 'Weekend Reset' : type === 'Weekday' ? 'Weekday Anchor' : 'Wake Anchor', tone: 'subtle' };
 };

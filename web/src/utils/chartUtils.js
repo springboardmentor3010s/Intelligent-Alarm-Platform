@@ -6,9 +6,9 @@
 
 const chartConfigs = {
   wakeUp: { label: 'Wake-up Consistency (%)', border: '#6844FD', bg: 'rgba(104, 68, 253, 0.12)', dataKey: 'wake_up_consistency' },
-  challenge: { label: 'Challenge Completion (%)', border: '#06b6d4', bg: 'rgba(6, 182, 212, 0.12)', dataKey: 'challenge_completion' },
+  challenge: { label: 'Challenge Completion (%)', border: '#58F6CA', bg: 'rgba(88, 246, 202, 0.12)', dataKey: 'challenge_completion' },
   snooze: { label: 'Snooze Reduction (%)', border: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', dataKey: 'snooze_reduction' },
-  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', dataKey: 'sleep_schedule_adherence' },
+  sleep: { label: 'Sleep Schedule Adherence (%)', border: '#6844FD', bg: 'rgba(104, 68, 253, 0.12)', dataKey: 'sleep_schedule_adherence' },
 };
 
 function dayLabel(date) {

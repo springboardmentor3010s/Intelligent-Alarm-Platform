@@ -178,7 +178,7 @@ export default function Dashboard() {
               </div>
               <div className="telemetry-item">
                 <span className="text-xs text-muted-600" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span className="led led--on led--live" style={{ background: 'var(--c-amber)' }} /> Avg Snooze Count
+                  <span className="led led--on led--live" style={{ background: 'var(--c-violet)' }} /> Avg Snooze Count
                 </span>
                 <span className="metric-value">{analytics.average_snooze_count?.toFixed(1)}</span>
               </div>

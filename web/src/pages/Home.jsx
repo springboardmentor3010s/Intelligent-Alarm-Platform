@@ -23,7 +23,7 @@ const WEIGHTS = [
   { key: 'wake_up_consistency', label: 'Wake-up Consistency', denom: 100, weight: '35% weight', tone: 'brand', desc: 'Snooze-free dismissals on scheduled time' },
   { key: 'challenge_completion', label: 'Challenge Completion', denom: 100, weight: '25% weight', tone: 'success', desc: 'Accuracy & speed across cognitive puzzles' },
   { key: 'snooze_reduction', label: 'Snooze Reduction', denom: 100, weight: '20% weight', tone: 'warm', desc: 'Reduction in snooze frequency vs 7-day baseline' },
-  { key: 'sleep_schedule_adherence', label: 'Sleep Adherence', denom: 100, weight: '20% weight', tone: 'cyan', desc: 'Circadian stability and wake-time standard deviation' },
+  { key: 'sleep_schedule_adherence', label: 'Sleep Adherence', denom: 100, weight: '20% weight', tone: 'mint', desc: 'Circadian stability and wake-time standard deviation' },
 ];
 
 function greeting() {

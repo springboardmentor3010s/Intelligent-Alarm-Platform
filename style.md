@@ -16,7 +16,10 @@ Source of truth for web tokens: `web/src/index.css` (`:root` and
   variables so Light and Dark themes both work with zero per-element overrides.
 - Brand colors follow the logo: Primary Violet (`#6844FD`) with Secondary Mint
   (`#58F6CA`), plus DeepMind Violet (`#7C3AED`) as a gradient endpoint. Accent
-  tones (emerald, cyan, amber) are semantic indicators, never decorative rainbow.
+  tones (violet, mint, emerald) are semantic indicators, never decorative rainbow.
+- No orange/amber and no blue/cyan anywhere: decorative and semantic color
+  comes only from the purple family (violet, deep violet, violet-dark, indigo)
+  and the green family (mint `#58F6CA`, emerald `#10B981`).
 - One bold accent per screen. Gradients are reserved for the brand surface
   (buttons, the brand tile, gradient headings) and are silently disabled where
   a flat fill reads better.
@@ -53,19 +56,27 @@ brand tile (`.brand-logo`), logo mark, gradient headings (`.gradient-text`,
 stat numbers, waveform strokes, and links on hover. Mint (`#58F6CA`) is the
 secondary brand accent and pairs with violet exactly as in the logo.
 
-### 2.2 Semantic Status: Light Greenish and Light Orangish
+### 2.2 Semantic Status: Greens and Violets
 
 | Token | Hex | Usage |
 |---|---|---|
 | `--c-emerald` | `#10b981` | Success, healthy, online, completed, "ARMED/ON" states |
 | `--c-emerald-soft` | `rgba(16,185,129,0.1)` | Badge chips, icon tiles |
-| `--c-cyan` | `#06b6d4` | Secondary informational metric, echo/teal traces |
-| `--c-cyan-soft` | `rgba(6,182,212,0.1)` | Tint tile |
-| `--c-amber` | `#f59e0b` | Attention, "RING/NEXT" states, warnings |
-| `--c-amber-soft` | `rgba(245,158,11,0.1)` | Tint tile |
+| `--c-violet-light` | `#58F6CA` | Secondary mint accent, echo traces, mint pillars |
+| `--c-mint-soft` | `rgba(88,246,202,0.14)` | Tint tile for mint/green surfaces |
+| `--c-violet-dark` | `#4E28E0` | Attention / "RING/NEXT" states, warnings |
+| `--c-deep-violet` | `#7c3aed` | Deep violet active states, secondary pillars |
 
-Emerald and cyan are the only "green-ish" tones allowed. Amber is the only
-"orange-ish" tone allowed. Use them for status, not ornament.
+Emerald, mint, deep violet and violet are the only status hues allowed.
+Attention reads violet, positive reads emerald/mint; there is no amber and no
+blue/cyan in the system. Use them for status, not ornament.
+
+**Landing pairing**: Product modules and dashboard pillars use a fixed
+purple/green pairing. Purple = violet or deep violet; green = mint or emerald.
+- Modules: Intelligent Alarms (violet) · Cognitive Challenges (emerald) ·
+  Habit Tracking (deep violet) · Personal Insights (mint).
+- Pillars: Wake-up (violet) · Challenges (emerald) · Snooze cut (deep violet) ·
+  Sleep (mint).
 
 ### 2.3 Destructive: Rose (Critical Only)
 
@@ -121,8 +132,8 @@ heading/body color to an arbitrary hex.
 - `--grad-primary`: `135deg #6844FD -> #7c3aed` (light) and `#6844FD -> #4E28E0`
   (dark). Used for `.btn-primary`, `.brand-logo` (white text stays readable).
 - `--grad-violet`: `135deg #58F6CA -> #6844FD` (logo sunrise). Used for
-  `.gradient-text`, `.lp-hero h1 em`. Emerald/cyan/sunset gradients only where
-  semantically justified.
+  `.gradient-text`, `.lp-hero h1 em`. Emerald gradient only for verified
+  success surfaces; no amber, cyan or sunset gradients.
 - No gradient-as-glow backgrounds on large surfaces. A flat fill with the tint
   band is the default.
 
@@ -223,11 +234,11 @@ Never use neon glow shadows or gradient drop-shadows.
   outline-offset: 2px` via `:focus-visible`.
 - **Cards**: flat `--surface`, 1px `--border`, `--radius-lg`, restrained hover
   lift. Icon tiles (`.lp-card__icon`) are 50px, radius-md, soft-tint background
-  with a matching icon tone (violet/indigo/emerald/cyan/blue variants).
+  with a matching icon tone (violet/emerald/mint/deep variants).
 - **Sys-label chips**: mono micro-labels with a tone modifier
-  (`--indigo/--violet/--mint/--blue`).
+  (`--indigo/--violet/--mint/--emerald/--deep`).
 - **Status dots / LEDs**: small full-radius dots; "on" states are emerald;
-  "attention" states are amber; idle dots are `--surface-3`. Pulse animations
+  "attention" states are violet; idle dots are `--surface-3`. Pulse animations
   are simple opacity blinks, not glows.
 - **Decorative waveforms/SVG scenes**: stroke lines use solid brand tones,
   never rainbow. Traveling pulses ride the primary trace; everything is
@@ -274,7 +285,7 @@ Never use neon glow shadows or gradient drop-shadows.
   Theme controls (sidebar switcher, auth toggle, settings) stay in sync via
   `web/src/theme.js`.
 - The auth brand panel mirrors the landing palette: lavender tint band, violet
-  hairlines, indigo-violet brand tile, violet/cyan/amber status tones.
+  hairlines, indigo-violet brand tile, violet/mint/emerald status tones.
 
 ---
 
@@ -299,7 +310,8 @@ Never use neon glow shadows or gradient drop-shadows.
 - Do NOT add glow effects, gradients-as-ornament, or neon shadows.
 - Do NOT escape the 8px spacing rhythm with arbitrary px values.
 - Do NOT place new colors in mobile `theme/tokens.js` unless they mirror this
-  system (indigo/violet/emerald/cyan/amber).
+  system (indigo/violet/emerald/mint/deep). Never add amber, orange, cyan or
+  blue to any token layer.
 
 ---
 
