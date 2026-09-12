@@ -34,9 +34,9 @@ export default function LogoStory() {
 
         <div className="lp-logo-story__art" aria-label="CerebroKognit logo">
           <BrandLogo
-            variant="wide"
+            variant="mark"
             className="lp-logo-story__logo"
-            alt="The CerebroKognit logo, a brain and sunrise mark in indigo, violet and mint green"
+            alt="The CerebroKognit JustLogo mark: a brain and sunrise in indigo, violet and mint green"
           />
         </div>
       </div>

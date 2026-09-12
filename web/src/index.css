@@ -3519,7 +3519,7 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
 .lp-logo-story__logo {
   height: auto;
   width: 100%;
-  max-width: 400px;
+  max-width: 260px;
 }
 
 .lp-logo-story__logo .brand-logo-img__asset {
