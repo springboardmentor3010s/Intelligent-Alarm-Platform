@@ -109,8 +109,10 @@ describe('Landing page', () => {
 
   it('expands the accessible FAQ accordion', () => {
     renderLanding();
-    // First item is open by default.
+    // Nothing is open by default: the user opens an item themselves.
     const first = screen.getByRole('button', { name: /How does the alarm actually dismiss\?/i });
+    expect(first).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(first);
     expect(first).toHaveAttribute('aria-expanded', 'true');
 
     // Swap to another question.

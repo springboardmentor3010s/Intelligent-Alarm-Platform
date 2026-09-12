@@ -8,7 +8,7 @@ import { LandingSection } from './primitives';
  * rotates 45° into an ✕ when open. One item is open at a time.
  */
 export default function Faq() {
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState(null);
 
   return (
     <LandingSection
