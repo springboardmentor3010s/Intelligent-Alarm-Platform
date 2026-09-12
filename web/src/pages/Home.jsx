@@ -114,7 +114,13 @@ export default function Home() {
   const firstName = String(storedUser.full_name || storedUser.email?.split('@')[0] || 'User').split(' ')[0];
 
   const trendHistory = history.filter(h => h.overall_score !== null);
-  const trendData = buildSeries(trendHistory, { dataKey: 'overall_score', label: 'Overall Score (%)' });
+  const trendData = buildSeries(trendHistory, {
+    dataKey: 'overall_score',
+    label: 'Overall Score (%)',
+    border: '#6844FD',
+    bg: 'rgba(88, 246, 202, 0.16)',
+    pointBorder: '#58F6CA',
+  });
   const chartOpts = makeChartOptions();
 
   const enabled = alarms.filter(a => a.is_enabled);
@@ -276,13 +282,13 @@ export default function Home() {
           <div className="card-label mb-3"><span className="sys-label">Behavioral Intelligence · Recommendations</span></div>
           <div className="grid-cards grid-cards--duo">
             {recommendations.slice(0, 2).map(r => (
-              <div key={r.id} style={{ background: 'var(--surface-2)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+              <div key={r.id} style={{ background: 'var(--surface-2)', padding: '1.25rem 1.4rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
                   <Badge tone={r.priority === 'high' ? 'danger' : 'brand'}>{r.category}</Badge>
                   <span className="sys-label">{r.priority} priority</span>
                 </div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)' }}>{r.title}</div>
-                <p className="text-sm text-muted-600 mt-1" style={{ fontSize: '0.85rem' }}>{r.message}</p>
+                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)' }}>{r.title}</div>
+                <p className="text-sm text-muted-600 mt-1" style={{ fontSize: '0.95rem', lineHeight: 1.65 }}>{r.message}</p>
                 {r.suggested_action && (
                   <div className="text-xs mt-2" style={{ color: 'var(--c-violet)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <span className="dot-bullet" aria-hidden="true" />
@@ -336,25 +342,27 @@ export default function Home() {
       </Card>
 
       {/* 7. Weekly Trend & Contextual Empty State */}
-      <Card className="mt-4">
-        <div className="card-label mb-2"><span className="sys-label">Circadian Trajectory · 7-Day Habit Trend</span></div>
+      <Card className="mt-4 trend-card">
+        <div className="card-label mb-2 trend-card__head"><span className="sys-label sys-label--violet"><span className="led led--on" style={{ background: 'var(--c-violet-light)' }} />Circadian Trajectory · 7-Day Habit Trend</span></div>
         {trendHistory.length >= 2 ? (
           <>
             <div className="chart-card chart-card--sm">
               <Line data={trendData} options={chartOpts} />
             </div>
             <div className="chart-note">
-              <InfoIcon size={14} />
-              Tracking {trendHistory.length} of 7 days recorded. Plots server-verified daily composite habit scores.
+              <InfoIcon size={14} style={{ color: 'var(--c-violet)', flexShrink: 0 }} />
+              <span>
+                Tracking <strong style={{ color: 'var(--text)' }}>{trendHistory.length} of 7 days</strong> recorded. Plots server-verified daily composite habit scores.
+              </span>
             </div>
           </>
         ) : (
-          <div style={{ background: 'var(--surface-2)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.4rem' }}>
-              Building Your Weekly Baseline
+          <div style={{ background: 'var(--surface-2)', padding: '1.6rem', borderRadius: 'var(--radius-md)', border: '1px dashed rgba(104, 68, 253, 0.35)' }}>
+            <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--c-violet)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="led led--on" style={{ background: 'var(--c-violet-light)' }} /> Building Your Weekly Baseline
             </div>
-            <p className="text-sm text-muted-600" style={{ maxWidth: '640px', lineHeight: 1.5 }}>
-              Trajectory charts require at least <strong>2 recorded morning wake-up events</strong> to calculate velocity.
+            <p className="text-sm text-muted-600" style={{ maxWidth: '640px', lineHeight: 1.65 }}>
+              Trajectory charts require at least <strong style={{ color: 'var(--text)' }}>2 recorded morning wake-up events</strong> to calculate velocity.
               Complete tomorrow's cognitive challenge to activate weekly trend plotting and circadian drift detection.
             </p>
           </div>
@@ -370,12 +378,12 @@ function GridMetrics({ habitScore }) {
       {WEIGHTS.map(m => (
         <Card key={m.key} className="p-4">
           <div className="card-label">{m.label}</div>
-          <div className="metric-row" style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem', marginBottom: '0.5rem' }}>
+          <div className="metric-row" style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginBottom: '0.6rem' }}>
             <span className="metric-value">{habitScore[m.key]}</span>
             <span className="metric-denom">/ {m.denom}</span>
           </div>
           <ProgressBar value={habitScore[m.key]} max={m.denom} tone={m.tone} label={m.label} />
-          <div className="text-xs text-muted-600 mt-2" style={{ fontSize: '0.75rem' }}>
+          <div className="text-xs text-muted-600 mt-2" style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
             <strong style={{ color: 'var(--text)' }}>{m.weight}</strong> · {m.desc}
           </div>
         </Card>

@@ -339,6 +339,17 @@ Never use neon glow shadows or gradient drop-shadows.
 - Dot indicators: inline action/suggestion text uses a solid `.dot-bullet`
   (0.4rem circle, `currentColor`) instead of `→` arrow glyphs. Arrows are
   reserved for directional trend semantics (↑/↓), never decorative text.
+- Utility classes (`.text-sm` 0.95rem, `.text-xs` 0.85rem, `.text-muted-600`,
+  `.mt-1..8`/`.mb-0..6` spacing, `.p-4/5/6`, `.font-semibold`) are **defined in
+  `index.css`** — pages rely on them, so never remove them and never merge in
+  a Tailwind build that duplicates the names.
+- App content type scale: h1 `2.25rem`, h2 `1.75rem`, h3 `1.3rem`, page gap
+  `1.75rem`, card padding `1.6rem`, sys-labels `0.85rem`. Big numbers breathe
+  (card-value 2.15rem, score-ring 2.75rem, next-alarm 2.9rem, stat 1.85rem).
+- Color accents on data sections: the **Circadian Trajectory** card uses a
+  violet top border + violet-labeled header + mint-filled trend line
+  (`#6844FD` line, `rgba(88,246,202,0.16)` fill) so the weekly trend reads as
+  a colored, intentional surface rather than a bare grid.
 
 ## 8.1 App shell & navigation
 

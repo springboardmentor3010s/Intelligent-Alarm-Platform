@@ -207,7 +207,7 @@ export default function Dashboard() {
                   <span className="text-xs text-muted-600">{meta.weight}</span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div className="metric-value" style={{ fontSize: '1.45rem' }}>{currentVal}<span className="metric-denom">/100</span></div>
+                  <div className="metric-value" style={{ fontSize: '1.75rem' }}>{currentVal}<span className="metric-denom">/100</span></div>
                 </div>
               </div>
 
