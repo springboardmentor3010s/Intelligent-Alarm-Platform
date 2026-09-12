@@ -316,7 +316,7 @@ desktop (>=1280px) widths, and check the live dev server refresh
 For mobile work, also run `./mobile` gates:
 
 ```
-npm test                     # jest-expo suite (currently 39 passing)
+npm test                     # jest-expo suite (currently 47 passing)
 npx expo export --platform android   # must bundle cleanly
 npx expo export --platform ios
 ```
@@ -345,6 +345,7 @@ The mobile app renders the same system with React Native. Tokens live in
 | `--bg` / `--surface` | `colors.bg` / `colors.surface` |
 | `--surface-2` / `--surface-3` | `colors.surface2` / `colors.surface3` |
 | `--border` / `--border-strong` | `colors.border` / `colors.borderStrong` |
+| nav strip (floating tab bar) | `colors.tabBar` (bar fill) / `colors.tabBarBorder` (bar hairline) |
 | `--text` / `--text-muted` / `--text-faint` | `colors.text` / `colors.textMuted` / `colors.textFaint` |
 | `--font-display` / `--font-body` | `fonts.display*` / `fonts.body*` (Plus Jakarta Sans) |
 | `--font-mono` | `fonts.mono*` (JetBrains Mono) |

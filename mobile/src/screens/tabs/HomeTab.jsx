@@ -175,7 +175,17 @@ export default function HomeTab({ navigation }) {
         <View style={[ui.card, styles.heroCard]}>
           <View style={styles.heroRow}>
             <View style={styles.heroRingWrap}>
-              <ScoreRing score={score} size={92} label="Score" tone={tone} delta={deltaLabel} />
+              <ScoreRing score={score} size={92} label="Score" tone={tone} />
+              {deltaLabel ? (
+                <Text
+                  style={[
+                    styles.ringDelta,
+                    { color: delta > 0 ? colors.emerald : colors.amber, fontFamily: fonts.monoMedium },
+                  ]}
+                >
+                  {deltaLabel}
+                </Text>
+              ) : null}
             </View>
             <View style={styles.heroRight}>
               <Text style={[styles.heroCaption, { color: colors.textMuted, fontFamily: fonts.monoMedium }]}>
@@ -320,7 +330,8 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14 },
   heroCard: { borderWidth: 1, borderRadius: 20, padding: 20 },
   heroRow: { flexDirection: 'row', alignItems: 'center', gap: 18 },
-  heroRingWrap: { flexShrink: 0 },
+  heroRingWrap: { flexShrink: 0, alignItems: 'center' },
+  ringDelta: { fontSize: 10, fontWeight: '700', marginTop: 8, fontVariant: ['tabular-nums'] },
   heroRight: { flex: 1, minWidth: 0 },
   heroCaption: { fontSize: 12, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase' },
   heroTime: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5, marginTop: 3 },

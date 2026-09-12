@@ -3,19 +3,18 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 
 /**
- * Circular habit-score gauge with a color-coded accent and an optional delta.
- * The track is a recessed neutral ring so the accent arc reads with contrast;
- * the tone (emerald/cyan/amber) maps to the score band. `delta` renders an
- * unobtrusive mono tick (e.g. "+4%") beneath the value to tap the goal-gradient
- * effect. Backwards compatible: score/label usage elsewhere is unchanged.
+ * Circular habit-score gauge with a color-coded accent. The track is a recessed
+ * neutral ring so the accent arc reads with contrast; the tone
+ * (emerald/cyan/amber) maps to the score band. Kept as a pure circle: the score
+ * and label only, so nothing collides with the gauge line. Backwards
+ * compatible: score/label usage elsewhere is unchanged.
  */
-export default function ScoreRing({ score, size = 88, label = 'Score', delta = null, tone = 'violet' }) {
+export default function ScoreRing({ score, size = 88, label = 'Score', tone = 'violet' }) {
   const { colors } = useTheme();
   const value = Number(score) || 0;
   const inner = size - 18;
   const numSize = Math.round(size * 0.32);
   const accent = colors[tone] || tone;
-  const showDelta = delta !== null && delta !== undefined && delta !== '';
 
   return (
     <View
@@ -45,9 +44,6 @@ export default function ScoreRing({ score, size = 88, label = 'Score', delta = n
       >
         <Text style={[styles.num, { fontSize: numSize, color: colors.text }]}>{value}</Text>
         <Text style={[styles.cap, { color: colors.textMuted }]}>{label}</Text>
-        {showDelta ? (
-          <Text style={[styles.delta, { color: accent }]}>{delta}</Text>
-        ) : null}
       </View>
     </View>
   );
@@ -65,5 +61,4 @@ const styles = StyleSheet.create({
     marginTop: 1,
     fontVariant: ['tabular-nums'],
   },
-  delta: { fontSize: 10, fontWeight: '700', marginTop: 2, fontVariant: ['tabular-nums'] },
 });

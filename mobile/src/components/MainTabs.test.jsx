@@ -25,9 +25,10 @@ describe('TabBar', () => {
     expect(getByLabelText('Profile').props.accessibilityState.selected).toBe(false);
   });
 
-  it('no longer renders a floating slider pill overlay', () => {
+  it('animates a rounded sliding pill indicator once the bar is laid out', () => {
     const { getByTestId, queryByTestId } = render(<TabBar active="HOME" onChange={() => {}} />);
-    fireEvent(getByTestId('tab-bar'), 'layout', { nativeEvent: { layout: { width: 320, height: 60 } } });
     expect(queryByTestId('tab-slider')).toBeNull();
+    fireEvent(getByTestId('tab-bar'), 'layout', { nativeEvent: { layout: { width: 320, height: 66 } } });
+    expect(getByTestId('tab-slider')).toBeTruthy();
   });
 });
