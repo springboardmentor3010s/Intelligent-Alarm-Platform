@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
@@ -12,8 +12,10 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const passwordRef = useRef(null);
 
   const handleLogin = async () => {
+    Keyboard.dismiss();
     if (!email || !password) {
       Alert.alert('Sign in', 'Please enter both email and password');
       return;
@@ -29,66 +31,80 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.brandWrap}>
-        <BrandLockup icon="flash" wordmark="CerebroKognit" wordmarkSize={22} />
-      </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.brandWrap}>
+          <BrandLockup icon="flash" wordmark="CerebroKognit" wordmarkSize={22} />
+        </View>
 
-      <View style={styles.badge}>
-        <View style={[styles.badgeDot, { backgroundColor: colors.violet }]} accessibilityElementsHidden />
-        <Text style={[styles.badgeText, { color: colors.violet, fontFamily: fonts.monoBold }]}>COGNITIVE ALARM SYSTEM</Text>
-      </View>
+        <View style={styles.badge}>
+          <View style={[styles.badgeDot, { backgroundColor: colors.violet }]} accessibilityElementsHidden />
+          <Text style={[styles.badgeText, { color: colors.violet, fontFamily: fonts.monoBold }]}>COGNITIVE ALARM SYSTEM</Text>
+        </View>
 
-      <Text style={[styles.hero, { color: colors.text, fontFamily: fonts.displayExtra }]}>Wake with purpose.</Text>
-      <Text style={[styles.subtitle, { color: colors.textMuted }]}>Build better habits, one morning at a time.</Text>
+        <Text style={[styles.hero, { color: colors.text, fontFamily: fonts.displayExtra }]}>Wake with purpose.</Text>
+        <Text style={[styles.subtitle, { color: colors.textMuted }]}>Build better habits, one morning at a time.</Text>
 
-      <View style={styles.form}>
-        <TextInput
-          style={ui.input}
-          placeholder="Email"
-          placeholderTextColor={ui.inputPlaceholder}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          accessibilityLabel="Email"
-        />
-        <View style={styles.passwordContainer}>
+        <View style={styles.form}>
           <TextInput
-            style={[ui.input, styles.passwordInput]}
-            placeholder="Password"
+            style={ui.input}
+            placeholder="Email"
             placeholderTextColor={ui.inputPlaceholder}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            accessibilityLabel="Password"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+            accessibilityLabel="Email"
           />
-          <TouchableOpacity
-            style={styles.eyeButton}
-            onPress={() => setShowPassword((prev) => !prev)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="button"
-            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-          >
-            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.textFaint} />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              ref={passwordRef}
+              style={[ui.input, styles.passwordInput]}
+              placeholder="Password"
+              placeholderTextColor={ui.inputPlaceholder}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+              accessibilityLabel="Password"
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPassword((prev) => !prev)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+            >
+              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.textFaint} />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={ui.btnPrimary} onPress={handleLogin} disabled={loading} accessibilityRole="button">
+            {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={ui.btnPrimaryText}>Log in</Text>}
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={ui.btnPrimary} onPress={handleLogin} disabled={loading} accessibilityRole="button">
-          {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={ui.btnPrimaryText}>Log in</Text>}
-        </TouchableOpacity>
-      </View>
-
-      <Text style={[styles.foot, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>
-        Demo session: <Text style={[styles.footAccent, { color: colors.violet }]}>demo@cerebro.com</Text>
-      </Text>
-      <Text style={[styles.credit, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>Built by Pawan Simha · Infosys Internship 7.0</Text>
-    </View>
+        <Text style={[styles.foot, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>
+          Demo session: <Text style={[styles.footAccent, { color: colors.violet }]}>demo@cerebro.com</Text>
+        </Text>
+        <Text style={[styles.credit, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>Built by Pawan Simha R · Infosys Internship 7.0</Text>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent', justifyContent: 'center', padding: 24 },
+  container: { flex: 1, backgroundColor: 'transparent' },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   brandWrap: { alignItems: 'center', marginBottom: 24 },
   badge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 14, gap: 8 },
   badgeDot: { width: 8, height: 8, borderRadius: 4 },
