@@ -3608,50 +3608,61 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
   color: var(--c-violet-light);
 }
 
+html[data-theme='light'] .benefit-dot {
+  color: var(--c-violet);
+}
+
 /* Platform stats — real product facts, quiet treatment */
 .hero-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.7rem;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
+  width: 100%;
 }
 
 .hero-stat {
-  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 86px;
+  padding: 0.75rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--surface);
+  text-align: center;
 }
 
 .hero-stat strong {
   display: block;
   font-family: var(--font-mono);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
+  line-height: 1;
   font-weight: 700;
   color: var(--c-violet);
 }
 
 .hero-stat span {
   display: block;
-  margin-top: 0.2rem;
-  font-size: 0.7rem;
-  line-height: 1.4;
+  font-size: 0.72rem;
+  line-height: 1.35;
   color: var(--text-muted);
 }
 
 .hero-note {
+  margin-top: 0.4rem;
   font-size: 0.82rem;
   line-height: 1.6;
   color: var(--text-muted);
-  max-width: 44ch;
 }
 
 /* ---- "Next wake window" product-card mock (auth brand panel) ---- */
 .auth-wake {
-  margin-top: 0.2rem;
+  margin-top: 0.4rem;
   width: 100%;
-  max-width: 440px;
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.1rem;
   background: var(--surface);
   border: 1px solid rgba(104, 68, 253, 0.25);
   border-radius: var(--radius-lg);
