@@ -3,14 +3,20 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 
 /**
- * Circular habit-score gauge. Violet ring on a tonal surface; the number is
- * mono with tabular digits so it never jitters while updating.
+ * Circular habit-score gauge with a color-coded accent and an optional delta.
+ * The track is a recessed neutral ring so the accent arc reads with contrast;
+ * the tone (emerald/cyan/amber) maps to the score band. `delta` renders an
+ * unobtrusive mono tick (e.g. "+4%") beneath the value to tap the goal-gradient
+ * effect. Backwards compatible: score/label usage elsewhere is unchanged.
  */
-export default function ScoreRing({ score, size = 88, label = 'Score' }) {
+export default function ScoreRing({ score, size = 88, label = 'Score', delta = null, tone = 'violet' }) {
   const { colors } = useTheme();
   const value = Number(score) || 0;
-  const inner = size - 16;
-  const numSize = Math.round(size * 0.34);
+  const inner = size - 18;
+  const numSize = Math.round(size * 0.32);
+  const accent = colors[tone] || tone;
+  const showDelta = delta !== null && delta !== undefined && delta !== '';
+
   return (
     <View
       style={[
@@ -19,9 +25,9 @@ export default function ScoreRing({ score, size = 88, label = 'Score' }) {
           width: size,
           height: size,
           borderRadius: size / 2,
-          borderWidth: 4,
-          borderColor: colors.violet,
-          backgroundColor: colors.violetSoft,
+          borderWidth: 5,
+          borderColor: accent,
+          backgroundColor: colors.borderStrong,
         },
       ]}
     >
@@ -39,6 +45,9 @@ export default function ScoreRing({ score, size = 88, label = 'Score' }) {
       >
         <Text style={[styles.num, { fontSize: numSize, color: colors.text }]}>{value}</Text>
         <Text style={[styles.cap, { color: colors.textMuted }]}>{label}</Text>
+        {showDelta ? (
+          <Text style={[styles.delta, { color: accent }]}>{delta}</Text>
+        ) : null}
       </View>
     </View>
   );
@@ -56,4 +65,5 @@ const styles = StyleSheet.create({
     marginTop: 1,
     fontVariant: ['tabular-nums'],
   },
+  delta: { fontSize: 10, fontWeight: '700', marginTop: 2, fontVariant: ['tabular-nums'] },
 });
