@@ -37,7 +37,10 @@ export default function Sidebar({
         <button
           type="button"
           className="sidebar-collapse"
-          onClick={onToggleCollapsed}
+          onClick={e => {
+            e.currentTarget.blur();
+            onToggleCollapsed();
+          }}
           aria-expanded={!collapsed}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
