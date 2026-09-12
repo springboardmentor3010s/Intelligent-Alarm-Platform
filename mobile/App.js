@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Image, View } from 'react-native';
 import { AuthProvider, useAuthContext } from './src/context/AuthContext';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { useBrandFonts } from './src/theme/fonts';
@@ -16,7 +16,22 @@ import AboutScreen from './src/screens/AboutScreen';
 import FeedbackScreen from './src/screens/FeedbackScreen';
 import LoginScreen from './src/screens/LoginScreen';
 
+const LOGO_DARK = require('./assets/logos/WideDark.webp');
+const LOGO_LIGHT = require('./assets/logos/WideLight.webp');
+
 const Stack = createNativeStackNavigator();
+
+function HomeHeaderLogo() {
+  const { resolved } = useTheme();
+  return (
+    <Image
+      source={resolved === 'light' ? LOGO_LIGHT : LOGO_DARK}
+      style={{ width: 168, height: 26 }}
+      resizeMode="contain"
+      accessibilityLabel="CerebroKognit"
+    />
+  );
+}
 
 function AppNavigator() {
   const { isLoggedIn, loading: authLoading } = useAuthContext();
@@ -57,7 +72,7 @@ function AppNavigator() {
               name="Main"
               component={MainTabs}
               options={({ navigation }) => ({
-                title: 'CerebroKognit',
+                headerTitle: () => <HomeHeaderLogo />,
                 headerTitleAlign: 'left',
                 headerRight: () => <HeaderActions navigation={navigation} />,
               })}
