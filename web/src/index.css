@@ -3638,7 +3638,7 @@ html[data-theme='light'] .benefit-dot {
 .hero-stat strong {
   display: block;
   font-family: var(--font-mono);
-  font-size: 1.45rem;
+  font-size: 1.6rem;
   line-height: 1;
   font-weight: 700;
   color: var(--c-violet);
@@ -3646,7 +3646,7 @@ html[data-theme='light'] .benefit-dot {
 
 .hero-stat span {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   line-height: 1.35;
   color: var(--text-muted);
 }
