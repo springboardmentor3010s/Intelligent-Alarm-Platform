@@ -50,7 +50,7 @@ export default function ProfileTab({ navigation }) {
           <Text style={[styles.email, { color: colors.textFaint, fontFamily: fonts.monoMedium }]} numberOfLines={1}>
             {user?.email || 'No email set'}
           </Text>
-          <StatusPill label="Verified" tone="emerald" style={styles.verifiedPill} />
+          <StatusPill label="Verified" tone="violet" style={styles.verifiedPill} />
         </View>
       </View>
 

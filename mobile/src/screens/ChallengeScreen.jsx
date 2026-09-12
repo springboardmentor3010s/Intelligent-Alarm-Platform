@@ -92,7 +92,7 @@ export default function ChallengeScreen({ route, navigation }) {
     const ok = result.correct;
     return (
       <View style={ui.center}>
-        <Ionicons name={ok ? 'checkmark-circle' : 'close-circle'} size={64} color={ok ? colors.emerald : colors.rose} />
+        <Ionicons name={ok ? 'checkmark-circle' : 'close-circle'} size={64} color={ok ? colors.violet : colors.rose} />
         <Text style={[styles.resultTitle, { color: colors.text, fontFamily: fonts.displayBold }]}>
           {ok ? 'Correct' : 'Incorrect'}
         </Text>

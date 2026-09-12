@@ -40,7 +40,7 @@ export default function MainTabs({ navigation }) {
 
 /**
  * Floating pill navigation. The capsule bar sits on 16px gutters with a soft
- * elevation, and the emerald pill glides between tabs (pixel-based spring) so
+ * elevation, and the violet pill glides between tabs (pixel-based spring) so
  * the active accent visibly rides toward the tapped destination. The active tab
  * lights up (filled icon + bright label) on top of the sliding pill.
  */
@@ -87,8 +87,8 @@ export function TabBar({ active, onChange }) {
               styles.slider,
               {
                 width: tabWidth - 16,
-                backgroundColor: colors.emeraldSoft,
-                borderColor: colors.emeraldGlow,
+                backgroundColor: colors.violetSoft,
+                borderColor: colors.violetGlow,
                 transform: [{ translateX: slide }],
               },
             ]}
@@ -108,12 +108,12 @@ export function TabBar({ active, onChange }) {
               <Ionicons
                 name={isActive ? t.iconActive : t.icon}
                 size={24}
-                color={isActive ? colors.emerald : colors.textFaint}
+                color={isActive ? colors.violet : colors.textFaint}
               />
               <Text
                 style={[
                   styles.tabLabel,
-                  { color: isActive ? colors.emerald : colors.textFaint, fontFamily: fonts.displaySemi },
+                  { color: isActive ? colors.violet : colors.textFaint, fontFamily: fonts.displaySemi },
                   isActive && styles.tabLabelActive,
                 ]}
               >

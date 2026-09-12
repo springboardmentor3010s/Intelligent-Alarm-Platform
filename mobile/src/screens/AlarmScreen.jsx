@@ -102,7 +102,7 @@ export default function AlarmScreen({ navigation }) {
   if (dismissed) {
     return (
       <View style={ui.center}>
-        <Ionicons name="checkmark-circle" size={72} color={colors.emerald} />
+        <Ionicons name="checkmark-circle" size={72} color={colors.violet} />
         <Text style={[styles.dismissTitle, { color: colors.text, fontFamily: fonts.displayBold }]}>Alarm dismissed</Text>
         <Text style={[styles.dismissSub, { color: colors.textMuted }]}>Great job waking up and solving the challenge.</Text>
         <TouchableOpacity style={ui.btnPrimary} onPress={() => navigation.goBack()}>
@@ -146,15 +146,15 @@ export default function AlarmScreen({ navigation }) {
             styles.timerPill,
             {
               backgroundColor: colors.surface2,
-              borderColor: timedOut ? colors.roseSoft : colors.amberSoft,
+              borderColor: timedOut ? colors.roseSoft : colors.violetSoft,
             },
           ]}
         >
-          <Ionicons name="timer-outline" size={16} color={timedOut ? colors.rose : colors.amber} />
+          <Ionicons name="timer-outline" size={16} color={timedOut ? colors.rose : colors.violet} />
           <Text
             style={[
               styles.timerText,
-              { color: timedOut ? colors.rose : colors.amber, fontFamily: fonts.monoBold },
+              { color: timedOut ? colors.rose : colors.violet, fontFamily: fonts.monoBold },
             ]}
           >
             {timedOut ? 'TIME IS UP' : `${secondsLeft}s REMAINING`}

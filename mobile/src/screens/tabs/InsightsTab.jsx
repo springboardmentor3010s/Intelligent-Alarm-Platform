@@ -59,7 +59,7 @@ export default function InsightsTab() {
       {WEIGHTS.map((w) => {
         const value = Number(score?.[w.key]) || 0;
         const healthy = value >= 70;
-        const fill = healthy ? colors.emerald : colors.amber;
+        const fill = healthy ? colors.violet : colors.violetDark;
         return (
           <View key={w.key} style={[ui.card, styles.pillar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.pillarTop}>

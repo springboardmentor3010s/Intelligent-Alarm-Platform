@@ -50,8 +50,8 @@ export default function FeedbackScreen({ navigation }) {
   if (sent) {
     return (
       <View style={[styles.centerStage, { backgroundColor: colors.bg }]} testID="feedback-success">
-        <View style={[styles.successRing, { backgroundColor: colors.emeraldSoft, borderColor: colors.emerald }]}>
-          <Ionicons name="checkmark" size={40} color={colors.emerald} />
+        <View style={[styles.successRing, { backgroundColor: colors.violetSoft, borderColor: colors.violet }]}>
+          <Ionicons name="checkmark" size={40} color={colors.violet} />
         </View>
         <Text style={[styles.successTitle, { color: colors.text, fontFamily: fonts.displayBold }]}>Feedback sent</Text>
         <Text style={[styles.successDesc, { color: colors.textMuted }]}>
@@ -108,7 +108,7 @@ export default function FeedbackScreen({ navigation }) {
                 accessibilityLabel={STAR_LABELS[value]}
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               >
-                <Ionicons name={filled ? 'star' : 'star-outline'} size={30} color={filled ? colors.amber : colors.borderStrong} />
+                <Ionicons name={filled ? 'star' : 'star-outline'} size={30} color={filled ? colors.violet : colors.borderStrong} />
               </TouchableOpacity>
             );
           })}

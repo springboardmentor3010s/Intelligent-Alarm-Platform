@@ -57,7 +57,6 @@ strokes, and links on hover.
 |---|---|---|
 | `--c-emerald` | `#10b981` | Success, healthy, online, completed, "ARMED/ON" states |
 | `--c-emerald-soft` | `rgba(16,185,129,0.1)` | Badge chips, icon tiles |
-| `--c-emerald-glow` | `rgba(16,185,129,0.22)` | Restrained emerald ring/glow (mobile slider pill, NEXT chips) |
 | `--c-cyan` | `#06b6d4` | Secondary informational metric, echo/teal traces |
 | `--c-cyan-soft` | `rgba(6,182,212,0.1)` | Tint tile |
 | `--c-amber` | `#f59e0b` | Attention, "RING/NEXT" states, warnings |
@@ -339,11 +338,6 @@ The mobile app renders the same system with React Native. Tokens live in
 | `--c-violet-light` | `colors.violetLight` (`#818cf8`) |
 | `--c-violet-soft` | `colors.violetSoft` (`rgba(99,102,241,0.12)`) |
 | `--c-violet-glow` | `colors.violetGlow` (`rgba(99,102,241,0.28)`) |
-| `--c-emerald` | `colors.emerald` (`#10b981`) |
-| `--c-emerald-soft` | `colors.emeraldSoft` (`rgba(16,185,129,0.12)`) |
-| `--c-emerald-glow` | `colors.emeraldGlow` (mobile sliding-pill border, NEXT chips) |
-| `--c-cyan` | `colors.cyan` (`#06b6d4`) |
-| `--c-amber` | `colors.amber` (`#f59e0b`) |
 | `--c-rose` / `--c-rose-dark` | `colors.rose` (`#ef4444`) / `colors.roseDark` (`#dc2626`) |
 | `--bg` / `--surface` | `colors.bg` / `colors.surface` |
 | `--surface-2` / `--surface-3` | `colors.surface2` / `colors.surface3` |

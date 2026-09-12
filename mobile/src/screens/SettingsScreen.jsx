@@ -73,10 +73,10 @@ export default function SettingsScreen({ navigation }) {
       <ChipRow options={MODE_CHOICES} active={mode || 'dark'} onSelect={(label) => setMode(label.toLowerCase())} />
 
       <View style={[styles.connectCard, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-        <Ionicons name={isOnline ? 'wifi' : 'cloud-offline-outline'} size={20} color={isOnline ? colors.emerald : colors.rose} />
+        <Ionicons name={isOnline ? 'wifi' : 'cloud-offline-outline'} size={20} color={isOnline ? colors.violet : colors.rose} />
         <View style={{ marginLeft: 14 }}>
           <Text style={[styles.connectLabel, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>CONNECTIVITY STATUS</Text>
-          <Text style={[styles.connectValue, { color: isOnline ? colors.emerald : colors.rose }]}>
+          <Text style={[styles.connectValue, { color: isOnline ? colors.violet : colors.rose }]}>
             {isOnline ? 'Connected to internet' : 'Offline mode'}
           </Text>
         </View>

@@ -3,10 +3,11 @@ import { View, Text, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 
 /**
- * Status pill with an LED dot. Tones: emerald (on/healthy), amber (attention),
- * cyan (syncing), rose (destructive). `reduceMotion` disables the pulse.
+ * Status pill with an LED dot. Tones are violet-family for healthy/active
+ * states and rose for critical (offline, failure). `reduceMotion` disables
+ * the pulse.
  */
-export default function StatusPill({ label, tone = 'emerald', leadingDot = true, style }) {
+export default function StatusPill({ label, tone = 'violet', leadingDot = true, style }) {
   const { colors, reduceMotion } = useTheme();
   const pulse = useRef(new Animated.Value(1)).current;
 

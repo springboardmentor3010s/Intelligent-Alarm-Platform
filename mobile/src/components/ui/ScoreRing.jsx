@@ -4,8 +4,8 @@ import { useTheme } from '../../theme/ThemeContext';
 
 /**
  * Circular habit-score gauge with a color-coded accent. The track is a recessed
- * neutral ring so the accent arc reads with contrast; the tone
- * (emerald/cyan/amber) maps to the score band. Kept as a pure circle: the score
+ * neutral ring so the accent arc reads with contrast; the tone (violet family)
+ * follows the brand accent. Kept as a pure circle: the score
  * and label only, so nothing collides with the gauge line. Backwards
  * compatible: score/label usage elsewhere is unchanged.
  */

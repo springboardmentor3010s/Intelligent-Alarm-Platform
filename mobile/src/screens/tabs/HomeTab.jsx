@@ -117,7 +117,7 @@ export default function HomeTab({ navigation }) {
     delta === null
       ? null
       : `${delta > 0 ? '↑' : '↓'} ${Math.abs(delta)}% vs yesterday`;
-  const tone = score >= 75 ? 'emerald' : score >= 50 ? 'amber' : 'rose';
+  const tone = 'violet';
 
   const dueNow = upcoming ? formatCountdown(upcoming.next_trigger) === 'due now' : false;
   const pulse = useRef(new Animated.Value(1)).current;
@@ -150,7 +150,7 @@ export default function HomeTab({ navigation }) {
   if (alarmsLoading || scoreLoading) {
     return (
       <View style={ui.center}>
-        <ActivityIndicator size="large" color={colors.emerald} />
+        <ActivityIndicator size="large" color={colors.violet} />
         <Text style={[styles.loadingText, { color: colors.textFaint, fontFamily: fonts.monoBold }]}>BOOTING SYSTEMS</Text>
       </View>
     );
@@ -169,7 +169,7 @@ export default function HomeTab({ navigation }) {
           <View style={styles.subTextWrap}>
             <Text style={[styles.subtitle, { color: colors.textMuted }]}>Your cognitive status for today</Text>
           </View>
-          <StatusPill label={offlineMode ? 'Offline' : 'Online'} tone={offlineMode ? 'amber' : 'emerald'} />
+          <StatusPill label={offlineMode ? 'Offline' : 'Online'} tone={offlineMode ? 'rose' : 'violet'} />
         </View>
 
         <View style={[ui.card, styles.heroCard]}>
@@ -180,7 +180,7 @@ export default function HomeTab({ navigation }) {
                 <Text
                   style={[
                     styles.ringDelta,
-                    { color: delta > 0 ? colors.emerald : colors.amber, fontFamily: fonts.monoMedium },
+                    { color: delta > 0 ? colors.violet : colors.rose, fontFamily: fonts.monoMedium },
                   ]}
                 >
                   {deltaLabel}
@@ -204,8 +204,8 @@ export default function HomeTab({ navigation }) {
                   <Animated.View style={[styles.heroCountdownRow, dueNow && { opacity: pulse }]}>
                     {dueNow ? (
                       <>
-                        <Ionicons name="alarm-outline" size={14} color={colors.amber} />
-                        <Text style={[styles.heroCountdown, { color: colors.amber, fontFamily: fonts.monoMedium }]}>
+                        <Ionicons name="alarm-outline" size={14} color={colors.violet} />
+                        <Text style={[styles.heroCountdown, { color: colors.violet, fontFamily: fonts.monoMedium }]}>
                           due now
                         </Text>
                       </>
@@ -232,7 +232,7 @@ export default function HomeTab({ navigation }) {
               accessibilityLabel="Practice"
               style={({ pressed }) => [
                 styles.actionBtn,
-                { backgroundColor: colors.emerald },
+                { backgroundColor: colors.violet },
                 pressed && styles.actionPressed,
               ]}
             >
@@ -277,8 +277,8 @@ export default function HomeTab({ navigation }) {
                       {item.time || 'Not set'}
                     </Text>
                     {isNext ? (
-                      <View style={[styles.nextChip, { backgroundColor: colors.emeraldSoft, borderColor: colors.emeraldGlow }]}>
-                        <Text style={[styles.nextChipText, { color: colors.emerald, fontFamily: fonts.monoBold }]}>NEXT</Text>
+                      <View style={[styles.nextChip, { backgroundColor: colors.violetSoft, borderColor: colors.violetGlow }]}>
+                        <Text style={[styles.nextChipText, { color: colors.violet, fontFamily: fonts.monoBold }]}>NEXT</Text>
                       </View>
                     ) : null}
                   </View>
@@ -293,7 +293,7 @@ export default function HomeTab({ navigation }) {
                   <Switch
                     value={!!item.is_enabled}
                     onValueChange={(next) => toggleAlarm(item, next)}
-                    trackColor={{ false: colors.borderStrong, true: colors.emerald }}
+                    trackColor={{ false: colors.borderStrong, true: colors.violet }}
                     thumbColor="#FFFFFF"
                     accessibilityLabel={`Toggle ${item.title || 'alarm'}`}
                   />
@@ -310,7 +310,7 @@ export default function HomeTab({ navigation }) {
 
       {(offlineMode || syncing) && (
         <View style={[styles.statusBar, { backgroundColor: colors.surface2, borderTopColor: colors.border }]}>
-          <Text style={[styles.statusText, { color: syncing ? colors.emerald : colors.amber, fontFamily: fonts.monoBold }]}>
+          <Text style={[styles.statusText, { color: syncing ? colors.violet : colors.rose, fontFamily: fonts.monoBold }]}>
             {syncing ? 'SYNCING' : 'OFFLINE · CACHED DATA'}
           </Text>
         </View>
