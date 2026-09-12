@@ -376,19 +376,19 @@ h4 { font-size: 1.15rem; font-weight: 600; }
   white-space: nowrap;
 }
 
-.sidebar-brand__logo--wide {
+.sidebar-brand .sidebar-brand__logo--wide {
   display: block;
 }
 
-.sidebar-brand__logo--mark {
+.sidebar-brand .sidebar-brand__logo--mark {
   display: none;
 }
 
-.app-shell--collapsed .sidebar-brand__logo--wide {
+.app-shell--collapsed .sidebar-brand .sidebar-brand__logo--wide {
   display: none;
 }
 
-.app-shell--collapsed .sidebar-brand__logo--mark {
+.app-shell--collapsed .sidebar-brand .sidebar-brand__logo--mark {
   display: block;
 }
 
