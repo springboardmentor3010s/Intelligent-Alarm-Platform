@@ -14,8 +14,9 @@ Source of truth for web tokens: `web/src/index.css` (`:root` and
   decorative. No noise, no clutter.
 - Theme-aware always. Every surface and every text color must come from CSS
   variables so Light and Dark themes both work with zero per-element overrides.
-- Brand color is Vivid Violet (#9864F8) followed by DeepMind Violet (#7C3AED).
-  Accent tones (emerald, cyan, amber) are semantic indicators, never decorative rainbow.
+- Brand colors follow the logo: Primary Violet (`#6844FD`) with Secondary Mint
+  (`#58F6CA`), plus DeepMind Violet (`#7C3AED`) as a gradient endpoint. Accent
+  tones (emerald, cyan, amber) are semantic indicators, never decorative rainbow.
 - One bold accent per screen. Gradients are reserved for the brand surface
   (buttons, the brand tile, gradient headings) and are silently disabled where
   a flat fill reads better.
@@ -32,24 +33,25 @@ Source of truth for web tokens: `web/src/index.css` (`:root` and
 All colors below are defined as tokens in `web/src/index.css`. New work must
 reference tokens, never hard-coded hex values.
 
-### 2.1 Primary Brand: Vivid Violet
+### 2.1 Primary Brand: Violet + Secondary Mint (logo palette)
 
 | Token | Hex | Usage |
 |---|---|---|
-| `--c-violet` | `#9864F8` | Primary actions, active nav, focus accents, monochrome icons |
-| `--c-violet-light` | `#B58CFF` | Light violet accent, highlights, node fills |
-| `--c-violet-dark` | `#7B3FF5` | Violet hover/pressed |
-| `--c-violet-soft` | `rgba(152,100,248,0.08)` | Tinted icon tiles and chip backgrounds |
-| `--c-violet-glow` | `rgba(152,100,248,0.22)` | Restrained ring/glow |
+| `--c-violet` | `#6844FD` | Primary brand action, active nav, focus accents, buttons |
+| `--c-violet-light` | `#58F6CA` | Secondary mint accent, highlights, node fills, pillar gradients |
+| `--c-violet-dark` | `#4E28E0` | Violet hover/pressed and dark-theme gradient end |
+| `--c-violet-soft` | `rgba(104,68,253,0.08)` | Tinted icon tiles and chip backgrounds |
+| `--c-violet-glow` | `rgba(104,68,253,0.22)` | Restrained ring/glow (dark theme: mint `rgba(88,246,202,…)`) |
 | `--c-indigo` | `#4f46e5` | Secondary brand tone |
 | `--c-indigo-soft` | `rgba(79,70,229,0.1)` | Tint surface |
-| DeepMind Violet | `#7c3aed` | Gradient endpoint in `--grad-primary` |
+| DeepMind Violet | `#7c3aed` | Gradient endpoint in `--grad-primary` (light) |
 | Lavender | `#a5b4fc` / `#c7d2fe` | Soft pulses, muted markers |
 
 The purple family is the default accent for: buttons (`.btn-primary`), the
 brand tile (`.brand-logo`), logo mark, gradient headings (`.gradient-text`,
-`.lp-hero h1 em`), active states, `sys-label--violet`, stat numbers, waveform
-strokes, and links on hover.
+`.lp-hero h1 em` — mint->violet sunrise), active states, `sys-label--violet`,
+stat numbers, waveform strokes, and links on hover. Mint (`#58F6CA`) is the
+secondary brand accent and pairs with violet exactly as in the logo.
 
 ### 2.2 Semantic Status: Light Greenish and Light Orangish
 
@@ -85,7 +87,7 @@ Rose never decorates. If an element is not destructive, it must not be rose.
 | `--surface-3` | `#e2e8f0` | `rgba(64,82,112,0.45)` |
 | `--border` | `#e2e8f0` | `rgba(255,255,255,0.1)` |
 | `--border-strong` | `#cbd5e1` | `rgba(255,255,255,0.16)` |
-| `--border-focus` | `rgba(152,100,248,0.5)` | `rgba(152,100,248,0.6)` |
+| `--border-focus` | `rgba(104,68,253,0.5)` | `rgba(104,68,253,0.6)` |
 
 Background page color: `--bg`. Cards and forms: `--surface`. Lifted chips and
 insets: `--surface-2` / `--surface-3`. Hairlines: `--border` / `--border-strong`.
@@ -112,14 +114,15 @@ heading/body color to an arbitrary hex.
 - Use for the hero band (`linear-gradient(180deg, var(--c-tint-band) 0%, var(--c-tint-bandfade) 100%)`)
   and alternating section washes.
 - Footer: `--lp-footer-bg` (subtle violet-tinted gradient), `--lp-footer-border`
-  (`rgba(152,100,248,0.16)` light / `rgba(181,140,255,0.2)` dark).
+  (`rgba(104,68,253,0.16)` light / `rgba(88,246,202,0.2)` dark).
 
 ### 2.7 Gradients (Brand Surfaces Only)
 
-- `--grad-primary`: `135deg #9864F8 -> #7c3aed` (light) and `#9864F8 -> #B58CFF`
-  (dark). Used for `.btn-primary`, `.brand-logo`, gradient text.
-- `--grad-violet`: `135deg #B58CFF -> #9864F8`. Emerald/cyan/sunset gradients
-  only where semantically justified.
+- `--grad-primary`: `135deg #6844FD -> #7c3aed` (light) and `#6844FD -> #4E28E0`
+  (dark). Used for `.btn-primary`, `.brand-logo` (white text stays readable).
+- `--grad-violet`: `135deg #58F6CA -> #6844FD` (logo sunrise). Used for
+  `.gradient-text`, `.lp-hero h1 em`. Emerald/cyan/sunset gradients only where
+  semantically justified.
 - No gradient-as-glow backgrounds on large surfaces. A flat fill with the tint
   band is the default.
 
@@ -333,11 +336,11 @@ The mobile app renders the same system with React Native. Tokens live in
 
 | System (web CSS) | Mobile (`useTheme()` → `colors`) |
 |---|---|
-| `--c-violet` | `colors.violet` (`#9864F8`) |
-| `--c-violet-dark` | `colors.violetDark` (`#7B3FF5`) |
-| `--c-violet-light` | `colors.violetLight` (`#B58CFF`) |
-| `--c-violet-soft` | `colors.violetSoft` (`rgba(152,100,248,0.12)`) |
-| `--c-violet-glow` | `colors.violetGlow` (`rgba(152,100,248,0.28)`) |
+| `--c-violet` | `colors.violet` (`#6844FD`) |
+| `--c-violet-dark` | `colors.violetDark` (`#4E28E0`) |
+| `--c-violet-light` | `colors.violetLight` (`#58F6CA`, secondary mint) |
+| `--c-violet-soft` | `colors.violetSoft` (`rgba(104,68,253,0.12)`) |
+| `--c-violet-glow` | `colors.violetGlow` (`rgba(104,68,253,0.28)`; dark `rgba(88,246,202,0.22)`) |
 | `--c-rose` / `--c-rose-dark` | `colors.rose` (`#ef4444`) / `colors.roseDark` (`#dc2626`) |
 | `--c-emerald` / `--c-emerald-soft` | `colors.emerald` (light `#10b981`, dark `#34d399`) / `colors.emeraldSoft` |
 | `--bg` / `--surface` | `colors.bg` / `colors.surface` |

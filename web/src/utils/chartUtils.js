@@ -5,7 +5,7 @@
  */
 
 const chartConfigs = {
-  wakeUp: { label: 'Wake-up Consistency (%)', border: '#9864F8', bg: 'rgba(152, 100, 248, 0.12)', dataKey: 'wake_up_consistency' },
+  wakeUp: { label: 'Wake-up Consistency (%)', border: '#6844FD', bg: 'rgba(104, 68, 253, 0.12)', dataKey: 'wake_up_consistency' },
   challenge: { label: 'Challenge Completion (%)', border: '#06b6d4', bg: 'rgba(6, 182, 212, 0.12)', dataKey: 'challenge_completion' },
   snooze: { label: 'Snooze Reduction (%)', border: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', dataKey: 'snooze_reduction' },
   sleep: { label: 'Sleep Schedule Adherence (%)', border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', dataKey: 'sleep_schedule_adherence' },
@@ -124,7 +124,7 @@ export const chartOptions = {
     title: { display: false },
   },
   scales: {
-    y: { min: 0, max: 100, grid: { color: 'rgba(152,100,248,0.12)' } },
+    y: { min: 0, max: 100, grid: { color: 'rgba(104,68,253,0.12)' } },
     x: { grid: { display: false } },
   },
 };

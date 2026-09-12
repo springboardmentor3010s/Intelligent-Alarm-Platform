@@ -34,8 +34,8 @@ export default function HabitChart({ data }) {
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Weekly habit score trend from 0 to 100 over the last seven days (sample data)">
         <defs>
           <linearGradient id="lp-chart-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#9864F8" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#9864F8" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="#6844FD" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#6844FD" stopOpacity="0.02" />
           </linearGradient>
         </defs>
 
