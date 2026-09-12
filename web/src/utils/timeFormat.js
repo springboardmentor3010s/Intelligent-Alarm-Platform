@@ -60,7 +60,7 @@ export function getUserTimeZone() {
  */
 export function formatDateTime(iso, { withSeconds = false } = {}) {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso || '—';
+  if (Number.isNaN(d.getTime())) return iso || '-';
   const opts = {
     timeZone: getUserTimeZone(),
     hour: '2-digit',
@@ -74,7 +74,7 @@ export function formatDateTime(iso, { withSeconds = false } = {}) {
 /** Date-only (weekday + date), tz-aware. Unaffected by the 12/24 preference. */
 export function formatDate(iso) {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso || '—';
+  if (Number.isNaN(d.getTime())) return iso || '-';
   return new Intl.DateTimeFormat(undefined, {
     timeZone: getUserTimeZone(),
     weekday: 'short',
@@ -99,7 +99,7 @@ export function formatWeekday(iso) {
  * preference without shifting it across timezones, e.g. "07:00" -> "07:00 AM".
  */
 export function formatTimeOfDay(hhmm) {
-  if (!hhmm || !/^\d{1,2}:\d{2}/.test(hhmm)) return hhmm || '—';
+  if (!hhmm || !/^\d{1,2}:\d{2}/.test(hhmm)) return hhmm || '-';
   const [h, m] = hhmm.split(':').map(Number);
   const safeH = Number.isFinite(h) ? h % 24 : 0;
   const safeM = Number.isFinite(m) ? m % 60 : 0;

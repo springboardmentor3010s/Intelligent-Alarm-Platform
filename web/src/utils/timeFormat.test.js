@@ -71,7 +71,7 @@ describe('format helpers', () => {
   });
 
   it('keeps fallbacks for malformed input', () => {
-    expect(formatTimeOfDay('')).toBe('—');
+    expect(formatTimeOfDay('')).toBe('-');
     expect(formatDateTime('not-a-date')).toBe('not-a-date');
   });
 });

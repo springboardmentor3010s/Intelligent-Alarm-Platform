@@ -136,7 +136,7 @@ export default function LiveChallengeSimulator() {
 
           {status === 'wrong' && (
             <div className="banner banner-warning">
-              <span>Incorrect — difficulty adjusted to {DIFF_STEPS[diffLevel]}. Try again with the hint above!</span>
+              <span>Incorrect - difficulty adjusted to {DIFF_STEPS[diffLevel]}. Try again with the hint above!</span>
             </div>
           )}
         </div>

@@ -198,7 +198,7 @@ export default function Dashboard() {
       <Grid className="grid-cards--duo">
         {charts.map(c => {
           const meta = PILLAR_METADATA[c.label] || {};
-          const currentVal = habitScore[c.key] ?? '—';
+          const currentVal = habitScore[c.key] ?? '-';
           return (
             <Card key={c.label} className="p-4">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>

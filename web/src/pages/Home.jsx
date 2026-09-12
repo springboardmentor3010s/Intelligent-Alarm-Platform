@@ -195,7 +195,7 @@ export default function Home() {
             {upcoming ? (
               <>
                 <div className="next-alarm__time">
-                  {upcoming.time ? formatTimeOfDay(upcoming.time) : '—'}
+                  {upcoming.time ? formatTimeOfDay(upcoming.time) : '-'}
                   <span className="led led--on led--live" style={{ marginLeft: '0.85rem' }} title="Armed and scheduled" />
                 </div>
                 <div className="next-alarm__meta">
@@ -314,7 +314,7 @@ export default function Home() {
             {timeline.map((a, i) => (
               <li key={a.id} className={`timeline-item ${i === 0 ? 'timeline-item--hot' : ''}`}>
                 <span className="timeline-item__dot" aria-hidden="true" />
-                <div className="timeline-item__time">{a.time ? formatTimeOfDay(a.time) : '—'}</div>
+                <div className="timeline-item__time">{a.time ? formatTimeOfDay(a.time) : '-'}</div>
                 <div className="timeline-item__main">
                   <div className="timeline-item__label">{a.title || 'Wake-up Alarm'}</div>
                   <div className="timeline-item__meta">

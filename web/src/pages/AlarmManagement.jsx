@@ -257,7 +257,7 @@ export default function AlarmManagement() {
           {alarms.map(alarm => (
             <div className="alarm-row" key={alarm.id}>
               <div className="alarm-time">
-                {formatTimeOfDay(alarm.time) || '—:—'}
+                {formatTimeOfDay(alarm.time) || '-:-'}
               </div>
 
               <div className="alarm-main">

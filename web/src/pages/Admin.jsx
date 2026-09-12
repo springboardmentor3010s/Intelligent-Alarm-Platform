@@ -177,7 +177,7 @@ export default function Admin() {
                             <span className="text-xs text-muted-600">Pending</span>
                           )}
                         </td>
-                        <td className="tabular text-muted-600">{u.created_at ? formatDate(u.created_at) : '—'}</td>
+                        <td className="tabular text-muted-600">{u.created_at ? formatDate(u.created_at) : '-'}</td>
                       </tr>
                     ))}
                   </tbody>
