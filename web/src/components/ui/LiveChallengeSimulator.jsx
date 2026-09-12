@@ -129,7 +129,7 @@ export default function LiveChallengeSimulator() {
                 <span>Correct! Solved in <strong>{seconds} seconds</strong>. Difficulty raised to <strong>{DIFF_STEPS[Math.min(diffLevel, DIFF_STEPS.length - 1)]}</strong>.</span>
               </div>
               <button className="btn btn-secondary" onClick={handleNext} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                Next Puzzle →
+                Next Puzzle
               </button>
             </div>
           )}

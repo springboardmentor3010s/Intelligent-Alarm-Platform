@@ -33,7 +33,6 @@ export default function Sidebar({
         <div className="sidebar-brand">
           <BrandLogo variant="mark" className="sidebar-brand__logo" alt="CerebroKognit" />
           <span className="sidebar-brand__word">CerebroKognit</span>
-          <span className="led led--on led--live" title="System online" />
         </div>
         <button
           type="button"

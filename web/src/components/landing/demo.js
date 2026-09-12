@@ -68,7 +68,7 @@ export const STEPS = [
     desc: 'When the alarm fires, a quick cognitive challenge stands between you and snooze.',
     detail: 'Answer correctly to unlock dismissal. Snooze exists, but your streak will know about it.',
     visual: 'solve',
-    example: '3 + 7 = ?   →  10 · correct',
+    example: '3 + 7 = ?   ·  10 correct',
   },
   {
     n: '03',

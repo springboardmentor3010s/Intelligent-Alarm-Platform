@@ -150,6 +150,12 @@ heading/body color to an arbitrary hex.
 | Mono (labels, numbers, data) | JetBrains Mono | 400, 500, 600, 700 |
 
 Loaded once from Google Fonts at the top of `index.css`. Do not add other fonts.
+Plus Jakarta Sans is the retained choice over Poppins/Roboto: it reads cleaner
+at small sizes, has a taller x-height (better `16px` legibility), modern
+geometric character, and ships the 300–800 weights used above. Keep letter
+spacing comfortable — 0 (not negative) for body text, and add a touch of air
+(`letter-spacing: 0.01em`, never more) between letters on dense information
+lines rather than tightening them.
 
 - Display and body use `var(--font-display)` / `var(--font-body)`.
 - Micro-labels, stats, timestamps, code, and "system language" strings use
@@ -180,6 +186,10 @@ Loaded once from Google Fonts at the top of `index.css`. Do not add other fonts.
 | Stat meta (landing) | `0.7rem` | 400 | `--text-muted` |
 
 Body base remains `16px` (user default). Never set `px` fonts below `0.68rem`.
+
+- Base body text: `line-height 1.7`, `letter-spacing 0.01em`.
+- Short labels/headings may stay tighter; long-form/information lines keep
+  `line-height ≥ 1.6` so wrapped text breathes and no line feels cramped.
 
 ### 3.3 Mono Micro-Label Convention
 
@@ -319,7 +329,16 @@ Never use neon glow shadows or gradient drop-shadows.
   reuses the same 38px circular toggle in its right cluster next to the live
   clock (`.app-topbar .theme-toggle`), so theming is one tap on every page.
 - LEDs are semantic indicators that blink via opacity only; never add glow
-  box-shadows (`.led--on` is a flat emerald blink).
+  box-shadows (`.led--on` is a flat emerald blink). Do NOT place a status LED
+  next to the sidebar logo — it compresses the mark/wordmark; keep the logo
+  unobstructed and use LEDs only as standalone status dots (Admin rows,
+  challenge simulator).
+- Body copy uses generous spacing: base `line-height: 1.7` and
+  `letter-spacing: 0.01em`. Long-form/information lines render at ≥1.6 line
+  height so text breathes.
+- Dot indicators: inline action/suggestion text uses a solid `.dot-bullet`
+  (0.4rem circle, `currentColor`) instead of `→` arrow glyphs. Arrows are
+  reserved for directional trend semantics (↑/↓), never decorative text.
 
 ## 8.1 App shell & navigation
 

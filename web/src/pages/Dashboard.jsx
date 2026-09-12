@@ -254,7 +254,8 @@ export default function Dashboard() {
                 <p className="text-sm text-muted-600 mt-2" style={{ lineHeight: 1.55 }}>{r.message}</p>
                 {r.suggested_action && (
                   <div className="rec-action mt-4">
-                    <span>→</span> {r.suggested_action}
+                    <span className="dot-bullet" aria-hidden="true" />
+                    {r.suggested_action}
                   </div>
                 )}
               </Card>

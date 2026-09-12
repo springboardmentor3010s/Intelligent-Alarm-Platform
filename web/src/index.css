@@ -171,7 +171,8 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
-  line-height: 1.6;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -230,6 +231,17 @@ h4 { font-size: 1rem; font-weight: 600; }
 .sys-label--violet { color: var(--c-violet); }
 .sys-label--mint { color: var(--c-violet-light); }
 .sys-label--dark { color: var(--c-violet-dark); }
+
+/* Solid dot indicator for inline text lines/actions */
+.dot-bullet {
+  width: 0.4rem;
+  height: 0.4rem;
+  min-width: 0.4rem;
+  min-height: 0.4rem;
+  border-radius: var(--radius-full);
+  background: currentColor;
+  flex-shrink: 0;
+}
 
 .gradient-text {
   background: var(--grad-violet);
@@ -345,7 +357,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   font-size: 1.15rem;
   color: var(--text);
   text-decoration: none;
-  overflow: hidden;
+  min-width: 0;
   white-space: nowrap;
 }
 
@@ -362,8 +374,7 @@ h4 { font-size: 1rem; font-weight: 600; }
   padding: 0;
 }
 
-.app-shell--collapsed .sidebar-brand__word,
-.app-shell--collapsed .sidebar-brand .led {
+.app-shell--collapsed .sidebar-brand__word {
   display: none;
 }
 

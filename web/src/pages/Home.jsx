@@ -284,8 +284,9 @@ export default function Home() {
                 <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)' }}>{r.title}</div>
                 <p className="text-sm text-muted-600 mt-1" style={{ fontSize: '0.85rem' }}>{r.message}</p>
                 {r.suggested_action && (
-                  <div className="text-xs mt-2" style={{ color: 'var(--c-violet)', fontWeight: 600 }}>
-                    → {r.suggested_action}
+                  <div className="text-xs mt-2" style={{ color: 'var(--c-violet)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span className="dot-bullet" aria-hidden="true" />
+                    {r.suggested_action}
                   </div>
                 )}
               </div>
@@ -304,7 +305,7 @@ export default function Home() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
           <div className="card-label"><span className="sys-label">Upcoming Wake Routine</span></div>
           <Link to="/alarms" className="text-xs text-muted-600" style={{ fontWeight: 600, color: 'var(--c-violet)' }}>
-            Configure schedules →
+            Configure schedules
           </Link>
         </div>
 
