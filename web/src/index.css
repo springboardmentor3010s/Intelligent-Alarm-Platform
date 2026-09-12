@@ -3471,7 +3471,7 @@ padding: clamp(4rem, 10vw, 7rem) 1.5rem 3rem;
 html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
 html[data-theme='light'] .brand-logo-img__asset--dark { display: none; }
 
-.lp-nav__brand-logo { height: 24px; }
+.lp-nav__brand-logo { height: 32px; }
 
 .sidebar-brand__logo { width: 32px; height: 32px; }
 
@@ -3479,7 +3479,7 @@ html[data-theme='light'] .brand-logo-img__asset--dark { display: none; }
 
 .hero-brand__logo { height: 34px; }
 
-.lp-footer__logo { height: 28px; }
+.lp-footer__logo { height: 34px; }
 
 .brand-logo {
   display: inline-flex;
