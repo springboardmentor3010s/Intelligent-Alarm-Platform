@@ -2,20 +2,20 @@ import React from 'react';
 import { CheckIcon } from './icons';
 
 const BENEFITS = [
-  { label: 'Adaptive difficulty, personalized to you', tone: 'brand' },
-  { label: '7 challenge types engineered for your brain', tone: 'mint' },
-  { label: 'Habit scoring & progress insights', tone: 'dark' },
+  { label: 'Adaptive difficulty, personalized to you' },
+  { label: '7 challenge types engineered for your brain' },
+  { label: 'Habit scoring & progress insights' },
 ];
 
 /**
- * Hero benefit list with consistent semantic indicator dots (no emoji).
+ * Hero benefit list with consistent mint ticks (no boxes, no emoji).
  */
 export default function BenefitList() {
   return (
     <ul className="benefits">
-      {BENEFITS.map(({ label, tone }) => (
+      {BENEFITS.map(({ label }) => (
         <li className="benefit" key={label}>
-          <span className={`benefit-dot benefit-dot--${tone}`} aria-hidden="true">
+          <span className="benefit-dot" aria-hidden="true">
             <CheckIcon />
           </span>
           {label}

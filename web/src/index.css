@@ -3604,25 +3604,8 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-full);
   flex-shrink: 0;
-}
-
-.benefit-dot--brand {
-  background: var(--c-violet-soft);
-  color: var(--c-violet);
-}
-
-.benefit-dot--mint {
-  background: var(--c-mint-soft);
-  color: var(--c-violet-dark);
-}
-
-.benefit-dot--dark {
-  background: var(--c-violet-soft);
-  color: var(--c-violet-dark);
+  color: var(--c-violet-light);
 }
 
 /* Platform stats — real product facts, quiet treatment */
@@ -3769,7 +3752,6 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
 .auth-visual {
   margin-top: auto;
   width: 100%;
-  max-width: 560px;
 }
 
 .auth-visual svg {
@@ -3879,13 +3861,6 @@ html[data-theme='dark'] .auth-visual__travel {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--c-violet);
-}
-
-.auth-visual__label::before {
-  content: '';
-  width: 26px;
-  height: 1px;
-  background: var(--c-violet);
 }
 
 @keyframes auth-wave {
@@ -4243,7 +4218,6 @@ html[data-theme='dark'] .auth-visual__travel {
   .hero-note { display: none; }
   .auth-panel { padding: 1.25rem 2rem; }
   .auth-form { gap: 0.8rem; }
-  .auth-visual { max-width: 460px; }
   .auth-wake { padding: 0.7rem 0.85rem; gap: 0.5rem; }
   .auth-wake__time strong { font-size: 1.7rem; }
   .auth-wake__foot { display: none; }
@@ -4383,11 +4357,13 @@ html[data-theme='dark'] .auth-visual__travel {
 .auth-back {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
-  padding: 0.5rem 0.85rem;
+  height: 38px;
+  padding: 0 0.95rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   color: var(--text-muted);
   font-size: 0.8rem;
   font-weight: 600;
