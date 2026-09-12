@@ -372,31 +372,30 @@ h4 { font-size: 1.15rem; font-weight: 600; }
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.15rem;
-  color: var(--text);
-  text-decoration: none;
   min-width: 0;
   white-space: nowrap;
 }
 
-.sidebar-brand__word {
-  background: var(--grad-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  transition: opacity 0.2s ease;
+.sidebar-brand__logo--wide {
+  display: block;
+}
+
+.sidebar-brand__logo--mark {
+  display: none;
+}
+
+.app-shell--collapsed .sidebar-brand__logo--wide {
+  display: none;
+}
+
+.app-shell--collapsed .sidebar-brand__logo--mark {
+  display: block;
 }
 
 .app-shell--collapsed .sidebar-head {
   position: relative;
   justify-content: center;
   padding: 0;
-}
-
-.app-shell--collapsed .sidebar-brand__word {
-  display: none;
 }
 
 .app-shell--collapsed .sidebar-brand,
@@ -3585,7 +3584,9 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
 
 .lp-nav__brand-logo { height: 32px; }
 
-.sidebar-brand__logo { width: 32px; height: 32px; }
+.sidebar-brand__logo--wide { height: 32px; width: auto; }
+
+.sidebar-brand__logo--mark { width: 34px; height: 34px; }
 
 .hero-brand__logo { height: 34px; }
 

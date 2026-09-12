@@ -31,8 +31,8 @@ export default function Sidebar({
     <aside className="app-sidebar">
       <div className="sidebar-head">
         <div className="sidebar-brand">
-          <BrandLogo variant="mark" className="sidebar-brand__logo" alt="CerebroKognit" />
-          <span className="sidebar-brand__word">CerebroKognit</span>
+          <BrandLogo variant="wide" className="sidebar-brand__logo sidebar-brand__logo--wide" alt="CerebroKognit" />
+          <BrandLogo variant="mark" className="sidebar-brand__logo sidebar-brand__logo--mark" alt="CerebroKognit" />
         </div>
         <button
           type="button"
