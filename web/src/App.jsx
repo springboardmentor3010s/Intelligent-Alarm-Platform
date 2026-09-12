@@ -12,7 +12,7 @@ import Admin from './pages/Admin';
 import Landing from './pages/Landing';
 import Sidebar from './components/layout/Sidebar';
 import { NAV_SECTIONS } from './navSections';
-import { BrandMark, MenuIcon, LiveClock } from './components/ui';
+import { BrandLogo, MenuIcon, LiveClock } from './components/ui';
 
 function initialsOf(user) {
   const source = user.full_name || user.email || 'User';
@@ -51,7 +51,7 @@ function Topbar({ onMenuToggle, mobileNavOpen }) {
           <MenuIcon size={20} />
         </button>
         <span className="brand app-topbar__brand">
-          <BrandMark size={26} />
+          <BrandLogo variant="mark" className="brand-logo--topbar" alt="CerebroKognit" />
           CerebroKognit
         </span>
         <span className="breadcrumb-tag">

@@ -339,6 +339,7 @@ The mobile app renders the same system with React Native. Tokens live in
 | `--c-violet-soft` | `colors.violetSoft` (`rgba(99,102,241,0.12)`) |
 | `--c-violet-glow` | `colors.violetGlow` (`rgba(99,102,241,0.28)`) |
 | `--c-rose` / `--c-rose-dark` | `colors.rose` (`#ef4444`) / `colors.roseDark` (`#dc2626`) |
+| `--c-emerald` / `--c-emerald-soft` | `colors.emerald` (light `#10b981`, dark `#34d399`) / `colors.emeraldSoft` |
 | `--bg` / `--surface` | `colors.bg` / `colors.surface` |
 | `--surface-2` / `--surface-3` | `colors.surface2` / `colors.surface3` |
 | `--border` / `--border-strong` | `colors.border` / `colors.borderStrong` |

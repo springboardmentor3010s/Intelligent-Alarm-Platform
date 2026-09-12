@@ -1,13 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
-import { BrandLockup } from '../components/ui';
+
+const LOGO_DARK = require('../../assets/logos/WideDark.webp');
+const LOGO_LIGHT = require('../../assets/logos/WideLight.webp');
 
 export default function LoginScreen() {
   const { login } = useAuthContext();
-  const { colors, ui, fonts } = useTheme();
+  const { colors, resolved, ui, fonts } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +42,12 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.brandWrap}>
-          <BrandLockup icon="flash" wordmark="CerebroKognit" wordmarkSize={22} />
+          <Image
+            source={resolved === 'light' ? LOGO_LIGHT : LOGO_DARK}
+            style={styles.brandLogo}
+            resizeMode="contain"
+            accessibilityLabel="CerebroKognit"
+          />
         </View>
 
         <View style={styles.badge}>
@@ -106,6 +113,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   scrollContent: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   brandWrap: { alignItems: 'center', marginBottom: 24 },
+  brandLogo: { width: 190, height: 48 },
   badge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 14, gap: 8 },
   badgeDot: { width: 8, height: 8, borderRadius: 4 },
   badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 3 },

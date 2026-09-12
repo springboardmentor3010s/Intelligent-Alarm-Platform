@@ -15,7 +15,7 @@ import {
   SparklesIcon,
   TargetIcon,
 } from '../ui';
-import { BrandMark } from '../ui';
+import { BrandLogo } from '../ui';
 
 /**
  * Landing footer: brand, product & resource navigation, academic project
@@ -110,8 +110,7 @@ export default function LandingFooter() {
       <div className="lp-footer__inner">
         <div className="lp-footer__brand">
           <span className="lp-footer__brandmark">
-            <BrandMark size={26} />
-            <span className="brand-wordmark">CerebroKognit</span>
+            <BrandLogo variant="wide" className="lp-footer__logo" alt="CerebroKognit" />
           </span>
           <p className="lp-footer__lede">
             An intelligent cognitive alarm and habit platform designed to make mornings

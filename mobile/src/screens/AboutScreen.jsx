@@ -1,8 +1,11 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { SysLabel, SectionHeader, ConnectRow } from '../components/ui';
+
+const LOGO_DARK = require('../../assets/logos/WideDark.webp');
+const LOGO_LIGHT = require('../../assets/logos/WideLight.webp');
 
 const LINKS = [
   {
@@ -31,10 +34,16 @@ const SKILLS = [
 ];
 
 export default function AboutScreen({ navigation }) {
-  const { colors, fonts } = useTheme();
+  const { colors, resolved, fonts } = useTheme();
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Image
+        source={resolved === 'light' ? LOGO_LIGHT : LOGO_DARK}
+        style={styles.brandLogo}
+        resizeMode="contain"
+        accessibilityLabel="CerebroKognit"
+      />
       <SysLabel icon="information-circle-outline" tone="violet">About the project</SysLabel>
       <Text style={[styles.title, { color: colors.text, fontFamily: fonts.displayBold }]}>About CerebroKognit</Text>
 
@@ -95,6 +104,7 @@ export default function AboutScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { padding: 24, paddingBottom: 48 },
+  brandLogo: { width: 180, height: 44, marginTop: 8, marginBottom: 10, alignSelf: 'flex-start' },
   title: { fontSize: 26, marginTop: 6, marginBottom: 18 },
   card: { borderRadius: 16, borderWidth: 1, padding: 18, marginBottom: 18 },
   bio: { fontSize: 14, lineHeight: 21 },

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BrandMark, MenuIcon, XIcon, ArrowRightIcon } from '../ui';
+import { BrandLogo, MenuIcon, XIcon, ArrowRightIcon } from '../ui';
 import ThemeToggle from '../auth/ThemeToggle';
 import { NAV_LINKS } from './demo';
 
@@ -41,8 +41,7 @@ export default function LandingNav() {
     <header className={`lp-nav ${scrolled || open ? 'lp-nav--solid' : ''}`}>
       <div className="lp-nav__inner">
         <Link to="/" className="lp-nav__brand" aria-label="CerebroKognit home">
-          <BrandMark size={28} />
-          <span className="brand-wordmark">CerebroKognit</span>
+          <BrandLogo variant="wide" className="lp-nav__brand-logo" alt="CerebroKognit" />
         </Link>
 
         <nav className="lp-nav__links" aria-label="Primary">

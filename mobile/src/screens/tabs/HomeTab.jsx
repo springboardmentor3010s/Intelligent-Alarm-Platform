@@ -169,7 +169,7 @@ export default function HomeTab({ navigation }) {
           <View style={styles.subTextWrap}>
             <Text style={[styles.subtitle, { color: colors.textMuted }]}>Your cognitive status for today</Text>
           </View>
-          <StatusPill label={offlineMode ? 'Offline' : 'Online'} tone={offlineMode ? 'rose' : 'violet'} />
+          <StatusPill label={offlineMode ? 'Offline' : 'Online'} tone={offlineMode ? 'rose' : 'emerald'} />
         </View>
 
         <View style={[ui.card, styles.heroCard]}>
@@ -180,7 +180,7 @@ export default function HomeTab({ navigation }) {
                 <Text
                   style={[
                     styles.ringDelta,
-                    { color: delta > 0 ? colors.violet : colors.rose, fontFamily: fonts.monoMedium },
+                    { color: delta > 0 ? colors.emerald : colors.rose, fontFamily: fonts.monoMedium },
                   ]}
                 >
                   {deltaLabel}
@@ -232,7 +232,7 @@ export default function HomeTab({ navigation }) {
               accessibilityLabel="Practice"
               style={({ pressed }) => [
                 styles.actionBtn,
-                { backgroundColor: colors.violet },
+                { backgroundColor: colors.violet, borderColor: colors.violet },
                 pressed && styles.actionPressed,
               ]}
             >

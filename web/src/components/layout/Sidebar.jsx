@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { NAV_SECTIONS } from '../../navSections';
 import {
-  BrandMark,
+  BrandLogo,
   LogOutIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -32,7 +32,7 @@ export default function Sidebar({
     <aside className="app-sidebar">
       <div className="sidebar-head">
         <div className="sidebar-brand">
-          <BrandMark size={36} />
+          <BrandLogo variant="mark" className="sidebar-brand__logo" alt="CerebroKognit" />
           <span className="sidebar-brand__word">CerebroKognit</span>
           <span className="led led--on led--live" title="System online" />
         </div>

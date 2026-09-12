@@ -1,15 +1,13 @@
 import React from 'react';
-import { BrandMark } from './icons';
+import BrandLogo from '../ui/BrandLogo';
 
 /**
- * Branding row: logo tile + wordmark, fixed at the top of the hero.
- * Uses a semantic heading for the wordmark so it reads as product identity.
+ * Branding row: full-wordmark logo, fixed at the top of the hero.
  */
 export default function AuthBranding() {
   return (
     <div className="hero-brand">
-      <BrandMark />
-      <span className="brand-word">CerebroKognit</span>
+      <BrandLogo variant="wide" className="hero-brand__logo" alt="CerebroKognit" />
     </div>
   );
 }

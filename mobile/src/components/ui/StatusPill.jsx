@@ -3,9 +3,9 @@ import { View, Text, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 
 /**
- * Status pill with an LED dot. Tones are violet-family for healthy/active
- * states and rose for critical (offline, failure). `reduceMotion` disables
- * the pulse.
+ * Status pill with an LED dot. Tones are emerald for healthy/active states,
+ * violet for brand status, and rose for critical (offline, failure).
+ * `reduceMotion` disables the pulse.
  */
 export default function StatusPill({ label, tone = 'violet', leadingDot = true, style }) {
   const { colors, reduceMotion } = useTheme();

@@ -7,6 +7,7 @@ export { Skeleton, CardSkeleton, GridSkeleton } from './Skeleton';
 export { default as ProgressBar } from './ProgressBar';
 export { default as Toggle } from './Toggle';
 export { default as ThemeSwitcher } from './ThemeSwitcher';
+export { default as BrandLogo } from './BrandLogo';
 export { default as LiveClock } from './LiveClock';
 export { default as TimeInput } from './TimeInput';
 export { default as TimezonePicker } from './TimezonePicker';
