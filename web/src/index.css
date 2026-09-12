@@ -3953,6 +3953,21 @@ html[data-theme='dark'] .auth-visual__travel {
   height: var(--auth-input-h);
 }
 
+/* Pill geometry for the auth workspace: inputs, actions, tabs and the demo login. */
+.auth-form .form-control,
+.auth-form__actions .btn,
+.auth-tabs,
+.auth-tab {
+  border-radius: var(--radius-full);
+}
+
+.auth-form > .btn-secondary {
+  width: 100%;
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 /* Compact brand header, visible only on small screens */
 .auth-mobile-brand {
   display: none;
@@ -3966,7 +3981,7 @@ html[data-theme='dark'] .auth-visual__travel {
   padding: 0.3rem;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
 }
 
 .auth-tab {
@@ -3977,7 +3992,7 @@ html[data-theme='dark'] .auth-visual__travel {
   color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: var(--radius-full);
   cursor: pointer;
   transition: background-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
 }
