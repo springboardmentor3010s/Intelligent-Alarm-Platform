@@ -4,6 +4,7 @@ import {
   Hero,
   Features,
   Showcase,
+  FloatingGallery,
   HowItWorks,
   Insights,
   Principles,
@@ -26,6 +27,7 @@ export default function Landing() {
         <Hero />
         <Features />
         <Showcase />
+        <FloatingGallery />
         <HowItWorks />
         <Insights />
         <Principles />
