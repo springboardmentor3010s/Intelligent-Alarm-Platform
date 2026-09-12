@@ -14,8 +14,8 @@ Source of truth for web tokens: `web/src/index.css` (`:root` and
   decorative. No noise, no clutter.
 - Theme-aware always. Every surface and every text color must come from CSS
   variables so Light and Dark themes both work with zero per-element overrides.
-- Brand color is Intelligent Indigo followed by DeepMind Violet. Accent tones
-  (emerald, cyan, amber) are semantic indicators, never decorative rainbow.
+- Brand color is Vivid Violet (#9864F8) followed by DeepMind Violet (#7C3AED).
+  Accent tones (emerald, cyan, amber) are semantic indicators, never decorative rainbow.
 - One bold accent per screen. Gradients are reserved for the brand surface
   (buttons, the brand tile, gradient headings) and are silently disabled where
   a flat fill reads better.
@@ -32,15 +32,15 @@ Source of truth for web tokens: `web/src/index.css` (`:root` and
 All colors below are defined as tokens in `web/src/index.css`. New work must
 reference tokens, never hard-coded hex values.
 
-### 2.1 Primary Brand: Indigo / Violet
+### 2.1 Primary Brand: Vivid Violet
 
 | Token | Hex | Usage |
 |---|---|---|
-| `--c-violet` | `#6366f1` | Primary actions, active nav, focus accents, monochrome icons |
-| `--c-violet-light` | `#818cf8` | Light indigo accent, highlights, node fills |
-| `--c-violet-dark` | `#4f46e5` | Indigo hover |
-| `--c-violet-soft` | `rgba(99,102,241,0.08)` | Tinted icon tiles and chip backgrounds |
-| `--c-violet-glow` | `rgba(99,102,241,0.22)` | Restrained ring/glow |
+| `--c-violet` | `#9864F8` | Primary actions, active nav, focus accents, monochrome icons |
+| `--c-violet-light` | `#B58CFF` | Light violet accent, highlights, node fills |
+| `--c-violet-dark` | `#7B3FF5` | Violet hover/pressed |
+| `--c-violet-soft` | `rgba(152,100,248,0.08)` | Tinted icon tiles and chip backgrounds |
+| `--c-violet-glow` | `rgba(152,100,248,0.22)` | Restrained ring/glow |
 | `--c-indigo` | `#4f46e5` | Secondary brand tone |
 | `--c-indigo-soft` | `rgba(79,70,229,0.1)` | Tint surface |
 | DeepMind Violet | `#7c3aed` | Gradient endpoint in `--grad-primary` |
@@ -85,7 +85,7 @@ Rose never decorates. If an element is not destructive, it must not be rose.
 | `--surface-3` | `#e2e8f0` | `rgba(64,82,112,0.45)` |
 | `--border` | `#e2e8f0` | `rgba(255,255,255,0.1)` |
 | `--border-strong` | `#cbd5e1` | `rgba(255,255,255,0.16)` |
-| `--border-focus` | `rgba(99,102,241,0.5)` | `rgba(99,102,241,0.6)` |
+| `--border-focus` | `rgba(152,100,248,0.5)` | `rgba(152,100,248,0.6)` |
 
 Background page color: `--bg`. Cards and forms: `--surface`. Lifted chips and
 insets: `--surface-2` / `--surface-3`. Hairlines: `--border` / `--border-strong`.
@@ -111,15 +111,15 @@ heading/body color to an arbitrary hex.
   `--c-tint-bandfade rgba(28,33,54,0)`.
 - Use for the hero band (`linear-gradient(180deg, var(--c-tint-band) 0%, var(--c-tint-bandfade) 100%)`)
   and alternating section washes.
-- Footer: `--lp-footer-bg` (subtle indigo-tinted gradient), `--lp-footer-border`
-  (`rgba(99,102,241,0.16)` light / `rgba(129,140,248,0.2)` dark).
+- Footer: `--lp-footer-bg` (subtle violet-tinted gradient), `--lp-footer-border`
+  (`rgba(152,100,248,0.16)` light / `rgba(181,140,255,0.2)` dark).
 
 ### 2.7 Gradients (Brand Surfaces Only)
 
-- `--grad-primary`: `135deg #6366f1 -> #7c3aed` (light) and `#6366f1 -> #818cf8`
+- `--grad-primary`: `135deg #9864F8 -> #7c3aed` (light) and `#9864F8 -> #B58CFF`
   (dark). Used for `.btn-primary`, `.brand-logo`, gradient text.
-- `--grad-violet`, `--grad-emerald`, `--grad-cyan`, `--grad-sunset`: only where
-  semantically justified.
+- `--grad-violet`: `135deg #B58CFF -> #9864F8`. Emerald/cyan/sunset gradients
+  only where semantically justified.
 - No gradient-as-glow backgrounds on large surfaces. A flat fill with the tint
   band is the default.
 
@@ -333,11 +333,11 @@ The mobile app renders the same system with React Native. Tokens live in
 
 | System (web CSS) | Mobile (`useTheme()` → `colors`) |
 |---|---|
-| `--c-violet` | `colors.violet` (`#6366f1`) |
-| `--c-violet-dark` | `colors.violetDark` (`#4f46e5`) |
-| `--c-violet-light` | `colors.violetLight` (`#818cf8`) |
-| `--c-violet-soft` | `colors.violetSoft` (`rgba(99,102,241,0.12)`) |
-| `--c-violet-glow` | `colors.violetGlow` (`rgba(99,102,241,0.28)`) |
+| `--c-violet` | `colors.violet` (`#9864F8`) |
+| `--c-violet-dark` | `colors.violetDark` (`#7B3FF5`) |
+| `--c-violet-light` | `colors.violetLight` (`#B58CFF`) |
+| `--c-violet-soft` | `colors.violetSoft` (`rgba(152,100,248,0.12)`) |
+| `--c-violet-glow` | `colors.violetGlow` (`rgba(152,100,248,0.28)`) |
 | `--c-rose` / `--c-rose-dark` | `colors.rose` (`#ef4444`) / `colors.roseDark` (`#dc2626`) |
 | `--c-emerald` / `--c-emerald-soft` | `colors.emerald` (light `#10b981`, dark `#34d399`) / `colors.emeraldSoft` |
 | `--bg` / `--surface` | `colors.bg` / `colors.surface` |
