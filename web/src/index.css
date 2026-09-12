@@ -746,6 +746,17 @@ h4 { font-size: 1rem; font-weight: 600; }
   color: var(--text);
 }
 
+.btn--mint {
+  background: var(--c-violet-light);
+  color: var(--c-violet-dark);
+  border-color: var(--c-violet-light);
+}
+
+.btn--mint:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -4px rgba(78, 40, 224, 0.4);
+}
+
 /* Red ONLY for destructive / critical actions */
 .btn-danger {
   background: var(--c-rose);
@@ -2004,12 +2015,12 @@ padding: clamp(4rem, 10vw, 7rem) 1.5rem 3rem;
   gap: 0.5rem;
   padding: 0.4rem 1rem;
   border-radius: var(--radius-full);
-  background: var(--c-mint-soft);
-  border: 1px solid rgba(88, 246, 202, 0.35);
-  color: var(--c-violet-dark);
+  background: var(--c-emerald-soft);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--c-emerald);
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 1.4rem;
 }
 .lp-hero h1 {
@@ -3782,9 +3793,19 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
   fill: none;
 }
 
+/* Ghost guide rails under each trace so both snakes read from edge to edge */
+.auth-visual__ghost {
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+.auth-visual__ghost--1 { stroke: rgba(104, 68, 253, 0.16); }
+.auth-visual__ghost--2 { stroke: rgba(88, 246, 202, 0.22); }
+html[data-theme='light'] .auth-visual__ghost--1 { stroke: rgba(104, 68, 253, 0.12); }
+html[data-theme='light'] .auth-visual__ghost--2 { stroke: rgba(88, 246, 202, 0.5); }
+
 .auth-visual__line--1 path {
   stroke: var(--c-violet);
-  stroke-width: 2;
+  stroke-width: 2.25;
   stroke-linecap: round;
   pathLength: 1;
   stroke-dasharray: 1;
@@ -3794,7 +3815,7 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
 
 .auth-visual__line--2 path {
   stroke: var(--c-violet-light);
-  stroke-width: 1.5;
+  stroke-width: 1.8;
   stroke-linecap: round;
   pathLength: 1;
   stroke-dasharray: 1;
@@ -3817,15 +3838,43 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
   animation: auth-node 4.2s ease-in-out infinite;
 }
 
+.auth-visual__node {
+  filter: drop-shadow(0 0 3px rgba(88, 246, 202, 0.45));
+}
+
 .auth-visual__node:nth-of-type(2) { animation-delay: 1.4s; }
 .auth-visual__node:nth-of-type(3) { animation-delay: 2.6s; }
 
-/* Traveling pulse that rides the primary trace node to node */
-.auth-visual__travel {
-  fill: var(--c-violet);
+/* Traveling pulses + comet tails ride each trace (offset-path) */
+.auth-visual__travel,
+.auth-visual__comet {
   offset-path: path("M0 92 L40 92 Q 62 92 74 80 Q 86 66 98 74 Q 112 84 128 78 Q 146 70 164 88 Q 186 110 208 96 Q 232 80 256 88 Q 284 96 308 72 Q 330 52 352 66 Q 378 84 406 74 Q 434 64 462 82 Q 482 98 504 88 Q 526 78 560 84");
   animation: auth-travel 9s linear infinite;
 }
+
+.auth-visual__travel {
+  fill: var(--c-violet);
+  filter: drop-shadow(0 0 5px rgba(104, 68, 253, 0.6));
+}
+html[data-theme='dark'] .auth-visual__travel {
+  filter: drop-shadow(0 0 7px rgba(104, 68, 253, 0.85));
+}
+
+.auth-visual__comet { fill: var(--c-violet); }
+.auth-visual__comet.is-a { animation-delay: 0.5s; opacity: 0.55; }
+.auth-visual__comet.is-b { animation-delay: 1.05s; opacity: 0.3; }
+
+.auth-visual__travel--2,
+.auth-visual__comet--2 {
+  offset-path: path("M0 128 L56 128 Q 80 128 96 140 Q 112 150 130 144 Q 150 138 172 148 Q 196 160 220 150 Q 248 138 276 146 Q 304 154 330 136 Q 352 122 376 132 Q 404 144 432 136 Q 460 128 488 142 Q 508 152 560 138");
+  animation: auth-travel-2 9s linear infinite;
+  animation-delay: -4.5s;
+}
+
+.auth-visual__travel--2 { fill: var(--c-violet-light); }
+.auth-visual__comet--2 { fill: var(--c-violet-light); }
+.auth-visual__comet--2.is-a { animation-delay: -4s; opacity: 0.55; }
+.auth-visual__comet--2.is-b { animation-delay: -3.4s; opacity: 0.3; }
 
 .auth-visual__const { fill: var(--text-faint); }
 .auth-visual__const--mint { fill: var(--c-violet-light); opacity: 0.6; }
@@ -3860,6 +3909,11 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
 }
 
 @keyframes auth-travel {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+
+@keyframes auth-travel-2 {
   from { offset-distance: 0%; }
   to { offset-distance: 100%; }
 }
@@ -4321,7 +4375,46 @@ html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
   .auth-mobile-brand {
     display: flex;
   }
-  .theme-toggle {
+.auth-top {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.auth-top .theme-toggle {
+  position: static;
+}
+
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-back:hover {
+  color: var(--c-violet);
+  background: var(--surface-2);
+  border-color: rgba(104, 68, 253, 0.3);
+}
+
+.auth-back:active {
+  transform: translateY(1px);
+}
+
+.theme-toggle {
     top: 0.75rem;
     right: 0.75rem;
   }
