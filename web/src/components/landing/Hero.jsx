@@ -42,7 +42,7 @@ export default function Hero() {
             <Link to="/auth" className="btn btn-primary btn--lg">
               Get Started <ArrowRightIcon size={16} />
             </Link>
-            <a href="#how-it-works" className="btn btn--mint btn--lg">
+            <a href="#how-it-works" className="btn btn-ghost btn--lg">
               <PlayIcon size={15} /> See how it works
             </a>
           </div>

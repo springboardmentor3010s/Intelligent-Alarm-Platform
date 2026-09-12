@@ -746,17 +746,6 @@ h4 { font-size: 1rem; font-weight: 600; }
   color: var(--text);
 }
 
-.btn--mint {
-  background: var(--c-violet-light);
-  color: var(--c-violet-dark);
-  border-color: var(--c-violet-light);
-}
-
-.btn--mint:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px -4px rgba(78, 40, 224, 0.4);
-}
-
 /* Red ONLY for destructive / critical actions */
 .btn-danger {
   background: var(--c-rose);
@@ -4375,6 +4364,8 @@ html[data-theme='dark'] .auth-visual__travel {
   .auth-mobile-brand {
     display: flex;
   }
+}
+
 .auth-top {
   position: fixed;
   top: 1rem;
@@ -4414,7 +4405,8 @@ html[data-theme='dark'] .auth-visual__travel {
   transform: translateY(1px);
 }
 
-.theme-toggle {
+@media (max-width: 960px) {
+  .theme-toggle {
     top: 0.75rem;
     right: 0.75rem;
   }
