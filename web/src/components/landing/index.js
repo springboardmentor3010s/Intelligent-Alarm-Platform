@@ -5,6 +5,7 @@ export { default as Showcase } from './Showcase';
 export { default as HowItWorks } from './HowItWorks';
 export { default as Insights } from './Insights';
 export { default as Principles } from './Principles';
+export { default as LogoStory } from './LogoStory';
 export { default as Faq } from './Faq';
 export { default as FinalCta } from './FinalCta';
 export { default as LandingFooter } from './LandingFooter';

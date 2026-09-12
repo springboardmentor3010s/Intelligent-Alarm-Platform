@@ -3466,10 +3466,13 @@ padding: clamp(4rem, 10vw, 7rem) 1.5rem 3rem;
   height: 34px;
 }
 
-/* Lockups are dark-first; the dark asset is the default and the light asset
-   replaces it only under html[data-theme='light']. */
-html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
+/* Lockups are dark-first: exactly one asset renders. Dark shows by default and
+   is swapped for light only under html[data-theme='light'], so both logos
+   never appear at once. */
+.brand-logo-img__asset--dark { display: block; }
+.brand-logo-img__asset--light { display: none; }
 html[data-theme='light'] .brand-logo-img__asset--dark { display: none; }
+html[data-theme='light'] .brand-logo-img__asset--light { display: block; }
 
 .lp-nav__brand-logo { height: 32px; }
 
@@ -3480,6 +3483,60 @@ html[data-theme='light'] .brand-logo-img__asset--dark { display: none; }
 .hero-brand__logo { height: 34px; }
 
 .lp-footer__logo { height: 34px; }
+
+/* Brand story section: copy on the left, full logo art on the right */
+.lp-logo-story {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 2.75rem;
+  align-items: center;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.lp-logo-story__text p {
+  color: var(--text-muted);
+  font-size: 1.02rem;
+  line-height: 1.75;
+  margin: 0 0 1rem;
+}
+
+.lp-logo-story__text p:last-child {
+  margin-bottom: 0;
+}
+
+.lp-logo-story__art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 3rem 2rem;
+  min-height: 240px;
+}
+
+.lp-logo-story__logo {
+  height: auto;
+  width: 100%;
+  max-width: 400px;
+}
+
+.lp-logo-story__logo .brand-logo-img__asset {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 860px) {
+  .lp-logo-story {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+  .lp-logo-story__art {
+    min-height: 180px;
+    padding: 2rem 1.5rem;
+  }
+}
 
 .brand-logo {
   display: inline-flex;

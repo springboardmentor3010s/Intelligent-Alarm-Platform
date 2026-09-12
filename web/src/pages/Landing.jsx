@@ -7,6 +7,7 @@ import {
   HowItWorks,
   Insights,
   Principles,
+  LogoStory,
   Faq,
   FinalCta,
   LandingFooter,
@@ -28,6 +29,7 @@ export default function Landing() {
         <HowItWorks />
         <Insights />
         <Principles />
+        <LogoStory />
         <Faq />
         <FinalCta />
       </main>
