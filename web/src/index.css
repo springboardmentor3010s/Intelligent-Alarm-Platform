@@ -2011,11 +2011,11 @@ padding: clamp(4rem, 10vw, 7rem) 1.5rem 3rem;
 }
 .lp-hero h1 em {
   font-style: normal;
-  background: var(--grad-primary);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
+.lp-hero h1 em .hl--violet { color: var(--c-violet); }
+.lp-hero h1 em .hl--mint { color: var(--c-violet-light); }
+.lp-hero h1 em .hl--amber { color: var(--c-amber); }
+.lp-hero h1 em .hl--cyan { color: var(--c-cyan); }
 .lp-hero__lead {
   font-size: 1.15rem;
   color: var(--text-muted);

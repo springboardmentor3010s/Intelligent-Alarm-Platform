@@ -27,7 +27,12 @@ export default function Hero() {
           <h1>
             WAKE WITH PURPOSE.
             <br />
-            <em>Build better habits.</em>
+            <em>
+              An <span className="hl--violet">intelligent</span>{' '}
+              <span className="hl--mint">command</span>{' '}
+              <span className="hl--amber">center</span> for your{' '}
+              <span className="hl--cyan">mornings</span>.
+            </em>
           </h1>
           <p className="lp-hero__lead">
             CerebroKognit turns waking up into a meaningful daily routine, a quick
