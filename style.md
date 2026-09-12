@@ -73,6 +73,12 @@ pairing. Brand = violet or violet-dark; accent = mint.
 - Pillars: Wake-up (violet) · Challenges (mint) · Snooze cut (violet-dark) ·
   Sleep (mint).
 
+**Emerald is the "system is on" indicator**: the landing hero wordmark badge
+("Cognitive alarm system") sits on an `--c-emerald-soft` pill with
+`--c-emerald` text to match the blinking green LED beside it (`.lp-hero__badge`).
+This is semantic (live/on), not decoration; it is the ONLY emerald wordmark in
+the system.
+
 ### 2.3 Destructive: Rose (Critical Only)
 
 | Token | Hex | Usage |
@@ -169,7 +175,9 @@ Loaded once from Google Fonts at the top of `index.css`. Do not add other fonts.
 | Sys-labels | `0.75rem` | 600 | mono, uppercase, `letter-spacing 0.06em` |
 | Badges / mono chips | `0.78rem` | 600 | mono |
 | Visual captions | `0.72rem` | 600 | mono, uppercase, `letter-spacing 0.14em` |
-| Stat meta | `0.7rem` | 400 | `--text-muted` |
+| Auth hero stat numbers (`7`/`5`/`ML`) | `1.6rem` | 700 | mono, violet, `line-height 1` |
+| Auth hero stat labels | `0.875rem` | 400 | `--text-muted` |
+| Stat meta (landing) | `0.7rem` | 400 | `--text-muted` |
 
 Body base remains `16px` (user default). Never set `px` fonts below `0.68rem`.
 
@@ -237,8 +245,31 @@ Never use neon glow shadows or gradient drop-shadows.
   "attention" states are violet; idle dots are `--surface-3`. Pulse animations
   are simple opacity blinks, not glows.
 - **Decorative waveforms/SVG scenes**: stroke lines use solid brand tones,
-  never rainbow. Traveling pulses ride the primary trace; everything is
-  `aria-hidden` and animation-free under `prefers-reduced-motion`.
+  never rainbow. The auth "cognitive wake" waveform (`.auth-visual`) spans the
+  full panel width: two ghost guide rails under both traces (violet/mint at
+  ~0.16/0.22 alpha, lighter in light theme), a violet primary snake + mint echo
+  with `stroke-dashoffset` draw, a faint dotted parallel line, neuron nodes with
+  a soft mint halo, a leading traveler pulse on each trace (violet + mint) with
+  two fading comet-tail followers (delay 0.5s/1.05s; echo delayed -4.5s), subtle
+  `drop-shadow` halos on the leaders (stronger in dark). Static constellation
+  dots (mint accents) complete the scene. Everything is `aria-hidden`, carries
+  no answer, and is animation-free under `prefers-reduced-motion`.
+- **Auth form workspace geometry (pill)**: `.auth-form .form-control`,
+  `.auth-form__actions .btn`, `.auth-tabs`, `.auth-tab`, `.auth-top .theme-toggle`
+  and `.auth-back` all use `border-radius: var(--radius-full)`. The theme toggle
+  is a 38x38 full circle; the Back pill is exactly 38px tall to sit flush
+  beside it (`.auth-top` fixed cluster top-right of the auth panel).
+  The demo-account button (`.auth-form > .btn-secondary`) is `48px` tall,
+  `0.95rem`/600, full pill, full-width.
+- **Auth left panel composition (structured rhythm)**: brand → headline →
+  benefit ticks → 3 uniform stat cards (`min-height:86px`, flex column,
+  centered, `radius-lg`; equal heights regardless of label length) → note
+  (full-width, no horizontal cap) → "Next wake window" card (full-width,
+  edge-to-edge with the stats grid) → bottom-pinned waveform. Every block uses
+  the same ~`0.4rem`/`1.5rem` spacing rhythm so nothing floats or strays.
+- **Benefit ticks are theme-aware**: three plain check marks (no circles) that
+  stay mint (`--c-violet-light`) in dark theme and switch to violet
+  (`--c-violet`) in light theme (`html[data-theme='light'] .benefit-dot`).
 - **Composition**: hero sections follow the landing rhythm: brand, headline,
   lead, points/badges, stats, note, visual. The visual is bottom-pinned.
 
@@ -281,7 +312,10 @@ Never use neon glow shadows or gradient drop-shadows.
   Theme controls (sidebar switcher, auth toggle, settings) stay in sync via
   `web/src/theme.js`.
 - The auth brand panel mirrors the landing palette: violet tint band, violet
-  hairlines, violet brand tile, violet/mint status tones.
+  hairlines, violet brand tile, violet/mint status tones, full-width waveform,
+  and theme-aware benefit ticks (mint dark / violet light).
+- Buttons and form fields are pills; the top-right theme toggle is a full
+  circle and the Back pill matches its 38px height.
 
 ---
 
