@@ -2445,7 +2445,7 @@ html[data-theme='dark'] .lp-hero h1 em .hl--royal { color: #a78bfa; }
 }
 .lp-show__body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.4rem; }
 .lp-show__row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
-.lp-show__streak { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--c-emerald); font-weight: 700; font-size: 0.85rem; }
+.lp-show__streak { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--c-violet-light); font-weight: 700; font-size: 0.85rem; }
 .lp-show__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 1.5rem; align-items: center; }
 .lp-show__ring { position: relative; width: 120px; height: 120px; margin: 0 auto; }
 .lp-show__ring--sm { width: 96px; height: 96px; margin: 0; flex-shrink: 0; }
@@ -2687,6 +2687,7 @@ html[data-theme='dark'] .lp-hero h1 em .hl--royal { color: #a78bfa; }
   font-weight: 600;
   white-space: nowrap;
 }
+.lp-show__phone-stat--streak { color: var(--c-violet-light); }
 .lp-show__phone-card {
   display: flex;
   flex-direction: column;
@@ -2866,10 +2867,10 @@ html[data-theme='dark'] .lp-hero h1 em .hl--royal { color: #a78bfa; }
 }
 .lp-stepmock__options span.is-right { background: var(--c-emerald-soft); border-color: rgba(16, 185, 129, 0.4); color: var(--c-emerald); }
 .lp-stepmock__streak { display: flex; align-items: baseline; gap: 0.5rem; }
-.lp-stepmock__streak strong { font-size: 2.4rem; line-height: 1; font-weight: 800; color: var(--c-emerald); }
+.lp-stepmock__streak strong { font-size: 2.4rem; line-height: 1; font-weight: 800; color: var(--c-violet-light); }
 .lp-stepmock__streak span { color: var(--text-muted); font-weight: 600; font-size: 0.92rem; }
 .lp-stepmock__meter { height: 9px; border-radius: var(--radius-full); background: var(--surface-3); overflow: hidden; }
-.lp-stepmock__meter-fill { display: block; height: 100%; border-radius: var(--radius-full); background: linear-gradient(90deg, var(--c-violet) 0%, var(--c-violet-light) 100%); }
+.lp-stepmock__meter-fill { display: block; height: 100%; border-radius: var(--radius-full); background: var(--c-violet-light); }
 .lp-stepmock__note { color: var(--text-faint); font-size: 0.8rem; }
 
 @media (min-width: 880px) {

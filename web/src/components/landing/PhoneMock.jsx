@@ -62,7 +62,7 @@ export default function PhoneMock() {
                 </span>
               </span>
               <div className="lp-show__phone-stats">
-                <span className="lp-show__phone-stat">
+                <span className="lp-show__phone-stat lp-show__phone-stat--streak">
                   <FlameIcon size={12} /> 6-day streak
                 </span>
                 <span className="lp-show__phone-stat">

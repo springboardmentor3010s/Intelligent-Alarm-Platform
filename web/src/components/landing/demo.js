@@ -253,7 +253,7 @@ export const SAMPLE_INSIGHTS = {
 
 export const PILLARS = [
   { label: 'Wake-up', value: 90, tone: 'violet' },
-  { label: 'Challenges', value: 72, tone: 'emerald' },
+  { label: 'Challenges', value: 72, tone: 'mint' },
   { label: 'Snooze cut', value: 68, tone: 'deep' },
   { label: 'Sleep', value: 82, tone: 'mint' },
 ];
