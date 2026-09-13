@@ -52,7 +52,7 @@ describe('Dashboard page', () => {
 
     render(<Dashboard />);
 
-    await waitFor(() => expect(screen.getByText('Dashboard')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Analytics')).toBeInTheDocument());
     expect(screen.getByText('72')).toBeInTheDocument();
     expect(screen.getByText('92%')).toBeInTheDocument();
     expect(screen.getByText('Go to bed 15 min earlier')).toBeInTheDocument();

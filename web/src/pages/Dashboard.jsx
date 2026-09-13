@@ -103,7 +103,7 @@ export default function Dashboard() {
   if (error && !habitScore) {
     return (
       <div className="page">
-        <SectionHeader title="Dashboard" subtitle="Habit analytics & personal insights" />
+        <SectionHeader title="Analytics" subtitle="Habit analytics & personal insights" />
         <ErrorState description={error} onRetry={load} />
       </div>
     );
@@ -112,7 +112,7 @@ export default function Dashboard() {
   if (!habitScore) {
     return (
       <div className="page">
-        <SectionHeader title="Dashboard" subtitle="Loading behavioral intelligence…" />
+        <SectionHeader title="Analytics" subtitle="Loading behavioral intelligence…" />
         <div className="grid-cards grid-cards--square">
           {Array.from({ length: 4 }, (_, i) => <CardSkeleton key={i} showChart />)}
         </div>
@@ -131,7 +131,7 @@ export default function Dashboard() {
   return (
     <div className="page">
       <SectionHeader
-        title="Dashboard"
+        title="Analytics"
         subtitle="Behavioral intelligence · circadian trajectory · recommendations"
       />
 
