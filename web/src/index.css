@@ -5658,8 +5658,8 @@ html[data-theme='light'] {
   font-weight: 700;
   border-radius: var(--radius-full);
   border: 1px solid var(--c-violet);
-  color: var(--c-violet);
-  background: transparent;
+  background: var(--c-violet);
+  color: #0f1410;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -5667,9 +5667,14 @@ html[data-theme='light'] {
 }
 
 .sim-rand-btn:hover {
-  background: var(--c-violet-soft);
-  color: var(--c-violet-dark);
+  background: var(--c-violet-dark);
   border-color: var(--c-violet-dark);
+  color: #0f1410;
+}
+
+html[data-theme='dark'] .sim-rand-btn,
+html[data-theme='dark'] .sim-rand-btn:hover {
+  color: #ffffff;
 }
 
 /* Separate Type and Difficulty chips in the simulator header */
@@ -5706,15 +5711,11 @@ html[data-theme='light'] {
 }
 
 .sim-chip--type strong {
-  color: var(--c-violet);
+  color: var(--c-violet-light);
 }
 
 .sim-chip--diff strong {
   color: var(--c-violet-light);
-}
-
-.sim-chip--diff.is-high strong {
-  color: var(--c-violet-dark);
 }
 
 /* Tighten the 2x2 tile grids shared with Dashboard */
