@@ -349,14 +349,17 @@ h4 { font-size: 1.15rem; font-weight: 600; }
 .app-sidebar {
   width: var(--sidebar-width);
   background: var(--sidebar-bg);
-  border-right: 1px solid var(--sidebar-border);
+  border: 1px solid var(--sidebar-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  left: 0.75rem;
   z-index: 40;
+  overflow: hidden;
   transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -370,7 +373,6 @@ h4 { font-size: 1.15rem; font-weight: 600; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border);
 }
 
 .sidebar-brand {
@@ -573,7 +575,6 @@ h4 { font-size: 1.15rem; font-weight: 600; }
 
 .sidebar-footer {
   padding: 0.85rem 0.75rem;
-  border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
@@ -633,7 +634,7 @@ h4 { font-size: 1.15rem; font-weight: 600; }
 /* App Main Container */
 .app-main {
   flex: 1;
-  margin-left: var(--sidebar-width);
+  margin-left: calc(var(--sidebar-width) + 1.5rem);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -641,19 +642,25 @@ h4 { font-size: 1.15rem; font-weight: 600; }
 }
 
 .app-shell--collapsed .app-main {
-  margin-left: var(--sidebar-collapsed-width);
+  margin-left: calc(var(--sidebar-collapsed-width) + 1.5rem);
 }
 
+/* Floating rounded header, detached from the page edges like the sidebar.
+   The left gap already comes from .app-main's sidebar offset, so only the
+   top/right insets are added here. */
 .app-topbar {
   height: 68px;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
+  margin: 0.75rem 0.75rem 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  background: var(--surface);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
   position: sticky;
-  top: 0;
+  top: 0.75rem;
   z-index: 30;
 }
 
@@ -5045,7 +5052,7 @@ html[data-theme='dark'] .auth-visual__travel {
 /* Responsive Overrides */
 @media (max-width: 960px) {
   .app-sidebar {
-    transform: translateX(-100%);
+    transform: translateX(calc(-100% - 0.75rem));
     width: var(--sidebar-width) !important;
   }
   .app-shell--drawer-open .app-sidebar {
@@ -5062,6 +5069,10 @@ html[data-theme='dark'] .auth-visual__travel {
   }
   .app-main {
     margin-left: 0 !important;
+  }
+  .app-topbar {
+    margin: 0.75rem;
+    padding: 0 1rem;
   }
   .nav-menu-toggle {
     display: flex;
