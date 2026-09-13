@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../../styles';
-import { SparklesIcon, CheckCircleIcon, BrainIcon, RotateIcon } from './Icons';
+import { SparklesIcon, CheckCircleIcon, BrainIcon, RotateIcon, ClockIcon } from './Icons';
 
 /* Per-type sample banks with one question per difficulty tier. The simulator
    advances to the question matching the adaptive difficulty after every answer,
@@ -145,34 +145,44 @@ export default function LiveChallengeSimulator({ practice = null }) {
   return (
     <Card className="p-5 challenge-sim-card">
       <div className="sim-head">
-        <div className="sim-head__title">
-          <span className="stat-card__icon sim-head__icon"><SparklesIcon size={17} /></span>
-          <div>
-            <div className="sys-label">Interactive Practice Simulator</div>
-            {!active ? (
-              <div className="sim-head__sub">
-                {hasMirror && !manual
-                  ? `Mirroring your selected ${mirrorType} challenge`
-                  : `Live ${mirrorSeed} sample at ${DIFF_STEPS[diffLevel]}. Press Randomize to switch type and difficulty.`}
-              </div>
-            ) : (
-              <div className="sim-head__question">{current.title}</div>
-            )}
+        <div className="sim-head__top">
+          <div className="sim-head__title">
+            <span className="stat-card__icon sim-head__icon"><SparklesIcon size={17} /></span>
+            <div className="sim-head__title-text">
+              <div className="sys-label">Interactive Practice Simulator</div>
+              {!active ? (
+                <div className="sim-head__sub">
+                  {hasMirror && !manual
+                    ? `Mirroring your selected ${mirrorType} challenge`
+                    : 'Live practice sample. Hit Randomize to switch type and difficulty.'}
+                </div>
+              ) : (
+                <div className="sim-head__question">{current.title}</div>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="sim-head__meta">
-          <span className={`pill ${isHighDiff ? 'pill-brand' : 'pill-success'}`} title="Simulated adaptive ML difficulty, adjusted by your answers">
-            Adaptive ML · <strong>{DIFF_STEPS[diffLevel]}</strong>
-          </span>
           {active && (
-            <span className="pill pill-neutral">
-              ⏱ <strong className="tabular">{seconds}s</strong>
-            </span>
+            <div className="sim-head__timer" aria-label="Practice timer">
+              <ClockIcon size={14} />
+              <strong className="tabular">{seconds}s</strong>
+            </div>
           )}
-          <button type="button" className="btn btn-ghost sim-rand-btn" onClick={handleRandomize} title="Pick a random challenge type and difficulty">
-            <RotateIcon size={14} /> Randomize
-          </button>
         </div>
+
+        <div className="sim-head__chips">
+          <span className={`sim-chip sim-chip--diff${isHighDiff ? ' is-high' : ''}`} title="Simulated adaptive ML difficulty, adjusted by your answers">
+            <span className="sim-chip__label">Difficulty</span>
+            <strong>{DIFF_STEPS[diffLevel]}</strong>
+          </span>
+          <span className="sim-chip sim-chip--type" title="Challenge type">
+            <span className="sim-chip__label">Type</span>
+            <strong>{mirrorSeed}</strong>
+          </span>
+        </div>
+
+        <button type="button" className="btn sim-rand-btn" onClick={handleRandomize} title="Pick a random challenge type and difficulty">
+          <RotateIcon size={15} /> Randomize
+        </button>
       </div>
 
       {!active ? (
@@ -216,7 +226,7 @@ export default function LiveChallengeSimulator({ practice = null }) {
           <div className="sim-question-box">
             <div className="sys-label">
               <span className="led led--on led--live" style={{ marginRight: '0.3rem' }} />
-              Question · {current.type} ({DIFF_STEPS[diffLevel]} difficulty)
+              Question · {current.type}
             </div>
             <div className="sim-question-text">{current.question}</div>
           </div>

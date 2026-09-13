@@ -2003,11 +2003,18 @@ select option {
 
 .sim-head {
   display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 0;
+  margin-bottom: 1rem;
+}
+
+.sim-head__top {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
 .sim-head__title {
@@ -2017,15 +2024,20 @@ select option {
   min-width: 0;
 }
 
+.sim-head__title-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .sim-head__icon {
   width: 36px;
   height: 36px;
+  flex-shrink: 0;
 }
 
 .sim-head__sub {
   font-size: 0.9rem;
   color: var(--text-muted);
-  white-space: nowrap;
 }
 
 .sim-head__question {
@@ -2034,11 +2046,28 @@ select option {
   color: var(--text);
 }
 
-.sim-head__meta {
-  display: flex;
+.sim-head__timer {
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sim-head__timer strong {
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.sim-head__chips {
+  display: flex;
+  gap: 0.55rem;
+  min-width: 0;
 }
 
 /* Idle state: balanced copy + compact sample-bank preview (no dead space). */
@@ -5605,6 +5634,7 @@ html[data-theme='light'] {
 
 .home-cols__rail--sim .challenge-sim-card {
   flex: 1;
+  max-width: calc(100% - 0.4rem);
   display: flex;
   flex-direction: column;
   margin-top: 2.45rem;
@@ -5621,16 +5651,70 @@ html[data-theme='light'] {
 }
 
 .sim-rand-btn {
-  padding: 0.18rem 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 600;
+  width: 100%;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--c-violet);
   color: var(--c-violet);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
 }
 
 .sim-rand-btn:hover {
   background: var(--c-violet-soft);
   color: var(--c-violet-dark);
-  border-color: transparent;
+  border-color: var(--c-violet-dark);
+}
+
+/* Separate Type and Difficulty chips in the simulator header */
+.sim-chip {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.7rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.sim-chip__label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.sim-chip strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sim-chip--type strong {
+  color: var(--c-violet);
+}
+
+.sim-chip--diff strong {
+  color: var(--c-violet-light);
+}
+
+.sim-chip--diff.is-high strong {
+  color: var(--c-violet-dark);
 }
 
 /* Tighten the 2x2 tile grids shared with Dashboard */
@@ -5684,6 +5768,7 @@ html[data-theme='light'] {
 
   .home-cols__rail--sim .challenge-sim-card {
     margin-top: 0;
+    max-width: none;
   }
 
   .stat-strip--trio {
