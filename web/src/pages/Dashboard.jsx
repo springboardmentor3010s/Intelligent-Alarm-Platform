@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Grid, MetricCard } from '../styles';
 import { Line } from 'react-chartjs-2';
 import { buildHabitCharts, makeChartOptions } from '../utils/chartUtils';
+import { getTheme, subscribeTheme } from '../theme';
 import { CardSkeleton, Badge, SectionHeader } from '../components/ui';
 import ErrorState from '../components/ui/ErrorState';
 
@@ -77,8 +78,27 @@ export default function Dashboard() {
 
   useEffect(load, []);
 
+  const [, setThemeBump] = useState(0);
+  useEffect(() => subscribeTheme(() => setThemeBump(t => t + 1)), []);
+
   const habitCharts = buildHabitCharts(history.filter(h => h.overall_score !== null));
   const chartOpts = makeChartOptions();
+
+  const isLightTheme = getTheme() !== 'dark';
+  const accentHex = isLightTheme ? '#6844FD' : '#58F6CA';
+  const accentBg = isLightTheme ? 'rgba(104, 68, 253, 0.12)' : 'rgba(88, 246, 202, 0.12)';
+  const challengeChart = habitCharts.challenge
+    ? {
+        ...habitCharts.challenge,
+        datasets: habitCharts.challenge.datasets.map(ds => ({
+          ...ds,
+          borderColor: accentHex,
+          backgroundColor: accentBg,
+          pointBackgroundColor: accentHex,
+          pointBorderColor: accentHex,
+        })),
+      }
+    : habitCharts.challenge;
 
   if (error && !habitScore) {
     return (
@@ -103,7 +123,7 @@ export default function Dashboard() {
   const available = history.filter(h => h.overall_score !== null).length;
   const charts = [
     { label: 'Wake-up Consistency', key: 'wake_up_consistency', data: habitCharts.wakeUp },
-    { label: 'Challenge Completion', key: 'challenge_completion', data: habitCharts.challenge },
+    { label: 'Challenge Completion', key: 'challenge_completion', data: challengeChart },
     { label: 'Snooze Reduction', key: 'snooze_reduction', data: habitCharts.snooze },
     { label: 'Sleep Schedule Adherence', key: 'sleep_schedule_adherence', data: habitCharts.sleep },
   ];
@@ -112,14 +132,14 @@ export default function Dashboard() {
     <div className="page">
       <SectionHeader
         title="Dashboard"
-        subtitle="Behavioral intelligence, circadian trajectory & personalized recommendations"
+        subtitle="Behavioral intelligence · circadian trajectory · recommendations"
       />
 
       {error && <div className="banner banner-warning">{error}</div>}
 
-      {/* Top Intelligence Overview (Google Bento Grid) */}
-      <Grid className="mb-6 grid-cards--duo">
-        <Card className="p-5 bento-hero-card">
+      {/* Top Intelligence Overview (Bento Grid) */}
+      <Grid className="dash-top">
+        <Card className="p-4 dash-hero">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div className="card-label">Composite Habit Score</div>
@@ -161,7 +181,7 @@ export default function Dashboard() {
         </Card>
 
         {analytics && (
-          <Card className="p-5">
+          <Card className="p-4 dash-tele">
             <div className="card-label mb-3">Cognitive Telemetry Summary</div>
             <div className="telemetry-grid">
               <div className="telemetry-item">
@@ -194,7 +214,7 @@ export default function Dashboard() {
       </Grid>
 
       {/* Pillar Charts: Perfect 2x2 Bento Square */}
-      <div className="card-label mb-2"><span className="sys-label">Detailed Habit Pillars · Intelligence Breakdown</span></div>
+      <div className="card-label mb-2"><span className="sys-label">Habit Pillars · Intelligence Breakdown</span></div>
       <Grid className="grid-cards--square">
         {charts.map((c, i) => {
           const meta = PILLAR_METADATA[c.label] || {};
@@ -239,13 +259,13 @@ export default function Dashboard() {
 
       {/* Actionable Recommendations Module (Google Gemini Style) */}
       {recommendations.length > 0 && (
-        <div className="mt-8">
+        <div>
           <div className="card-label mb-3">
             <span className="sys-label">Personalized AI Recommendations</span>
           </div>
           <Grid className="grid-cards--3">
             {recommendations.map(r => (
-              <Card key={r.id} className="p-5 rec-card">
+              <Card key={r.id} className="p-4 rec-card">
                 <div className="rec-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                   <Badge tone="brand">{CATEGORY_LABEL[r.category] || r.category}</Badge>
                   <Badge tone={PRIORITY_TONE[r.priority] || 'subtle'}>

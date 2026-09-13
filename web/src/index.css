@@ -1631,9 +1631,9 @@ select option {
   gap: 0.4rem;
   padding: 0.35rem 0.8rem;
   border-radius: var(--radius-full);
-  background: var(--c-mint-soft);
-  color: var(--c-violet-light);
-  border: 1px solid rgba(88, 246, 202, 0.35);
+  background: var(--c-violet-soft);
+  color: var(--c-violet);
+  border: 1px solid rgba(104, 68, 253, 0.35);
   font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
@@ -5445,4 +5445,288 @@ html[data-theme='dark'] .auth-visual__travel {
   .ai-challenge-card__meta {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* ============================================================
+   Overview (Home) & Analytics (Dashboard) — Bento Grid layouts
+   Additive only; no global design-system changes.
+   ============================================================ */
+
+/* Light mode: the mint accent (#58F6CA) washes out on light surfaces, so every
+   mint-coded icon/label/streak falls back to the brand violet. Dark mode keeps
+   the mint accent inherited from :root. */
+html[data-theme='light'] {
+  --c-violet-light: #6844FD;
+}
+
+/* ---- Overview page vertical composition ---- */
+.home-bento {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+/* Readiness strip: compact (Overview only) */
+.readiness-banner {
+  padding: 1.05rem 1.3rem;
+}
+
+/* ---- Split Intelligence Hero (alarm + score | trajectory) ---- */
+.home-split {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: stretch;
+  padding: 1.4rem;
+}
+
+.home-split__alarm,
+.home-split__trend {
+  min-width: 0;
+}
+
+.home-split .score-hero {
+  gap: 2rem;
+  padding: 0.4rem 0.4rem 0.4rem 0;
+  height: 100%;
+}
+
+.home-split .score-hero--split .next-alarm__infos {
+  justify-content: center;
+}
+
+.home-split__trend {
+  border-left: 1px solid var(--border);
+  padding-left: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.home-split__trend-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.home-split__chart {
+  height: 190px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+}
+
+.home-split__empty {
+  background: var(--surface-2);
+  border: 1px dashed rgba(104, 68, 253, 0.35);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.home-split__empty-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--c-violet);
+}
+
+/* ---- KPI triad ---- */
+.stat-strip--trio {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.15rem;
+}
+
+.stat-strip--trio .stat-card {
+  padding: 1.15rem;
+}
+
+/* ---- Habit pillars (2x2) + schedule rail ---- */
+.home-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1.15rem;
+  align-items: start;
+}
+
+.home-cols__main,
+.home-cols__rail {
+  min-width: 0;
+}
+
+.home-cols__main .card-label {
+  margin-bottom: 0.9rem;
+}
+
+.home-rail__head .card-label {
+  margin-bottom: 0;
+}
+
+.home-cols__main .grid-cards--square {
+  gap: 1.15rem;
+}
+
+.home-cols__main > .home-cols__rail {
+  margin-top: 1.15rem;
+}
+
+.home-rail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Simulator parked beside the habit pillars */
+.home-cols .challenge-sim-card {
+  padding: 1.4rem;
+}
+
+.home-cols .sim-idle {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.1rem;
+}
+
+.home-cols--sim {
+  align-items: stretch;
+}
+
+.home-cols__rail--sim {
+  display: flex;
+}
+
+.home-cols__rail--sim .challenge-sim-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 2.45rem;
+}
+
+.home-cols__rail--sim .sim-idle {
+  flex: 1;
+  align-content: center;
+}
+
+.home-cols__rail--sim .sim-body {
+  flex: 1;
+  justify-content: center;
+}
+
+.sim-rand-btn {
+  padding: 0.18rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-violet);
+}
+
+.sim-rand-btn:hover {
+  background: var(--c-violet-soft);
+  color: var(--c-violet-dark);
+  border-color: transparent;
+}
+
+/* Tighten the 2x2 tile grids shared with Dashboard */
+.grid-cards--square {
+  gap: 1.15rem;
+}
+
+/* ---- Dashboard top bento (Composite 5 / Telemetry 7) ---- */
+.dash-top {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+}
+
+.dash-hero,
+.dash-tele {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.bento-tile__chart.chart-card {
+  height: 205px;
+}
+
+.bento-tile {
+  gap: 0.8rem;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1120px) {
+  .home-split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.2rem;
+  }
+
+  .home-split__trend {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-left: 0;
+    padding-top: 1.2rem;
+  }
+
+  .dash-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .home-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-cols__rail--sim .challenge-sim-card {
+    margin-top: 0;
+  }
+
+  .stat-strip--trio {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .home-split__chart {
+    height: 170px;
+  }
+
+  .stat-strip--trio {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ============================================================
+   Custom scrollbars — violet in light mode, mint in dark mode.
+   Driven by the c-violet-light token, which is mint by default and
+   overridden to violet under html[data-theme='light'].
+   ============================================================ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-violet-light) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--c-violet-light);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  filter: brightness(1.1);
 }

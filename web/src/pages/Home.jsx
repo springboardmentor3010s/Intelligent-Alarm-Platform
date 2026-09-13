@@ -17,13 +17,14 @@ import {
   LiveChallengeSimulator,
 } from '../components/ui';
 import { formatTimeOfDay, formatWeekday } from '../utils/timeFormat';
+import { getTheme, subscribeTheme } from '../theme';
 import { Link } from 'react-router-dom';
 
 const WEIGHTS = [
   { key: 'wake_up_consistency', label: 'Wake-up Consistency', denom: 100, weight: '35% weight', tone: 'brand', desc: 'Snooze-free dismissals on scheduled time' },
   { key: 'challenge_completion', label: 'Challenge Completion', denom: 100, weight: '25% weight', tone: 'mint', desc: 'Accuracy & speed across cognitive puzzles' },
-  { key: 'snooze_reduction', label: 'Snooze Reduction', denom: 100, weight: '20% weight', tone: 'warm', desc: 'Reduction in snooze frequency vs 7-day baseline' },
-  { key: 'sleep_schedule_adherence', label: 'Sleep Adherence', denom: 100, weight: '20% weight', tone: 'mint', desc: 'Circadian stability and wake-time standard deviation' },
+  { key: 'snooze_reduction', label: 'Snooze Reduction', denom: 100, weight: '20% weight', tone: 'warm', desc: 'Reduction vs 7-day baseline' },
+  { key: 'sleep_schedule_adherence', label: 'Sleep Adherence', denom: 100, weight: '20% weight', tone: 'mint', desc: 'Circadian stability and wake-time variance' },
 ];
 
 function greeting() {
@@ -53,7 +54,6 @@ export default function Home() {
   const [habitScore, setHabitScore] = useState(null);
   const [history, setHistory] = useState([]);
   const [alarms, setAlarms] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
   const [error, setError] = useState(null);
   const [, setTick] = useState(0);
 
@@ -82,13 +82,12 @@ export default function Home() {
       .then(data => setAlarms(Array.isArray(data) ? data : []))
       .catch(console.error);
 
-    fetch('/api/v1/analytics/recommendations', { headers })
-      .then(res => (res.ok ? res.json() : []))
-      .then(data => setRecommendations(Array.isArray(data) ? data : []))
-      .catch(console.error);
-
     const timer = setInterval(() => setTick(t => t + 1), 30000);
-    return () => clearInterval(timer);
+    const unsubTheme = subscribeTheme(() => setTick(t => t + 1));
+    return () => {
+      clearInterval(timer);
+      unsubTheme();
+    };
   }, []);
 
   if (!habitScore) {
@@ -114,12 +113,15 @@ export default function Home() {
   const firstName = String(storedUser.full_name || storedUser.email?.split('@')[0] || 'User').split(' ')[0];
 
   const trendHistory = history.filter(h => h.overall_score !== null);
+  const isLightTheme = getTheme() !== 'dark';
+  const accentHex = isLightTheme ? '#6844FD' : '#58F6CA';
+  const accentFill = isLightTheme ? 'rgba(104, 68, 253, 0.12)' : 'rgba(88, 246, 202, 0.16)';
   const trendData = buildSeries(trendHistory, {
     dataKey: 'overall_score',
     label: 'Overall Score (%)',
-    border: '#6844FD',
-    bg: 'rgba(88, 246, 202, 0.16)',
-    pointBorder: '#58F6CA',
+    border: accentHex,
+    bg: accentFill,
+    pointBorder: accentHex,
   });
   const chartOpts = makeChartOptions();
 
@@ -133,248 +135,225 @@ export default function Home() {
   const score = Number(habitScore.overall_score) || 0;
   const readiness = getCognitiveReadiness(score);
 
+  const scheduleRail = (
+    <Card className="home-cols__rail">
+      <div className="home-rail__head">
+        <div className="card-label"><span className="sys-label">Upcoming Wake Routine</span></div>
+        <Link to="/alarms" className="text-xs text-muted-600" style={{ fontWeight: 600, color: 'var(--c-violet)' }}>
+          Configure
+        </Link>
+      </div>
+
+      {timeline.length ? (
+        <ul className="timeline">
+          {timeline.map((a, i) => (
+            <li key={a.id} className={`timeline-item ${i === 0 ? 'timeline-item--hot' : ''}`}>
+              <span className="timeline-item__dot" aria-hidden="true" />
+              <div className="timeline-item__time">{a.time ? formatTimeOfDay(a.time) : '-'}</div>
+              <div className="timeline-item__main">
+                <div className="timeline-item__label">{a.title || 'Wake-up Alarm'}</div>
+                <div className="timeline-item__meta">
+                  {a.alarm_type} · {a.challenge_type || 'Cognitive'} challenge · {a.next_trigger ? formatWeekday(a.next_trigger) : 'unscheduled'}
+                </div>
+              </div>
+              <span className={`pill ${a.is_enabled ? 'pill-success' : 'pill-neutral'}`}>
+                <span className="led led--on" style={{ marginRight: '0.25rem' }} />
+                {a.is_enabled ? 'Active' : 'Inactive'}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-600" style={{ padding: '0.5rem 0' }}>
+          No alarms scheduled. Add an alarm to start building your cognitive routine.
+        </p>
+      )}
+    </Card>
+  );
+
   return (
     <div className="page">
-      <SectionHeader
-        title="Today's Progress"
-        subtitle={
-          <span>
-            {greeting()}, {firstName}.
-            <span className="sys-label" style={{ marginLeft: '0.6rem' }}>
-              <span className="led led--on led--live" /> Online
+      <div className="home-bento">
+        <SectionHeader
+          title="Today's Progress"
+          subtitle={
+            <span>
+              {greeting()}, {firstName}.
+              <span className="sys-label" style={{ marginLeft: '0.6rem' }}>
+                <span className="led led--on led--live" /> Online
+              </span>
             </span>
-          </span>
-        }
-      >
-        <Link to="/alarms" className="btn btn-primary">
-          <PlusIcon size={16} /> New Alarm
-        </Link>
-      </SectionHeader>
+          }
+        >
+          <Link to="/alarms" className="btn btn-primary">
+            <PlusIcon size={16} /> New Alarm
+          </Link>
+        </SectionHeader>
 
-      {error && <div className="banner banner-warning">{error}</div>}
+        {error && <div className="banner banner-warning">{error}</div>}
 
-      {/* 0. Today's Cognitive Readiness Banner */}
-      <div className={`readiness-banner readiness-banner--${readiness.tone}`}>
-        <div className="readiness-banner__main">
-          <div className="readiness-banner__icon">
-            <ActivityIcon size={22} />
-          </div>
-          <div>
-            <div className="readiness-banner__title">
-              Today's Cognitive Readiness
-              <Badge tone={readiness.tone}>{readiness.label}</Badge>
+        {/* 1. Today's Cognitive Readiness strip */}
+        <div className={`readiness-banner readiness-banner--${readiness.tone}`}>
+          <div className="readiness-banner__main">
+            <div className="readiness-banner__icon">
+              <ActivityIcon size={22} />
             </div>
-            <div className="readiness-banner__desc">
-              {score >= 80
-                ? 'Outstanding circadian discipline · your prefrontal activation window is primed.'
-                : score >= 60
-                  ? 'Solid baseline established · keep your streak alive to reach optimal readiness.'
-                  : score >= 40
-                    ? 'Routine is calibrating · consistency today compounds into week-level gains.'
-                    : 'Fresh start detected · solve your first challenge to begin logging data.'}
+            <div>
+              <div className="readiness-banner__title">
+                Today's Cognitive Readiness
+                <Badge tone={readiness.tone}>{readiness.label}</Badge>
+              </div>
+              <div className="readiness-banner__desc">
+                {score >= 80
+                  ? 'Outstanding circadian discipline · your prefrontal activation window is primed.'
+                  : score >= 60
+                    ? 'Solid baseline established · keep your streak alive to reach optimal readiness.'
+                    : score >= 40
+                      ? 'Routine is calibrating · consistency today compounds into week-level gains.'
+                      : 'Fresh start detected · solve your first challenge to begin logging data.'}
+              </div>
             </div>
           </div>
         </div>
-        {trendHistory.length > 0 && (
-          <span className="streak-badge" title={`${trendHistory.length} recorded day(s) this week`}>
-            <SparklesIcon size={14} /> {trendHistory.length} day streak
-          </span>
-        )}
-      </div>
 
-      {/* 1. Next Alarm & Habit Score Hero Intelligence Surface */}
-      <Card className="mb-6">
-        <div className="score-hero">
-          <div className="score-ring" style={{ ['--p']: `${score}` }}>
-            <div className="score-ring__inner">
-              <div className="score-ring__num">{score}</div>
-              <div className="score-ring__cap">Habit Score</div>
+        {/* 2. Split Intelligence Hero: alarm + score | 7-day trajectory */}
+        <Card className="home-split">
+          <div className="home-split__alarm">
+            <div className="score-hero score-hero--split">
+              <div className="score-ring" style={{ ['--p']: `${score}` }}>
+                <div className="score-ring__inner">
+                  <div className="score-ring__num">{score}</div>
+                  <div className="score-ring__cap">Habit Score</div>
+                </div>
+              </div>
+
+              <div className="next-alarm__infos">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span className="sys-label">Next Scheduled Alarm</span>
+                  <span className="countdown">{upcoming ? formatCountdown(upcoming.next_trigger) : 'not scheduled'}</span>
+                </div>
+
+                {upcoming ? (
+                  <>
+                    <div className="next-alarm__time">
+                      {upcoming.time ? formatTimeOfDay(upcoming.time) : '-'}
+                      <span className="led led--on led--live" style={{ marginLeft: '0.85rem' }} title="Armed and scheduled" />
+                    </div>
+                    <div className="next-alarm__meta">
+                      <span>
+                        <strong>{upcoming.title || 'Morning Alarm'}</strong> · {upcoming.alarm_type || 'Daily'}
+                        {upcoming.challenge_type ? ` · ${upcoming.challenge_type} Challenge` : ''}
+                      </span>
+                      <Link to={`/alarms`} className="quick-schedule-toggle" title="Manage this schedule">
+                        <AlarmClockIcon size={13} /> Manage
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <div className="next-alarm__meta" style={{ marginTop: '0.35rem' }}>
+                    <span>No active alarms scheduled. Set your wake time to activate habit tracking.</span>
+                  </div>
+                )}
+
+                <div className="score-hero__actions">
+                  <Link to="/alarms" className="quick-action">
+                    <AlarmClockIcon size={14} /> Set Alarm
+                  </Link>
+                  <Link to="/challenges" className="quick-action">
+                    <SparklesIcon size={14} /> Test Challenge
+                  </Link>
+                  <Link to="/reports" className="quick-action">
+                    <FileTextIcon size={14} /> View Reports
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="next-alarm__infos">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <span className="sys-label">Next Scheduled Alarm</span>
-              <span className="countdown">{upcoming ? formatCountdown(upcoming.next_trigger) : 'not scheduled'}</span>
+          <div className="home-split__trend">
+            <div className="home-split__trend-head">
+              <span className="sys-label sys-label--mint">
+                <span className="led led--on" style={{ background: 'var(--c-violet-light)' }} />Circadian Trajectory
+              </span>
+              {trendHistory.length > 0 && (
+                <span className="streak-badge" title={`${trendHistory.length} recorded day(s) this week`}>
+                  <SparklesIcon size={14} /> {trendHistory.length} day streak
+                </span>
+              )}
             </div>
 
-            {upcoming ? (
+            {trendHistory.length >= 2 ? (
               <>
-                <div className="next-alarm__time">
-                  {upcoming.time ? formatTimeOfDay(upcoming.time) : '-'}
-                  <span className="led led--on led--live" style={{ marginLeft: '0.85rem' }} title="Armed and scheduled" />
+                <div className="chart-card chart-card--sm home-split__chart">
+                  <Line data={trendData} options={chartOpts} />
                 </div>
-                <div className="next-alarm__meta">
+                <div className="chart-note">
+                  <InfoIcon size={13} style={{ color: 'var(--c-violet)', flexShrink: 0 }} />
                   <span>
-                    <strong>{upcoming.title || 'Morning Alarm'}</strong> · {upcoming.alarm_type || 'Daily'}
-                    {upcoming.challenge_type ? ` · ${upcoming.challenge_type} Challenge` : ''}
+                    Tracking <strong style={{ color: 'var(--text)' }}>{trendHistory.length} of 7 days</strong>. Server-verified daily habit scores.
                   </span>
-                  <Link to={`/alarms`} className="quick-schedule-toggle" title="Manage this schedule">
-                    <AlarmClockIcon size={13} /> Manage
-                  </Link>
                 </div>
               </>
             ) : (
-              <div className="next-alarm__meta" style={{ marginTop: '0.35rem' }}>
-                <span>No active alarms scheduled. Set your wake time to activate habit tracking.</span>
+              <div className="home-split__empty">
+                <div className="home-split__empty-title">
+                  <span className="led led--on" style={{ background: 'var(--c-violet-light)' }} /> Building Your Weekly Baseline
+                </div>
+                <p className="text-sm text-muted-600" style={{ lineHeight: 1.6 }}>
+                  Charting needs <strong style={{ color: 'var(--text)' }}>2 recorded wake-up events</strong>. Complete tomorrow's challenge to start plotting.
+                </p>
               </div>
             )}
-
-            <div className="score-hero__actions">
-              <Link to="/alarms" className="quick-action">
-                <AlarmClockIcon size={14} /> Set Alarm
-              </Link>
-              <Link to="/challenges" className="quick-action">
-                <SparklesIcon size={14} /> Test Challenge
-              </Link>
-              <Link to="/reports" className="quick-action">
-                <FileTextIcon size={14} /> View Reports
-              </Link>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* 2. Cognitive Performance Stat Strip */}
-      <div className="stat-strip">
-        <div className="stat-card">
-          <span className="stat-card__icon"><ActivityIcon size={20} /></span>
-          <div>
-            <div className="stat-card__num">{score}<span className="metric-denom">/100</span></div>
-            <div className="stat-card__label">Composite Habit Score</div>
-          </div>
-        </div>
-
-        <div className="stat-card stat-card--violet">
-          <span className="stat-card__icon"><AlarmClockIcon size={20} /></span>
-          <div>
-            <div className="stat-card__num">{enabled.length}</div>
-            <div className="stat-card__label">Active Wake Schedules</div>
-          </div>
-        </div>
-
-        <div className="stat-card stat-card--violet">
-          <span className="stat-card__icon"><ClockIcon size={20} /></span>
-          <div>
-            <div className="stat-card__num">{trendHistory.length}<span className="metric-denom">/7</span></div>
-            <div className="stat-card__label">Days Recorded This Week</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <span className="stat-card__icon"><SparklesIcon size={20} /></span>
-          <div>
-            <div className="stat-card__num">{habitScore.challenge_completion}%</div>
-            <div className="stat-card__label">Challenge Completion Rate</div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Key Habit Pillars Breakdown */}
-      <div>
-        <div className="card-label mb-2"><span className="sys-label">Cognitive Habit Pillars · 35/25/20/20 Composite</span></div>
-        <GridMetrics habitScore={habitScore} />
-      </div>
-
-      {/* 4. Behavioral Recommendations (if available) */}
-      {recommendations.length > 0 && (
-        <Card className="mt-4">
-          <div className="card-label mb-3"><span className="sys-label">Behavioral Intelligence · Recommendations</span></div>
-          <div className="grid-cards grid-cards--duo">
-            {recommendations.slice(0, 2).map(r => (
-              <div key={r.id} style={{ background: 'var(--surface-2)', padding: '1.25rem 1.4rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-                  <Badge tone={r.priority === 'high' ? 'danger' : 'brand'}>{r.category}</Badge>
-                  <span className="sys-label">{r.priority} priority</span>
-                </div>
-                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)' }}>{r.title}</div>
-                <p className="text-sm text-muted-600 mt-1" style={{ fontSize: '0.95rem', lineHeight: 1.65 }}>{r.message}</p>
-                {r.suggested_action && (
-                  <div className="text-xs mt-2" style={{ color: 'var(--c-violet)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <span className="dot-bullet" aria-hidden="true" />
-                    {r.suggested_action}
-                  </div>
-                )}
-              </div>
-            ))}
           </div>
         </Card>
-      )}
 
-      {/* 5. Interactive Practice Engine Simulator */}
-      <div className="mt-4">
-        <LiveChallengeSimulator />
-      </div>
+        {/* 3. KPI Trio */}
+        <div className="stat-strip stat-strip--trio">
+          <div className="stat-card">
+            <span className="stat-card__icon"><AlarmClockIcon size={20} /></span>
+            <div>
+              <div className="stat-card__num">{enabled.length}</div>
+              <div className="stat-card__label">Active Wake Schedules</div>
+            </div>
+          </div>
 
-      {/* 6. Upcoming Schedule Timeline */}
-      <Card className="mt-4">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <div className="card-label"><span className="sys-label">Upcoming Wake Routine</span></div>
-          <Link to="/alarms" className="text-xs text-muted-600" style={{ fontWeight: 600, color: 'var(--c-violet)' }}>
-            Configure schedules
-          </Link>
+          <div className="stat-card stat-card--violet">
+            <span className="stat-card__icon"><ClockIcon size={20} /></span>
+            <div>
+              <div className="stat-card__num">{trendHistory.length}<span className="metric-denom">/7</span></div>
+              <div className="stat-card__label">Days Recorded This Week</div>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <span className="stat-card__icon"><SparklesIcon size={20} /></span>
+            <div>
+              <div className="stat-card__num">{habitScore.challenge_completion}%</div>
+              <div className="stat-card__label">Challenge Completion Rate</div>
+            </div>
+          </div>
         </div>
 
-        {timeline.length ? (
-          <ul className="timeline">
-            {timeline.map((a, i) => (
-              <li key={a.id} className={`timeline-item ${i === 0 ? 'timeline-item--hot' : ''}`}>
-                <span className="timeline-item__dot" aria-hidden="true" />
-                <div className="timeline-item__time">{a.time ? formatTimeOfDay(a.time) : '-'}</div>
-                <div className="timeline-item__main">
-                  <div className="timeline-item__label">{a.title || 'Wake-up Alarm'}</div>
-                  <div className="timeline-item__meta">
-                    {a.alarm_type} · {a.challenge_type || 'Cognitive'} challenge · {a.next_trigger ? formatWeekday(a.next_trigger) : 'unscheduled'}
-                  </div>
-                </div>
-                <span className={`pill ${a.is_enabled ? 'pill-success' : 'pill-neutral'}`}>
-                  <span className="led led--on" style={{ marginRight: '0.25rem' }} />
-                  {a.is_enabled ? 'Active' : 'Inactive'}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-600" style={{ padding: '0.5rem 0' }}>
-            No alarms scheduled. Add an alarm to start building your cognitive routine.
-          </p>
-        )}
-      </Card>
-
-      {/* 7. Weekly Trend & Contextual Empty State */}
-      <Card className="mt-4 trend-card">
-        <div className="card-label mb-2 trend-card__head"><span className="sys-label sys-label--violet"><span className="led led--on" style={{ background: 'var(--c-violet-light)' }} />Circadian Trajectory · 7-Day Habit Trend</span></div>
-        {trendHistory.length >= 2 ? (
-          <>
-            <div className="chart-card chart-card--sm">
-              <Line data={trendData} options={chartOpts} />
-            </div>
-            <div className="chart-note">
-              <InfoIcon size={14} style={{ color: 'var(--c-violet)', flexShrink: 0 }} />
-              <span>
-                Tracking <strong style={{ color: 'var(--text)' }}>{trendHistory.length} of 7 days</strong> recorded. Plots server-verified daily composite habit scores.
-              </span>
-            </div>
-          </>
-        ) : (
-          <div style={{ background: 'var(--surface-2)', padding: '1.6rem', borderRadius: 'var(--radius-md)', border: '1px dashed rgba(104, 68, 253, 0.35)' }}>
-            <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--c-violet)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="led led--on" style={{ background: 'var(--c-violet-light)' }} /> Building Your Weekly Baseline
-            </div>
-            <p className="text-sm text-muted-600" style={{ maxWidth: '640px', lineHeight: 1.65 }}>
-              Trajectory charts require at least <strong style={{ color: 'var(--text)' }}>2 recorded morning wake-up events</strong> to calculate velocity.
-              Complete tomorrow's cognitive challenge to activate weekly trend plotting and circadian drift detection.
-            </p>
+        {/* 4. Habit Pillars (2x2) + Interactive Practice Simulator */}
+        <div className="home-cols home-cols--sim">
+          <div className="home-cols__main">
+            <div className="card-label"><span className="sys-label">Cognitive Habit Pillars</span></div>
+            <GridMetrics habitScore={habitScore} />
+            {scheduleRail}
           </div>
-        )}
-      </Card>
+
+          <div className="home-cols__rail home-cols__rail--sim">
+            <LiveChallengeSimulator />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 function GridMetrics({ habitScore }) {
   return (
-    <div className="grid-cards grid-cards--metrics">
+    <div className="grid-cards grid-cards--square">
       {WEIGHTS.map(m => (
         <Card key={m.key} className="p-4">
           <div className="card-label">{m.label}</div>
@@ -383,7 +362,7 @@ function GridMetrics({ habitScore }) {
             <span className="metric-denom">/ {m.denom}</span>
           </div>
           <ProgressBar value={habitScore[m.key]} max={m.denom} tone={m.tone} label={m.label} />
-          <div className="text-xs text-muted-600 mt-2" style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
+          <div className="text-xs text-muted-600 mt-2" style={{ fontSize: '0.85rem', lineHeight: 1.55 }}>
             <strong style={{ color: 'var(--text)' }}>{m.weight}</strong> · {m.desc}
           </div>
         </Card>

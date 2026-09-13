@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../../styles';
-import { SparklesIcon, CheckCircleIcon, BrainIcon } from './Icons';
+import { SparklesIcon, CheckCircleIcon, BrainIcon, RotateIcon } from './Icons';
 
 /* Per-type sample banks with one question per difficulty tier. The simulator
    advances to the question matching the adaptive difficulty after every answer,
@@ -61,10 +61,9 @@ function poolIndexFor(level, pool) {
 export default function LiveChallengeSimulator({ practice = null }) {
   const hasMirror = practice?.challenge_type && POOL[practice.challenge_type];
   const mirrorType = hasMirror ? practice.challenge_type : 'Math';
-  const pool = POOL[mirrorType];
 
   const [index, setIndex] = useState(() =>
-    poolIndexFor(practice?.difficulty ? DIFF_STEPS.indexOf(practice.difficulty) : 1, pool)
+    poolIndexFor(practice?.difficulty ? DIFF_STEPS.indexOf(practice.difficulty) : 1, POOL[mirrorType])
   );
   const [userAns, setUserAns] = useState('');
   const [status, setStatus] = useState(null); // 'correct' | 'wrong' | null
@@ -74,23 +73,27 @@ export default function LiveChallengeSimulator({ practice = null }) {
   const [diffLevel, setDiffLevel] = useState(() =>
     practice?.difficulty ? DIFF_STEPS.indexOf(practice.difficulty) : 1
   );
-  const [mirrorSeed, setMirrorSeed] = useState(mirrorType);
+  const [mirrorSeed, setMirrorSeed] = useState(() => (hasMirror ? practice.challenge_type : 'Math'));
+  const [manual, setManual] = useState(false);
+
+  const pool = POOL[mirrorSeed] ?? POOL[mirrorType] ?? POOL.Math;
 
   const current = pool[index];
 
   /* When the selected challenge above changes type, mirror it below: switch to
      that type's sample bank, pin the simulated difficulty to the selection,
-     and jump to the question that matches that tier. */
+     and jump to the question that matches that tier. Randomized picks win. */
   useEffect(() => {
+    if (manual) return;
     if (mirrorType === mirrorSeed) return;
     setMirrorSeed(mirrorType);
     const level = practice?.difficulty ? DIFF_STEPS.indexOf(practice.difficulty) : 1;
     setDiffLevel(level);
-    setIndex(poolIndexFor(level, pool));
+    setIndex(poolIndexFor(level, POOL[mirrorType]));
     setUserAns('');
     setStatus(null);
     setSeconds(0);
-  }, [mirrorType, mirrorSeed, practice?.difficulty, pool]);
+  }, [manual, mirrorType, mirrorSeed, practice?.difficulty]);
 
   useEffect(() => {
     if (!active) return undefined;
@@ -103,6 +106,20 @@ export default function LiveChallengeSimulator({ practice = null }) {
     setSeconds(0);
     setStatus(null);
     setUserAns('');
+  };
+
+  const handleRandomize = () => {
+    const types = Object.keys(POOL);
+    const type = types[Math.floor(Math.random() * types.length)];
+    const level = Math.floor(Math.random() * DIFF_STEPS.length);
+    setManual(true);
+    setMirrorSeed(type);
+    setDiffLevel(level);
+    setIndex(poolIndexFor(level, POOL[type]));
+    setUserAns('');
+    setStatus(null);
+    setSeconds(0);
+    setAnsweredSeconds(0);
   };
 
   const handleCheck = (e) => {
@@ -134,9 +151,9 @@ export default function LiveChallengeSimulator({ practice = null }) {
             <div className="sys-label">Interactive Practice Simulator</div>
             {!active ? (
               <div className="sim-head__sub">
-                {hasMirror
+                {hasMirror && !manual
                   ? `Mirroring your selected ${mirrorType} challenge`
-                  : 'Try a live sample before your next alarm fires.'}
+                  : `Live ${mirrorSeed} sample at ${DIFF_STEPS[diffLevel]}. Press Randomize to switch type and difficulty.`}
               </div>
             ) : (
               <div className="sim-head__question">{current.title}</div>
@@ -152,6 +169,9 @@ export default function LiveChallengeSimulator({ practice = null }) {
               ⏱ <strong className="tabular">{seconds}s</strong>
             </span>
           )}
+          <button type="button" className="btn btn-ghost sim-rand-btn" onClick={handleRandomize} title="Pick a random challenge type and difficulty">
+            <RotateIcon size={14} /> Randomize
+          </button>
         </div>
       </div>
 
@@ -159,9 +179,9 @@ export default function LiveChallengeSimulator({ practice = null }) {
         <div className="sim-idle">
           <div className="sim-idle__copy">
             <p className="text-sm text-muted-600">
-              {hasMirror
+              {hasMirror && !manual
                 ? `Practice the ${mirrorType} sample below. Every answer moves the simulated difficulty, and the question adapts to your tier.`
-                : 'Test your morning cognitive agility on a sample puzzle. Every answer moves the simulated difficulty, and the question adapts to your tier.'}
+                : `Practice a random ${mirrorSeed} sample. Every answer moves the simulated difficulty, and the question adapts to your tier.`}
             </p>
             <button className="btn btn-primary" onClick={handleStart}>
               <SparklesIcon size={16} /> Start Practice Challenge
@@ -170,7 +190,7 @@ export default function LiveChallengeSimulator({ practice = null }) {
 
           <div className="sim-preview" aria-hidden="true">
             <div className="sim-preview__head">
-              <span className="sys-label">Sample Bank{hasMirror ? ` · ${mirrorType}` : ''}</span>
+              <span className="sys-label">Sample Bank · {mirrorSeed}</span>
               <div className="sim-preview__meter" role="img" aria-label="Practice difficulty ladder">
                 {[0, 1, 2, 3, 4].map(i => (
                   <span key={i} className={`sim-preview__seg${i <= diffLevel ? ' is-fill' : ''}`} />
