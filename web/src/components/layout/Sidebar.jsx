@@ -99,7 +99,9 @@ export default function Sidebar({
                         `sidebar-link${isActive ? ' is-active' : ''}`
                       }
                     >
-                      <Icon size={18} />
+                      <span className="sidebar-link__icon">
+                        <Icon size={18} />
+                      </span>
                       <span className="sidebar-link__text">{link.label}</span>
                     </NavLink>
                   </li>

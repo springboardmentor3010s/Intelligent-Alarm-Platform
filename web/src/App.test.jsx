@@ -52,7 +52,7 @@ describe('App navigation (§21 grouping)', () => {
     expect(screen.getAllByText('Account').length).toBeGreaterThan(0);
 
     for (const label of ['Dashboard', 'Analytics', 'Alarms', 'Challenges', 'History', 'Profile', 'Admin']) {
-      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('link', { name: label }).length).toBeGreaterThan(0);
     }
   });
 

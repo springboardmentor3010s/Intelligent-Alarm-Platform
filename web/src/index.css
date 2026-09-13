@@ -98,7 +98,7 @@
 
   /* ---- Shell & Navigation Tokens ------------------------------------- */
   --sidebar-width: 260px;
-  --sidebar-collapsed-width: 80px;
+  --sidebar-collapsed-width: 64px;
   --sidebar-bg: #ffffff;
   --sidebar-border: #e2e8f0;
   --nav-text: #64748b;
@@ -482,48 +482,89 @@ h4 { font-size: 1.15rem; font-weight: 600; }
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.3rem;
 }
 
+.app-shell--collapsed .sidebar-links {
+  align-items: center;
+}
+
+/* Icon-button nav: bare icon + label at rest (no rectangle). On hover a
+   rounded-square background + soft shadow appears behind the icon while the
+   glyph zooms slightly. The active page is accent-colored only, never a
+   background rectangle. Collapsed rail hides the label and shows the icon
+   button alone. */
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.8rem;
+  gap: 0.7rem;
+  padding: 0.4rem 0.65rem;
   border-radius: var(--radius-md);
   color: var(--nav-text);
   text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.15s ease;
+  background: transparent;
+  box-shadow: none;
   position: relative;
 }
 
-.sidebar-link:hover {
-  background: var(--nav-hover-bg);
-  color: var(--text);
+.sidebar-link__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 2.5rem;
+  border-radius: var(--radius-md);
+  background: transparent;
+  box-shadow: none;
+  transition: background-color 0.16s ease, box-shadow 0.16s cubic-bezier(0.16, 1, 0.3, 1), color 0.16s ease;
+}
+
+.sidebar-link__icon svg {
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebar-link__text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .sidebar-link.is-active {
-  background: var(--nav-active-bg);
-  color: var(--nav-active-text);
-  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  box-shadow: none;
 }
 
-.sidebar-link.is-active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 3px;
-  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
-  background: var(--accent);
+.sidebar-link.is-active .sidebar-link__icon svg {
+  transform: scale(1.1);
+}
+
+.sidebar-link:hover {
+  color: var(--text);
+}
+
+.sidebar-link:hover .sidebar-link__icon {
+  background: var(--nav-hover-bg);
+  box-shadow: var(--shadow-md);
+}
+
+.sidebar-link:hover .sidebar-link__icon svg {
+  transform: scale(1.16);
 }
 
 .app-shell--collapsed .sidebar-link {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
   justify-content: center;
-  padding: 0.7rem;
+}
+
+.app-shell--collapsed .sidebar-link__icon {
+  width: 100%;
+  height: 100%;
+  flex-basis: auto;
 }
 
 .app-shell--collapsed .sidebar-link__text {
