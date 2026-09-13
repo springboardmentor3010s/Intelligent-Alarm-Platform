@@ -97,7 +97,7 @@
   --ring-danger: rgba(239, 68, 68, 0.2);
 
   /* ---- Shell & Navigation Tokens ------------------------------------- */
-  --sidebar-width: 260px;
+  --sidebar-width: 224px;
   --sidebar-collapsed-width: 64px;
   --sidebar-bg: #ffffff;
   --sidebar-border: #e2e8f0;
@@ -586,6 +586,11 @@ h4 { font-size: 1.15rem; font-weight: 600; }
   padding: 0.45rem 0.55rem;
   border-radius: var(--radius-md);
   background: var(--surface-2);
+}
+
+.sidebar-logout {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .app-shell--collapsed .sidebar-user__meta,
