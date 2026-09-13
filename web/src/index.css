@@ -47,15 +47,17 @@
   --c-rose-soft: rgba(239, 68, 68, 0.1);
 
   /* ---- Light Surfaces — Material 3 Tonal Hierarchy ------------------- */
-  --bg: #f8fafc;
-  --bg-soft: #f1f5f9;
+  /* Page canvas is a deeper porcelain so white cards/panels read as clearly
+     elevated in light mode (surface vs canvas contrast, not two whites). */
+  --bg: #edf1f6;
+  --bg-soft: #e6ecf3;
   --bg-elevated: #ffffff;
   --surface: #ffffff;
-  --surface-hover: #f8fafc;
-  --surface-2: #f1f5f9;
-  --surface-3: #e2e8f0;
+  --surface-hover: #f3f6fa;
+  --surface-2: #e3e9f1;
+  --surface-3: #d8e1eb;
   --border: #e2e8f0;
-  --border-strong: #cbd5e1;
+  --border-strong: #c9d2de;
   --border-focus: rgba(104, 68, 253, 0.5);
 
   /* ---- Typography (Light Mode) --------------------------------------- */
@@ -116,13 +118,15 @@
 html[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #111826;
-  --bg-soft: #182133;
-  --bg-elevated: #1f2a3e;
-  --surface: rgba(31, 42, 62, 0.8);
-  --surface-hover: rgba(33, 45, 66, 0.95);
-  --surface-2: rgba(49, 64, 90, 0.5);
-  --surface-3: rgba(64, 82, 112, 0.45);
+  /* Solid surfaces for the Obsidian theme: opaque fills keep cards, panels
+     and drawers crisp instead of muddy translucency over the page canvas. */
+  --bg: #10151f;
+  --bg-soft: #171e2c;
+  --bg-elevated: #1c2536;
+  --surface: #191f2f;
+  --surface-hover: #202841;
+  --surface-2: #232c42;
+  --surface-3: #2b3650;
   --border: rgba(255, 255, 255, 0.1);
   --border-strong: rgba(255, 255, 255, 0.16);
   --border-focus: rgba(104, 68, 253, 0.6);
@@ -148,7 +152,7 @@ html[data-theme='dark'] {
   --accent-success: #10b981;
 
   --grad-primary: linear-gradient(135deg, #6844FD 0%, #4E28E0 100%);
-  --grad-card: linear-gradient(180deg, rgba(31, 42, 62, 0.85) 0%, rgba(17, 24, 38, 0.92) 100%);
+  --grad-card: linear-gradient(180deg, #1c2536 0%, #151c2a 100%);
   --grad-hero-glow: radial-gradient(circle at 50% 0%, rgba(104, 68, 253, 0.1) 0%, transparent 65%);
 
   --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
@@ -158,7 +162,7 @@ html[data-theme='dark'] {
   --ring: rgba(104, 68, 253, 0.35);
   --ring-danger: rgba(244, 63, 94, 0.3);
 
-  --sidebar-bg: rgba(11, 15, 25, 0.9);
+  --sidebar-bg: #141b29;
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --nav-text: #94a3b8;
   --nav-hover-bg: rgba(255, 255, 255, 0.05);
@@ -461,6 +465,13 @@ h4 { font-size: 1.15rem; font-weight: 600; }
   padding: 0 0.75rem;
   margin-bottom: 0.35rem;
   display: block;
+}
+
+/* Parent nav group stays emphasized while a child page is active: the label
+   follows the accent so the active section reads as "here" without the bar,
+   which belongs to the exact page link. */
+.sidebar-section__label.is-active {
+  color: var(--accent);
 }
 
 .app-shell--collapsed .sidebar-section__label {
@@ -1130,9 +1141,9 @@ h4 { font-size: 1.15rem; font-weight: 600; }
 }
 
 .badge--mint, .pill-mint {
-  background: var(--c-mint-soft);
-  color: var(--c-violet-dark);
-  border: 1px solid rgba(88, 246, 202, 0.35);
+  background: #d7f7ec;
+  color: #0b4a37;
+  border: 1px solid #86ebce;
 }
 
 .badge--dark, .pill-dark {
@@ -1151,6 +1162,42 @@ h4 { font-size: 1.15rem; font-weight: 600; }
   background: var(--c-rose-soft);
   color: var(--c-rose);
   border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Uniform monochrome chip: black-on-white in light, white-on-black in dark.
+   Used for challenge type labels so every type looks identical and readable. */
+.badge--mono {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid var(--border-strong);
+}
+
+html[data-theme='dark'] .badge--mono {
+  background: #050505;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* Dark-theme badge legibility: translucent "soft" fills over dark surfaces
+   bury purple text. Swap to lighter violet (#8b5cf6, same trick as the hero
+   highlights) and keep the mint chips mint-on-teal so every label stays 4.5:1+. */
+html[data-theme='dark'] .badge--brand,
+html[data-theme='dark'] .pill-brand {
+  color: #8b5cf6;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+html[data-theme='dark'] .badge--warm,
+html[data-theme='dark'] .pill-warm {
+  color: #8b5cf6;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+html[data-theme='dark'] .badge--mint,
+html[data-theme='dark'] .pill-mint {
+  background: rgba(88, 246, 202, 0.16);
+  color: #58f6ca;
+  border-color: rgba(88, 246, 202, 0.5);
 }
 
 /* Thin data-driven progress bar (progressbar role). Tone maps to the
@@ -1408,6 +1455,12 @@ select option {
 
 .grid-cards--metrics {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+/* Perfect 2x2 square bento grid (explicit two columns, never 4-across) */
+.grid-cards--square {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
 }
 
 .quick-actions {
@@ -1700,45 +1753,568 @@ select option {
   gap: 0.65rem;
 }
 
-/* Challenges Page Custom Styling */
+/* ============================================================
+   Challenges Page — AI surface, simulator, filters, catalog
+   ============================================================ */
+
+/* ---- Difficulty laser bar (device-style 5-segment meter) ---- */
+.challenge-laser {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.challenge-laser__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.challenge-laser__label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.challenge-laser__value {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.challenge-laser__track {
+  display: flex;
+  gap: 4px;
+  height: 6px;
+}
+
+.challenge-laser__seg {
+  flex: 1;
+  border-radius: var(--radius-full);
+  background: var(--surface-3);
+}
+
+.challenge-laser__seg.is-fill {
+  background: var(--c-violet);
+}
+
+/* ---- Dominant AI Recommended card ---- */
+.ai-challenge-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--c-violet);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.ai-challenge-card-anchor {
+  min-width: 0;
+}
+
+.ai-challenge-card--fresh {
+  animation: ai-card-in 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ai-card-in {
+  0% {
+    border-color: var(--c-violet);
+    border-right-color: var(--c-violet);
+    border-top-color: var(--c-violet);
+    border-bottom-color: var(--c-violet);
+  }
+  45% {
+    border-color: rgba(104, 68, 253, 0.5);
+  }
+  100% {
+    border-color: var(--border);
+    border-left-color: var(--c-violet);
+  }
+}
+
+.ai-challenge-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ai-challenge-card__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.ai-challenge-card__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: var(--c-violet-soft);
+  color: var(--c-violet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ai-challenge-card__headline {
+  min-width: 0;
+}
+
+.ai-challenge-card__title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin-top: 0.2rem;
+}
+
+.ai-challenge-card__status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ai-challenge-card__desc {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 760px;
+  margin: 0;
+}
+
+.ai-challenge-card__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 0.75rem;
+  padding: 1rem 1.15rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.ai-challenge-card__chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.ai-challenge-card__chip--laser {
+  justify-content: center;
+}
+
+.ai-challenge-card__objective {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--c-violet);
+  line-height: 1.4;
+}
+
+.ai-challenge-card__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.ai-challenge-card__note svg {
+  flex-shrink: 0;
+  color: var(--c-violet);
+  margin-top: 0.15rem;
+}
+
+.ai-challenge-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* ---- Practice simulator surface ---- */
+.challenge-sim-card {
+  background: var(--surface);
+}
+
+.sim-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.sim-head__title {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.sim-head__icon {
+  width: 36px;
+  height: 36px;
+}
+
+.sim-head__sub {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sim-head__question {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.sim-head__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Idle state: balanced copy + compact sample-bank preview (no dead space). */
+.sim-idle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 1.5rem;
+  align-items: center;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.sim-idle__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.sim-idle__copy p {
+  margin: 0;
+  max-width: 46ch;
+  line-height: 1.6;
+}
+
+.sim-preview {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.15rem;
+}
+
+.sim-preview__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.sim-preview__meter {
+  display: flex;
+  gap: 3px;
+  height: 5px;
+  width: 96px;
+}
+
+.sim-preview__seg {
+  flex: 1;
+  border-radius: var(--radius-full);
+  background: var(--surface-3);
+}
+
+.sim-preview__seg.is-fill {
+  background: var(--c-violet);
+}
+
+.sim-preview__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+}
+
+.sim-preview__row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  min-width: 0;
+}
+
+.sim-preview__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--c-violet);
+  flex-shrink: 0;
+}
+
+.sim-preview__type {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--c-violet);
+  flex-shrink: 0;
+}
+
+.sim-preview__q {
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Highlight the sample row that mirrors the currently selected challenge. */
+.sim-preview__row--mirror {
+  background: var(--c-violet-soft);
+  border-radius: var(--radius-md);
+  padding: 0.3rem 0.55rem;
+}
+
+.sim-preview__row--mirror .sim-preview__dot {
+  background: var(--c-violet-dark);
+}
+
+.sim-preview__row--mirror .sim-preview__q {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Active state: question workflow. */
+.sim-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sim-question-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.15rem 1.25rem;
+}
+
+.sim-question-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text);
+  margin-top: 0.4rem;
+  line-height: 1.45;
+}
+
+.sim-hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.6rem;
+}
+
+.sim-answer {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.sim-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sim-feedback__text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Semantic feedback: green for correct, red for incorrect. */
+html[data-theme='dark'] .sim-feedback--ok { color: #6ee7b7; }
+html[data-theme='dark'] .sim-feedback--bad { color: #fca5a5; }
+
+/* ---- Filter surface ---- */
+.challenge-filters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.challenge-filters__row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.challenge-filters__label {
+  min-width: 112px;
+  flex-shrink: 0;
+}
+
+.challenge-type-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.challenge-type-pill {
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.challenge-type-pill:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.challenge-type-pill.is-active {
+  background: var(--grad-primary);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 1px 6px -1px rgba(104, 68, 253, 0.45);
+}
+
+/* ---- Catalog challenge cards ---- */
 .challenge-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
+  gap: 0.75rem;
 }
 
-.challenge-card--active {
-  border-color: var(--c-violet);
-  box-shadow: 0 0 0 1px rgba(104, 68, 253, 0.25);
+.challenge-card--recommended {
+  border-color: rgba(104, 68, 253, 0.45);
+  box-shadow: var(--shadow-md);
 }
 
-.challenge-meta {
+.challenge-card--recommended::before {
+  content: 'RECOMMENDED';
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.28rem 0.7rem;
+  border-radius: 0 var(--radius-lg) 0 var(--radius-md);
+  background: var(--grad-primary);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.challenge-card__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.challenge-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--c-violet-soft);
+  color: var(--c-violet);
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.challenge-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .challenge-title {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 0.35rem;
+  line-height: 1.3;
+}
+
+.challenge-objective {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--c-violet);
+  text-transform: uppercase;
+  line-height: 1.4;
 }
 
 .challenge-desc {
   flex: 1;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .challenge-actions {
-  margin-top: 1.25rem;
-  padding-top: 0.75rem;
+  margin-top: 0.3rem;
+  padding-top: 0.8rem;
   border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.challenge-ml-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.challenge-ml-note svg {
+  color: var(--c-violet);
+}
+
+.challenge-go {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
 }
 
 /* Reports Page */
@@ -1890,8 +2466,8 @@ select option {
   html { scroll-behavior: auto; }
   .lp-chart__line { stroke-dashoffset: 0 !important; transition: none; }
   .lp-panel-in { animation: none !important; }
-  .lp-steps__panel, .lp-faq__a { animation: none !important; }
-  .cc__consistency-fill, .cc__ring-fill, .lp-step, .lp-card, .lp-faq__item { transition: none !important; }
+  .lp-steps__panel, .lp-faq__a, .ai-challenge-card--fresh { animation: none !important; }
+  .cc__consistency-fill, .cc__ring-fill, .lp-step, .lp-card, .lp-faq__item, .lp-faq__panel { transition: none !important; }
 }
 
 /* Smooth scrolling for landing anchor navigation (nav "jump" → glide) */
@@ -2072,7 +2648,7 @@ html { scroll-behavior: smooth; }
 .lp-hero {
   max-width: 1180px;
   margin: 0 auto;
-padding: clamp(4rem, 10vw, 7rem) 1.5rem 3rem;
+  padding: clamp(3rem, 7vw, 5rem) 1.5rem 2.5rem;
   position: relative;
 }
 .lp-hero::before {
@@ -2091,7 +2667,7 @@ padding: clamp(4rem, 10vw, 7rem) 1.5rem 3rem;
 .lp-hero__inner {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3.25rem;
+  gap: 2.5rem;
   align-items: center;
   min-height: 0;
 }
@@ -2107,14 +2683,14 @@ padding: clamp(4rem, 10vw, 7rem) 1.5rem 3rem;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 700;
-  margin-bottom: 1.4rem;
+  margin-bottom: 1.1rem;
 }
 .lp-hero h1 {
-  font-size: clamp(2.25rem, 4.6vw, 3.5rem);
+  font-size: clamp(2.25rem, 4.4vw, 3.35rem);
   font-weight: 800;
   line-height: 1.06;
   letter-spacing: -0.035em;
-  margin-bottom: 1.4rem;
+  margin-bottom: 1.1rem;
   text-wrap: balance;
 }
 .lp-hero h1 em {
@@ -2130,10 +2706,10 @@ html[data-theme='dark'] .lp-hero h1 em .hl--deep { color: #8b5cf6; }
   color: var(--text-muted);
   max-width: 560px;
   line-height: 1.7;
-  margin-bottom: 1.7rem;
+  margin-bottom: 1.4rem;
 }
-.lp-hero__actions { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.9rem; }
-.lp-hero__points { list-style: none; display: flex; flex-direction: column; gap: 0.85rem; }
+.lp-hero__actions { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.5rem; }
+.lp-hero__points { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
 .lp-hero__points li {
   display: flex;
   align-items: center;
@@ -2463,7 +3039,8 @@ html[data-theme='dark'] .lp-hero h1 em .hl--deep { color: #8b5cf6; }
   margin-bottom: 0.4rem;
 }
 .lp-card__icon--violet { background: var(--c-violet-soft); color: var(--c-violet); }
-.lp-card__icon--mint { background: var(--c-mint-soft); color: var(--c-violet-light); }
+.lp-card__icon--mint { background: var(--c-mint-soft); color: #0b4a37; }
+html[data-theme='dark'] .lp-card__icon--mint { color: #58f6ca; }
 .lp-card__icon--dark { background: var(--c-violet-soft); color: var(--c-violet-dark); }
 .lp-card h3 { font-size: 1.22rem; letter-spacing: -0.01em; }
 .lp-card__desc { color: var(--text-muted); font-size: 1rem; line-height: 1.6; }
@@ -3129,13 +3706,21 @@ html[data-theme='dark'] .lp-hero h1 em .hl--deep { color: #8b5cf6; }
 .lp-faq__q[aria-expanded='true'] .lp-faq__plus {
   transform: rotate(45deg);
 }
+.lp-faq__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s ease;
+}
+.lp-faq__panel.is-open { grid-template-rows: 1fr; }
 .lp-faq__a {
-  padding: 0 1.35rem 1.25rem;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 1.35rem;
   color: var(--text-muted);
   line-height: 1.7;
   font-size: 0.98rem;
-  animation: lp-panel-in 0.22s ease;
 }
+.lp-faq__a p { margin: 0; padding-bottom: 1.25rem; }
 
 /* ---- Final CTA ---- */
 .lp-final { padding: 2.5rem 1.5rem 4rem; }
@@ -4518,6 +5103,99 @@ html[data-theme='dark'] .auth-visual__travel {
   justify-content: space-between;
 }
 
+/* ---- Bento tile: numbered chunk with corner brackets ---- */
+.bento-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  min-width: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bento-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.bento-tile::before,
+.bento-tile::after {
+  content: '';
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  pointer-events: none;
+  z-index: 1;
+  transition: width 0.2s ease, height 0.2s ease;
+}
+
+.bento-tile::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--c-violet);
+  border-left: 2px solid var(--c-violet);
+  border-top-left-radius: var(--radius-lg);
+}
+
+.bento-tile::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--c-violet);
+  border-right: 2px solid var(--c-violet);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+.bento-tile:hover::before,
+.bento-tile:hover::after {
+  width: 22px;
+  height: 22px;
+}
+
+.bento-tile__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.bento-tile__num {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--c-violet-soft);
+  border: 1px solid rgba(104, 68, 253, 0.35);
+  color: var(--c-violet);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bento-tile__head-text {
+  min-width: 0;
+}
+
+.bento-tile__title {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin-top: 0.15rem;
+}
+
+.bento-tile__value {
+  margin-left: auto;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.bento-tile__chart.chart-card {
+  height: 250px;
+}
+
 .telemetry-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -4673,4 +5351,41 @@ html[data-theme='dark'] .auth-visual__travel {
 
 @media (prefers-reduced-motion: reduce) {
   .lp-fling__tile { animation: none; }
+}
+
+/* ============================================================
+   Challenges page responsive pass
+   ============================================================ */
+@media (max-width: 900px) {
+  .sim-idle {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.1rem;
+  }
+
+  .grid-cards--square {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .sim-answer {
+    flex-wrap: wrap;
+  }
+
+  .sim-answer .form-input {
+    flex: 1 1 100%;
+  }
+
+  .sim-head__sub {
+    white-space: normal;
+  }
+
+  .challenge-filters__label {
+    min-width: 100%;
+  }
+
+  .ai-challenge-card__meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

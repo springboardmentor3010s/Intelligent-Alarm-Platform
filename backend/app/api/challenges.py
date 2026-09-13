@@ -55,7 +55,7 @@ async def get_next_challenge(
     challenge, attempt = await ChallengeService.get_adaptive_challenge(
         db,
         current_user.id,
-        current_difficulty=difficulty or "Medium",
+        current_difficulty=difficulty,
         challenge_type=challenge_type,
         question_count=question_count,
     )

@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, Grid } from '../styles';
 import {
   Badge,
-  DifficultyBadge,
   EmptyState,
   Skeleton,
   SparklesIcon,
   PlayIcon,
+  RotateIcon,
+  BrainIcon,
   SectionHeader,
   ActivityIcon,
+  AlertCircleIcon,
+  CheckCircleIcon,
   LiveChallengeSimulator,
 } from '../components/ui';
 
@@ -16,49 +19,141 @@ const TYPE_CONFIG = {
   Math: {
     objective: 'Numerical Acuity & Working Memory',
     desc: 'Rapid arithmetic operations and numerical relations designed to activate parietal cortex pathways.',
-    badgeTone: 'brand',
     icon: '∑',
   },
   Logic: {
     objective: 'Deductive Reasoning & Executive Control',
     desc: 'Structured propositional logic and deductive puzzles to engage the dorsolateral prefrontal cortex.',
-    badgeTone: 'brand',
     icon: '⬡',
   },
   Memory: {
     objective: 'Short-term Recall & Sequence Retention',
     desc: 'Visual recall and spatial patterns targeting hippocampal activation and focus stabilization.',
-    badgeTone: 'mint',
     icon: '◈',
   },
   Word: {
     objective: 'Semantic Retrieval & Verbal Fluency',
     desc: 'Anagram deciphering and lexical association tasks to quickly ignite the language centers.',
-    badgeTone: 'warm',
     icon: 'Aa',
   },
   Pattern: {
     objective: 'Visuospatial Pattern Recognition',
     desc: 'Cyclical pattern extrapolation and geometric sequence inference.',
-    badgeTone: 'brand',
     icon: '❖',
   },
   Riddle: {
     objective: 'Lateral Thinking & Creative Insight',
     desc: 'Contextual inference and abstract thinking challenges to break morning cognitive rigidity.',
-    badgeTone: 'subtle',
     icon: '?',
   },
   QuickQuiz: {
     objective: 'Rapid Semantic Fact Retrieval',
     desc: 'Fact verification and quick-fire trivia testing immediate neural responsiveness.',
-    badgeTone: 'brand',
     icon: '⚡',
   },
 };
 
 const TYPES = ['All', 'Math', 'Logic', 'Memory', 'Word', 'Pattern', 'Riddle', 'QuickQuiz'];
 const DIFFICULTIES = ['All Levels', 'Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
+
+const DIFF_INDEX = { Beginner: 1, Easy: 2, Medium: 3, Hard: 4, Expert: 5 };
+
+/**
+ * Five-segment "laser bar" that visualizes a challenge's difficulty tier.
+ * Filled segments read violet; the track reads as a device surface.
+ */
+function DifficultyLaser({ difficulty }) {
+  const level = DIFF_INDEX[difficulty] || 1;
+  return (
+    <div className="challenge-laser">
+      <div className="challenge-laser__head">
+        <span className="challenge-laser__label">Difficulty</span>
+        <span className="challenge-laser__value">{difficulty}</span>
+      </div>
+      <div
+        className="challenge-laser__track"
+        role="img"
+        aria-label={`Difficulty level ${level} of ${Object.keys(DIFF_INDEX).length}`}
+      >
+        {Object.keys(DIFF_INDEX).map((d, i) => (
+          <span
+            key={d}
+            className={`challenge-laser__seg${i < level ? ' is-fill' : ''}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Dominant "AI in-flight model" card. Reads like a live product surface:
+ * model status, tuned chip, type/objective/laser meta, and edge-case note.
+ */
+function AiRecommendedCard({ challenge, generating, onSet, onSurprise, flash, setting = false }) {
+  const typeInfo = TYPE_CONFIG[challenge.challenge_type] || {};
+  return (
+    <Card className={`ai-challenge-card${flash ? ' ai-challenge-card--fresh' : ''}`}>
+      <div className="ai-challenge-card__head">
+        <div className="ai-challenge-card__identity">
+          <span className="ai-challenge-card__icon">
+            <SparklesIcon size={20} />
+          </span>
+          <div className="ai-challenge-card__headline">
+            <span className="sys-label">AI Recommended Next Challenge</span>
+            <div className="ai-challenge-card__title">
+              {challenge.title || `${challenge.challenge_type} Challenge`}
+            </div>
+          </div>
+        </div>
+        <div className="ai-challenge-card__status">
+          <span className="pill pill-success">
+            <span className="led led--on" aria-hidden="true" /> Model online
+          </span>
+          <span className="pill pill-brand">Adaptive ML</span>
+        </div>
+      </div>
+
+      <p className="ai-challenge-card__desc">
+        {typeInfo.desc ||
+          'Calibrated to your performance curve to stimulate prefrontal neural firing.'}
+      </p>
+
+      <div className="ai-challenge-card__meta">
+        <span className="ai-challenge-card__chip">
+          <span className="sys-label">Type</span>
+          <Badge tone="mono">{challenge.challenge_type}</Badge>
+        </span>
+        <span className="ai-challenge-card__chip">
+          <span className="sys-label">Objective</span>
+          <span className="ai-challenge-card__objective">
+            {typeInfo.objective || 'Cognitive Focus'}
+          </span>
+        </span>
+        <span className="ai-challenge-card__chip ai-challenge-card__chip--laser">
+          <DifficultyLaser difficulty={challenge.difficulty} />
+        </span>
+      </div>
+
+      <div className="ai-challenge-card__note">
+        <BrainIcon size={15} />
+        <span>
+          A live model surface: difficulty adapts to your recent attempts, none of the copy above
+          is placeholder filler.
+        </span>
+      </div>
+
+      <div className="ai-challenge-card__actions">
+        <button className="btn btn-primary" onClick={onSet} disabled={generating || setting}>
+          <PlayIcon size={15} /> {setting ? 'Setting…' : 'Set as Wake Gate'}
+        </button>
+        <button className="btn btn-ghost" onClick={onSurprise} disabled={generating}>
+          <RotateIcon size={14} /> Surprise me
+        </button>
+      </div>
+    </Card>
+  );
+}
 
 export default function ChallengeGenerator() {
   const [challenges, setChallenges] = useState([]);
@@ -69,6 +164,19 @@ export default function ChallengeGenerator() {
   const [recommendedChallenge, setRecommendedChallenge] = useState(null);
   const [selectedType, setSelectedType] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All Levels');
+  const [justPicked, setJustPicked] = useState(false);
+  const [savingAlarm, setSavingAlarm] = useState(false);
+  const [wakeNotice, setWakeNotice] = useState(null); // { ok: bool, text } for Set as Wake Gate
+  const aiCardRef = useRef(null);
+
+  /* After a user pick, bring the AI card into view and flash its border so the
+     "clicked card -> next challenge" hand-off is obvious. */
+  useEffect(() => {
+    if (!justPicked || !recommendedChallenge) return undefined;
+    aiCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const t = setTimeout(() => setJustPicked(false), 1400);
+    return () => clearTimeout(t);
+  }, [justPicked, recommendedChallenge]);
 
   useEffect(() => {
     fetch('/api/v1/challenges', {
@@ -113,10 +221,65 @@ export default function ChallengeGenerator() {
       }
       const data = await res.json();
       setRecommendedChallenge(data);
+      setJustPicked(true);
     } catch (err) {
       setError(err.message);
     } finally {
       setGenerating(false);
+    }
+  };
+
+  /* "Set as Wake Gate" creates a real Daily alarm wired to the recommended
+     challenge (type + difficulty), instead of the previous no-op that merely
+     regenerated the same challenge. Skips creation when an identical Daily
+     wake gate is already active for this user. */
+  const setAsWakeGate = async () => {
+    if (!recommendedChallenge || savingAlarm) return;
+    setSavingAlarm(true);
+    setWakeNotice(null);
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+    try {
+      const existing = await fetch('/api/v1/alarms', { headers });
+      const myAlarms = existing.ok ? await existing.json() : [];
+      const duplicate = Array.isArray(myAlarms) && myAlarms.some(a =>
+        a.is_enabled &&
+        a.alarm_type === 'Daily' &&
+        a.challenge_type === recommendedChallenge.challenge_type &&
+        a.difficulty === recommendedChallenge.difficulty
+      );
+      if (duplicate) {
+        setWakeNotice({
+          ok: true,
+          text: `Already active: your ${recommendedChallenge.difficulty} ${recommendedChallenge.challenge_type} wake gate is already set.`,
+        });
+        return;
+      }
+      const res = await fetch('/api/v1/alarms', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          title: `${recommendedChallenge.challenge_type} Wake Gate`,
+          type: 'Daily',
+          time: '07:00',
+          challenge_type: recommendedChallenge.challenge_type,
+          difficulty: recommendedChallenge.difficulty,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.detail || 'Could not set wake gate');
+      }
+      setWakeNotice({
+        ok: true,
+        text: `Wake gate set: ${recommendedChallenge.challenge_type} at ${recommendedChallenge.difficulty} difficulty, daily 07:00.`,
+      });
+    } catch (err) {
+      setWakeNotice({ ok: false, text: err.message });
+    } finally {
+      setSavingAlarm(false);
     }
   };
 
@@ -162,66 +325,44 @@ export default function ChallengeGenerator() {
 
       {error && <div className="banner banner-warning">{error}</div>}
 
-      {/* Dominant Recommended / Current Challenge Hero */}
+      {/* Dominant AI Recommended / Current Challenge surface */}
       {recommendedChallenge && (
-        <Card
-          className="mb-6"
-          style={{
-            borderLeft: '4px solid var(--c-violet)',
-            background: 'linear-gradient(135deg, var(--surface) 0%, var(--c-violet-soft) 100%)',
-            boxShadow: 'var(--shadow-md)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-            <span className="sys-label">
-              <span className="led led--on led--live" style={{ marginRight: '0.3rem' }} />
-              AI Recommended Next Challenge
-            </span>
-            <div style={{ display: 'flex', gap: '0.4rem' }}>
-              <Badge tone="brand">{recommendedChallenge.challenge_type}</Badge>
-              <DifficultyBadge difficulty={recommendedChallenge.difficulty} />
-            </div>
-          </div>
+        <div ref={aiCardRef} className="ai-challenge-card-anchor">
+          <AiRecommendedCard
+            challenge={recommendedChallenge}
+            generating={generating}
+            flash={justPicked}
+            setting={savingAlarm}
+            onSet={setAsWakeGate}
+            onSurprise={() => generateNext()}
+          />
+        </div>
+      )}
 
-          <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text)' }}>
-            {recommendedChallenge.title || `${recommendedChallenge.challenge_type} Challenge`}
-          </div>
-
-          <p className="text-sm text-muted-600 mt-1" style={{ maxWidth: '720px' }}>
-            {TYPE_CONFIG[recommendedChallenge.challenge_type]?.desc ||
-              'Calibrated to your performance curve to stimulate prefrontal neural firing.'}
-          </p>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1.15rem', flexWrap: 'wrap' }}>
-            <button
-              className="btn btn-primary"
-              onClick={() => generateNext(recommendedChallenge.challenge_type, recommendedChallenge.difficulty)}
-              disabled={generating}
-            >
-              <PlayIcon size={15} /> Set as Wake Gate
-            </button>
-            <span className="text-xs text-muted-600">
-              Objective: <strong>{TYPE_CONFIG[recommendedChallenge.challenge_type]?.objective || 'Cognitive Focus'}</strong>
-            </span>
-          </div>
-        </Card>
+      {wakeNotice && (
+        <div className={`banner ${wakeNotice.ok ? 'banner-success' : 'banner-error'} mt-3`} role="status">
+          {wakeNotice.ok ? (
+            <CheckCircleIcon size={17} />
+          ) : (
+            <AlertCircleIcon size={17} />
+          )}
+          <span>{wakeNotice.text}</span>
+        </div>
       )}
 
       {/* Interactive Hands-On Practice Simulator */}
-      <div className="mb-4">
-        <LiveChallengeSimulator />
-      </div>
+      <LiveChallengeSimulator practice={recommendedChallenge} />
 
-      {/* Filtering & Grouping Bar */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-          <span className="sys-label" style={{ minWidth: '90px' }}>Cognitive Type:</span>
-          <div className="segmented" style={{ flexWrap: 'wrap' }}>
+      {/* Filtering & Grouping surface */}
+      <div className="challenge-filters">
+        <div className="challenge-filters__row">
+          <span className="sys-label challenge-filters__label">Cognitive Type</span>
+          <div className="challenge-type-pills" role="group" aria-label="Filter by cognitive type">
             {TYPES.map(t => (
               <button
                 key={t}
                 type="button"
-                className={selectedType === t ? 'is-active' : ''}
+                className={`challenge-type-pill${selectedType === t ? ' is-active' : ''}`}
                 onClick={() => setSelectedType(t)}
               >
                 {t}
@@ -230,9 +371,9 @@ export default function ChallengeGenerator() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-          <span className="sys-label" style={{ minWidth: '90px' }}>Difficulty:</span>
-          <div className="segmented" style={{ flexWrap: 'wrap' }}>
+        <div className="challenge-filters__row">
+          <span className="sys-label challenge-filters__label">Difficulty</span>
+          <div className="segmented" role="group" aria-label="Filter by difficulty">
             {DIFFICULTIES.map(d => (
               <button
                 key={d}
@@ -271,45 +412,36 @@ export default function ChallengeGenerator() {
         <Grid>
           {filtered.map(challenge => {
             const typeInfo = TYPE_CONFIG[challenge.challenge_type] || {};
+            const isRecommended = recommendedChallenge?.id === challenge.id;
             return (
-              <Card key={challenge.id} className="challenge-card">
-                <div>
-                  <div className="challenge-meta">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '26px',
-                          height: '26px',
-                          borderRadius: 'var(--radius-sm)',
-                          background: 'var(--c-violet-soft)',
-                          color: 'var(--c-violet)',
-                          fontWeight: 700,
-                          fontSize: '0.8rem',
-                        }}
-                      >
-                        {typeInfo.icon || '✦'}
-                      </span>
-                      <Badge tone={typeInfo.badgeTone || 'subtle'}>{challenge.challenge_type}</Badge>
-                    </div>
-                    <DifficultyBadge difficulty={challenge.difficulty} />
+              <Card
+                key={challenge.id}
+                className={`challenge-card${isRecommended ? ' challenge-card--recommended' : ''}`}
+              >
+                <div className="challenge-card__head">
+                  <span className="challenge-card__icon">
+                    {typeInfo.icon || '✦'}
+                  </span>
+                  <div className="challenge-card__badges">
+                    <Badge tone="mono">{challenge.challenge_type}</Badge>
+                    <Badge tone="mono">{challenge.difficulty}</Badge>
                   </div>
-
-                  <div className="challenge-title">{challenge.title}</div>
-                  <div className="text-xs text-muted-600 mb-2" style={{ fontWeight: 600, color: 'var(--c-violet)' }}>
-                    {typeInfo.objective || 'Prefrontal Activation'}
-                  </div>
-                  <p className="text-sm text-muted-600 challenge-desc">
-                    {challenge.description || typeInfo.desc || `${challenge.challenge_type} puzzle`}
-                  </p>
                 </div>
 
+                <div className="challenge-title">{challenge.title}</div>
+                <div className="challenge-objective">{typeInfo.objective || 'Prefrontal Activation'}</div>
+                <p className="text-sm text-muted-600 challenge-desc">
+                  {challenge.description || typeInfo.desc || `${challenge.challenge_type} puzzle`}
+                </p>
+
+                <DifficultyLaser difficulty={challenge.difficulty} />
+
                 <div className="challenge-actions">
-                  <span className="text-xs text-muted-600">Adaptive ML Ready</span>
+                  <span className="challenge-ml-note">
+                    <ActivityIcon size={13} /> Adaptive ML
+                  </span>
                   <button
-                    className="btn btn-ghost"
+                    className="btn btn-primary challenge-go"
                     onClick={() => generateNext(challenge.challenge_type, challenge.difficulty)}
                     disabled={generating}
                     title="Generate and set this challenge"

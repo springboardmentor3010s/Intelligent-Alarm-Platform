@@ -13,7 +13,7 @@ import {
   AuthVisual,
   AuthWakeCard,
 } from '../components/auth';
-import { TimezonePicker } from '../components/ui';
+import { TimezonePicker, AlertCircleIcon, CheckCircleIcon } from '../components/ui';
 import { browserTimeZone } from '../utils/timezones';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -213,7 +213,12 @@ timezone: browserTimeZone(),
           role="alert"
           aria-live="assertive"
         >
-          {message.type === 'error' ? '⚠️' : '✓'} {message.text}
+          {message.type === 'error' ? (
+            <AlertCircleIcon size={16} />
+          ) : (
+            <CheckCircleIcon size={16} />
+          )}{' '}
+          {message.text}
         </div>
       )}
 

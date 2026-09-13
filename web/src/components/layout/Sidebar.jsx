@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { NAV_SECTIONS } from '../../navSections';
 import {
   BrandLogo,
@@ -18,6 +18,17 @@ import {
  * - onNavigate: called after any navigation (closes the mobile drawer)
  * - onLogout: preserves the existing logout behaviour
  */
+/** Matches App.jsx breadcrumb logic: which nav section owns the current route. */
+function activeSectionLabel(pathname) {
+  for (const section of NAV_SECTIONS) {
+    const hit = section.links.some(l =>
+      l.to === '/' ? pathname === '/' : pathname.startsWith(l.to)
+    );
+    if (hit) return section.label;
+  }
+  return null;
+}
+
 export default function Sidebar({
   name = 'User',
   email = '',
@@ -27,6 +38,9 @@ export default function Sidebar({
   onNavigate,
   onLogout,
 }) {
+  const { pathname } = useLocation();
+  const activeSection = activeSectionLabel(pathname);
+
   return (
     <aside className="app-sidebar">
       <div className="sidebar-head">
@@ -65,7 +79,11 @@ export default function Sidebar({
       <nav className="sidebar-nav" aria-label="Primary navigation">
         {NAV_SECTIONS.map(section => (
           <div className="sidebar-section" key={section.label}>
-            <span className="sidebar-section__label">{section.label}</span>
+            <span
+              className={`sidebar-section__label${section.label === activeSection ? ' is-active' : ''}`}
+            >
+              {section.label}
+            </span>
             <ul className="sidebar-links">
               {section.links.map(link => {
                 const Icon = link.icon;

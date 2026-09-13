@@ -1,34 +1,102 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../../styles';
-import { SparklesIcon, CheckCircleIcon } from './Icons';
+import { SparklesIcon, CheckCircleIcon, BrainIcon } from './Icons';
 
-const DEMO_PUZZLES = [
-  { type: 'Math', title: 'Speed Arithmetic', question: 'What is 18 × 7 + 14?', answer: '140', hint: 'Multiply 18 × 7 first' },
-  { type: 'Pattern', title: 'Sequence Logic', question: 'Find next: 3, 9, 27, 81, ?', answer: '243', hint: 'Powers of 3' },
-  { type: 'Word', title: 'Anagram Unscramble', question: 'Unscramble: K O G N I T', answer: 'KOGNIT', hint: 'Platform name' },
-  { type: 'Logic', title: 'Cognitive Deduction', question: 'If 3 cats catch 3 mice in 3 minutes, how many cats catch 100 mice in 100 minutes?', answer: '3', hint: 'Think rate per cat' },
-];
+/* Per-type sample banks with one question per difficulty tier. The simulator
+   advances to the question matching the adaptive difficulty after every answer,
+   so the practice surface visibly adapts (harder samples as you climb). */
+const POOL = {
+  Math: [
+    { type: 'Math', tag: 'Easy', title: 'Quick Multiply', question: 'What is 12 × 4?', answer: '48' },
+    { type: 'Math', tag: 'Medium', title: 'Speed Arithmetic', question: 'What is 18 × 7 + 14?', answer: '140' },
+    { type: 'Math', tag: 'Hard', title: 'Root Sprint', question: 'Add 8 to the square root of 144 (give one number)', answer: '20' },
+    { type: 'Math', tag: 'Expert', title: 'Bodmas Sprint', question: 'Solve: (6 × 3) ÷ 2 + 10 - 3', answer: '16' },
+  ],
+  Logic: [
+    { type: 'Logic', tag: 'Easy', title: 'Sibling Logic', question: 'A father has 3 sons and each son has 1 sister. How many children does he have?', answer: '4' },
+    { type: 'Logic', tag: 'Medium', title: 'Cognitive Deduction', question: 'If 3 cats catch 3 mice in 3 minutes, how many cats catch 100 mice in 100 minutes?', answer: '3' },
+    { type: 'Logic', tag: 'Hard', title: 'Truth Table', question: 'One box has gold. A sign on box 2 says "The gold is in the other box." The sign lies. Which box holds the gold? (answer 1 or 2)', answer: '2' },
+    { type: 'Logic', tag: 'Expert', title: 'Deadline Math', question: 'A train departs at 9:15 and takes 85 minutes. What time does it arrive? (24h HH:MM)', answer: '10:40' },
+  ],
+  Memory: [
+    { type: 'Memory', tag: 'Easy', title: 'Span Recall', question: 'Recall the sequence: 5, 8, 2. Which number appeared second?', answer: '8' },
+    { type: 'Memory', tag: 'Medium', title: 'Digit Span', question: 'Recall the sequence: 7 2 9 4 5 8. Which number came 3rd?', answer: '9' },
+    { type: 'Memory', tag: 'Hard', title: 'Letter Trace', question: 'Recall: C A T. What was the 2nd letter?', answer: 'A' },
+    { type: 'Memory', tag: 'Expert', title: 'Spatial Recall', question: 'Memorize: 3 9 1 7 4 2 8. Which position is the number 4 in? (answer a digit)', answer: '5' },
+  ],
+  Word: [
+    { type: 'Word', tag: 'Easy', title: 'Anagram Start', question: 'Unscramble: P A E L (it comes before fall, 4 letters)', answer: 'LEAP' },
+    { type: 'Word', tag: 'Medium', title: 'Anagram Unscramble', question: 'Unscramble: N T I K O G', answer: 'KOGNIT' },
+    { type: 'Word', tag: 'Hard', title: 'Bird Unscramble', question: 'Unscramble: S R U H T H (a small songbird, 6 letters)', answer: 'THRUSH' },
+    { type: 'Word', tag: 'Expert', title: 'Double Meaning', question: 'Which word means both a fruit and a computer company? (5 letters)', answer: 'APPLE' },
+  ],
+  Pattern: [
+    { type: 'Pattern', tag: 'Easy', title: 'Even Steps', question: 'Find next: 2, 4, 6, 8, ?', answer: '10' },
+    { type: 'Pattern', tag: 'Medium', title: 'Sequence Logic', question: 'Find next: 3, 9, 27, 81, ?', answer: '243' },
+    { type: 'Pattern', tag: 'Hard', title: 'Fibonacci Run', question: 'Find next: 1, 1, 2, 3, 5, 8, ?', answer: '13' },
+    { type: 'Pattern', tag: 'Expert', title: 'Wave Cycle', question: 'Find next: 10, 20, 10, 20, 10, ?', answer: '20' },
+  ],
+  Riddle: [
+    { type: 'Riddle', tag: 'Easy', title: 'Face Time', question: 'What has a face and two hands but no arms? (one word)', answer: 'CLOCK' },
+    { type: 'Riddle', tag: 'Medium', title: 'Morning Riddle', question: 'I have keys but no locks, I have space but no room. What am I? (one word)', answer: 'KEYBOARD' },
+    { type: 'Riddle', tag: 'Hard', title: 'Leaving Trace', question: 'The more you take, the more you leave behind. What are they? (one word)', answer: 'STEPS' },
+    { type: 'Riddle', tag: 'Expert', title: 'Drying Out', question: 'What gets wetter the more it dries? (one word)', answer: 'TOWEL' },
+  ],
+  QuickQuiz: [
+    { type: 'QuickQuiz', tag: 'Easy', title: 'Week Count', question: 'How many days in a week? (one word)', answer: 'SEVEN' },
+    { type: 'QuickQuiz', tag: 'Medium', title: 'Fact Sprint', question: 'Which planet is called the Red Planet? (one word)', answer: 'MARS' },
+    { type: 'QuickQuiz', tag: 'Hard', title: 'Liquid Metal', question: 'Which metal is liquid at room temperature? (one word)', answer: 'MERCURY' },
+    { type: 'QuickQuiz', tag: 'Expert', title: 'First Steps', question: 'Who was the first person to step on the Moon? (surname)', answer: 'ARMSTRONG' },
+  ],
+};
 
 const DIFF_STEPS = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
-const DIFF_TONE = ['success', 'brand', 'warm', 'warm', 'danger'];
 
-export default function LiveChallengeSimulator() {
-  const [index, setIndex] = useState(0);
+function poolIndexFor(level, pool) {
+  const tag = DIFF_STEPS[level];
+  const found = pool.findIndex(q => q.tag === tag);
+  return found >= 0 ? found : Math.min(Math.max(level - 1, 0), pool.length - 1);
+}
+
+export default function LiveChallengeSimulator({ practice = null }) {
+  const hasMirror = practice?.challenge_type && POOL[practice.challenge_type];
+  const mirrorType = hasMirror ? practice.challenge_type : 'Math';
+  const pool = POOL[mirrorType];
+
+  const [index, setIndex] = useState(() =>
+    poolIndexFor(practice?.difficulty ? DIFF_STEPS.indexOf(practice.difficulty) : 1, pool)
+  );
   const [userAns, setUserAns] = useState('');
   const [status, setStatus] = useState(null); // 'correct' | 'wrong' | null
   const [seconds, setSeconds] = useState(0);
+  const [answeredSeconds, setAnsweredSeconds] = useState(0);
   const [active, setActive] = useState(false);
-  const [diffLevel, setDiffLevel] = useState(1); // index into DIFF_STEPS
+  const [diffLevel, setDiffLevel] = useState(() =>
+    practice?.difficulty ? DIFF_STEPS.indexOf(practice.difficulty) : 1
+  );
+  const [mirrorSeed, setMirrorSeed] = useState(mirrorType);
 
-  const current = DEMO_PUZZLES[index];
+  const current = pool[index];
+
+  /* When the selected challenge above changes type, mirror it below: switch to
+     that type's sample bank, pin the simulated difficulty to the selection,
+     and jump to the question that matches that tier. */
+  useEffect(() => {
+    if (mirrorType === mirrorSeed) return;
+    setMirrorSeed(mirrorType);
+    const level = practice?.difficulty ? DIFF_STEPS.indexOf(practice.difficulty) : 1;
+    setDiffLevel(level);
+    setIndex(poolIndexFor(level, pool));
+    setUserAns('');
+    setStatus(null);
+    setSeconds(0);
+  }, [mirrorType, mirrorSeed, practice?.difficulty, pool]);
 
   useEffect(() => {
-    let timer;
-    if (active && status !== 'correct') {
-      timer = setInterval(() => setSeconds(s => s + 1), 1000);
-    }
+    if (!active) return undefined;
+    const timer = setInterval(() => setSeconds(s => s + 1), 1000);
     return () => clearInterval(timer);
-  }, [active, status]);
+  }, [active]);
 
   const handleStart = () => {
     setActive(true);
@@ -40,103 +108,131 @@ export default function LiveChallengeSimulator() {
   const handleCheck = (e) => {
     e.preventDefault();
     if (!userAns.trim()) return;
-    if (userAns.trim().toUpperCase() === current.answer.toUpperCase()) {
-      setStatus('correct');
-      // Adaptive ML difficulty: correct answers push the level up
-      setDiffLevel(d => Math.min(d + 1, DIFF_STEPS.length - 1));
-    } else {
-      setStatus('wrong');
-      // Wrong answers pull the level back down for recovery
-      setDiffLevel(d => Math.max(d - 1, 0));
-    }
-  };
-
-  const handleNext = () => {
-    setIndex((index + 1) % DEMO_PUZZLES.length);
+    const isCorrect = userAns.trim().toUpperCase() === current.answer.toUpperCase();
+    const answeredIn = seconds;
+    const level = isCorrect
+      ? Math.min(diffLevel + 1, DIFF_STEPS.length - 1)
+      : Math.max(diffLevel - 1, 0);
+    setDiffLevel(level);
+    setAnsweredSeconds(answeredIn);
+    setStatus(isCorrect ? 'correct' : 'wrong');
+    /* Advance to the next tier-matched question so the surface visibly adapts. */
+    setIndex(poolIndexFor(level, pool));
     setUserAns('');
-    setStatus(null);
     setSeconds(0);
-    setActive(true);
   };
 
   const isHighDiff = diffLevel >= 3;
+  const previewRows = [pool[index], pool[(index + 1) % pool.length], pool[(index + 2) % pool.length]];
 
   return (
-    <Card className="p-6 challenge-sim-card">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span className="stat-card__icon" style={{ width: '36px', height: '36px' }}><SparklesIcon size={18} /></span>
+    <Card className="p-5 challenge-sim-card">
+      <div className="sim-head">
+        <div className="sim-head__title">
+          <span className="stat-card__icon sim-head__icon"><SparklesIcon size={17} /></span>
           <div>
             <div className="sys-label">Interactive Practice Simulator</div>
-            <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>{current.title}</div>
+            {!active ? (
+              <div className="sim-head__sub">
+                {hasMirror
+                  ? `Mirroring your selected ${mirrorType} challenge`
+                  : 'Try a live sample before your next alarm fires.'}
+              </div>
+            ) : (
+              <div className="sim-head__question">{current.title}</div>
+            )}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="sim-head__meta">
           <span className={`pill ${isHighDiff ? 'pill-brand' : 'pill-success'}`} title="Simulated adaptive ML difficulty, adjusted by your answers">
             Adaptive ML · <strong>{DIFF_STEPS[diffLevel]}</strong>
           </span>
-          <span className="pill pill-neutral">
-            ⏱ <strong className="tabular">{seconds}s</strong>
-          </span>
+          {active && (
+            <span className="pill pill-neutral">
+              ⏱ <strong className="tabular">{seconds}s</strong>
+            </span>
+          )}
         </div>
       </div>
 
       {!active ? (
-        <div style={{ textAlign: 'center', padding: '1.5rem 1rem' }}>
-          <p className="text-sm text-muted-600" style={{ marginBottom: '1.25rem' }}>
-            Test your morning cognitive agility with a live sample puzzle before your next alarm fires.
-          </p>
-          <button className="btn btn-primary" onClick={handleStart}>
-            <SparklesIcon size={16} /> Start Practice Challenge
-          </button>
+        <div className="sim-idle">
+          <div className="sim-idle__copy">
+            <p className="text-sm text-muted-600">
+              {hasMirror
+                ? `Practice the ${mirrorType} sample below. Every answer moves the simulated difficulty, and the question adapts to your tier.`
+                : 'Test your morning cognitive agility on a sample puzzle. Every answer moves the simulated difficulty, and the question adapts to your tier.'}
+            </p>
+            <button className="btn btn-primary" onClick={handleStart}>
+              <SparklesIcon size={16} /> Start Practice Challenge
+            </button>
+          </div>
+
+          <div className="sim-preview" aria-hidden="true">
+            <div className="sim-preview__head">
+              <span className="sys-label">Sample Bank{hasMirror ? ` · ${mirrorType}` : ''}</span>
+              <div className="sim-preview__meter" role="img" aria-label="Practice difficulty ladder">
+                {[0, 1, 2, 3, 4].map(i => (
+                  <span key={i} className={`sim-preview__seg${i <= diffLevel ? ' is-fill' : ''}`} />
+                ))}
+              </div>
+            </div>
+            <ul className="sim-preview__list">
+              {previewRows.map((p, i) => (
+                <li
+                  key={`${p.tag}-${i}`}
+                  className={`sim-preview__row${i === 0 ? ' sim-preview__row--mirror' : ''}`}
+                >
+                  <span className="sim-preview__dot" />
+                  <span className="sim-preview__type">{p.type}</span>
+                  <span className="sim-preview__q">{p.question}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       ) : (
-        <div className="sim-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="sim-question-box" style={{ background: 'var(--surface-2)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-            <div className="sys-label" style={{ marginBottom: '0.35rem' }}>
+        <div className="sim-body">
+          <div className="sim-question-box">
+            <div className="sys-label">
               <span className="led led--on led--live" style={{ marginRight: '0.3rem' }} />
               Question · {current.type} ({DIFF_STEPS[diffLevel]} difficulty)
             </div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-              {current.question}
-            </div>
-            {status === 'wrong' && (
-              <div className="text-xs text-muted-600" style={{ marginTop: '0.5rem' }}>
-                Hint: {current.hint}
-              </div>
-            )}
+            <div className="sim-question-text">{current.question}</div>
           </div>
 
-          <form onSubmit={handleCheck} style={{ display: 'flex', gap: '0.75rem' }}>
+          <form onSubmit={handleCheck} className="sim-answer">
             <input
               type="text"
               className="form-input"
               placeholder="Type your answer..."
               value={userAns}
               onChange={(e) => setUserAns(e.target.value)}
-              disabled={status === 'correct'}
               autoFocus
             />
-            <button type="submit" className="btn btn-primary" disabled={status === 'correct' || !userAns.trim()}>
+            <button type="submit" className="btn btn-primary" disabled={!userAns.trim()}>
               Verify
             </button>
           </form>
 
           {status === 'correct' && (
-            <div className="banner banner-success" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--c-emerald)', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircleIcon size={18} />
-                <span>Correct! Solved in <strong>{seconds} seconds</strong>. Difficulty raised to <strong>{DIFF_STEPS[Math.min(diffLevel, DIFF_STEPS.length - 1)]}</strong>.</span>
+            <div className="banner banner-success sim-feedback sim-feedback--ok">
+              <div className="sim-feedback__text">
+                <CheckCircleIcon size={17} />
+                <span>
+                  Correct! Solved in <strong>{answeredSeconds} seconds</strong>. Difficulty adjusted to{' '}
+                  <strong>{DIFF_STEPS[diffLevel]}</strong> - here is the next sample.
+                </span>
               </div>
-              <button className="btn btn-secondary" onClick={handleNext} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                Next Puzzle
-              </button>
             </div>
           )}
 
           {status === 'wrong' && (
-            <div className="banner banner-warning">
-              <span>Incorrect - difficulty adjusted to {DIFF_STEPS[diffLevel]}. Try again with the hint above!</span>
+            <div className="banner banner-error sim-feedback sim-feedback--bad">
+              <BrainIcon size={16} />
+              <span>
+                Incorrect - difficulty adjusted to <strong>{DIFF_STEPS[diffLevel]}</strong>. Here is an easier sample.
+              </span>
             </div>
           )}
         </div>

@@ -237,11 +237,67 @@ class ChallengeService:
     # ------------------------------------------------------------------
 
     @classmethod
+    def _adaptive_difficulty(
+        cls,
+        ended_attempts: List[ChallengeAttempt],
+        snooze_count: int,
+    ) -> str:
+        """Choose the next difficulty from the user's answered-attempt history.
+
+        Policy:
+        - No answered attempts yet -> onboarding band [Beginner, Easy, Medium].
+          Fresh users get approachable variety instead of the pre-trained model's
+          default Hard bias (which previously made every generation "Hard").
+        - Otherwise anchor on the difficulty of the most recent answered attempt
+          and move at most one step. The ML prediction is CLAMPED into that
+          +/-1 band, so a biased argmax can never jump a fresh ladder to Hard.
+        - `success_rate` is computed across every answered attempt (both passed
+          and failed), giving an honest per-question ratio.
+        """
+        if not ended_attempts:
+            return random.choice(["Beginner", "Easy", "Medium"])
+
+        total_q = sum(a.total_questions for a in ended_attempts) or 1
+        correct_t = sum(a.correct_answers for a in ended_attempts)
+        success_rate = correct_t / total_q
+
+        times = [
+            a.time_taken_seconds
+            for a in ended_attempts
+            if a.time_taken_seconds and a.time_taken_seconds > 0
+        ]
+        avg_time = sum(times) / len(times) if times else 30.0
+
+        streak = 0
+        for attempt in ended_attempts:
+            if attempt.completed:
+                streak += 1
+            else:
+                break
+
+        anchor = ended_attempts[0].challenge.difficulty
+        base_idx = cls.DIFFICULTIES.index(anchor) if anchor in cls.DIFFICULTIES else 2
+        band_low = max(0, base_idx - 1)
+        band_high = min(len(cls.DIFFICULTIES) - 1, base_idx + 1)
+
+        from .ml_inference import MLInferenceService
+
+        predicted, _method = MLInferenceService.predict_difficulty(
+            success_rate=success_rate,
+            avg_time_seconds=avg_time,
+            snooze_count=snooze_count,
+            streak_length=streak,
+            current_difficulty=anchor,
+        )
+        pred_idx = cls.DIFFICULTIES.index(predicted) if predicted in cls.DIFFICULTIES else base_idx
+        return cls.DIFFICULTIES[min(max(pred_idx, band_low), band_high)]
+
+    @classmethod
     async def get_adaptive_challenge(
         cls,
         db: Session,
         user_id: int,
-        current_difficulty: str = "Medium",
+        current_difficulty: Optional[str] = "Medium",
         challenge_type: Optional[str] = None,
         question_count: Optional[int] = None,
     ) -> Optional[Tuple[Challenge, ChallengeAttempt]]:
@@ -249,46 +305,37 @@ class ChallengeService:
 
         Returns (challenge, pending_attempt) with `puzzle_payload` and
         `expected_answers` snapshots persisted server-side.
+
+        Difficulty semantics:
+        - An explicit `current_difficulty` (a valid level) is PINNED: the user
+          asked for exactly that level, so the ML model must not override it.
+        - With no explicit difficulty, the level adapts from the user's answered
+          attempts (`_adaptive_difficulty`): onboarding band for new users and a
+          bounded +/-1 ladder for returning users.
         """
-        # --- Adaptive difficulty from user history (rule-based fallback) ---
-        recent_attempts = (
+        # --- Adaptive difficulty from answered attempts ---
+        # Only attempts that were actually answered (end_time set) carry real
+        # signal. Abandoned pending attempts from repeated "Generate" clicks are
+        # excluded so spamming the button can never move the user's standing.
+        ended_attempts = (
             db.query(ChallengeAttempt)
-            .filter(ChallengeAttempt.user_id == user_id, ChallengeAttempt.completed.is_(True))
-            .order_by(ChallengeAttempt.created_at.desc())
+            .filter(ChallengeAttempt.user_id == user_id, ChallengeAttempt.end_time.isnot(None))
+            .order_by(ChallengeAttempt.end_time.desc())
             .limit(5)
             .all()
         )
-
-        if recent_attempts:
-            total_q = sum(a.total_questions for a in recent_attempts) or 1
-            correct_t = sum(a.correct_answers for a in recent_attempts)
-            success_rate = correct_t / total_q if total_q else 0.5
-            times = [a.time_taken_seconds for a in recent_attempts if a.time_taken_seconds and a.time_taken_seconds > 0]
-            avg_time = sum(times) / len(times) if times else 30.0
-        else:
-            success_rate, avg_time = 0.5, 30.0
 
         from ..Models import Alarm
 
         snooze_count = sum(
             a.times_snoozed for a in db.query(Alarm).filter(Alarm.user_id == user_id).all()
         )
-        streak = 0
-        for attempt in recent_attempts:
-            if attempt.completed:
-                streak += 1
-            else:
-                break
 
-        from .ml_inference import MLInferenceService
-
-        new_difficulty, _method = MLInferenceService.predict_difficulty(
-            success_rate=success_rate,
-            avg_time_seconds=avg_time,
-            snooze_count=snooze_count,
-            streak_length=streak,
-            current_difficulty=current_difficulty,
-        )
+        if current_difficulty in cls.DIFFICULTIES:
+            # Explicit request: honor the pinned level exactly.
+            new_difficulty = current_difficulty
+        else:
+            new_difficulty = cls._adaptive_difficulty(ended_attempts, snooze_count)
 
         # --- Select or create the challenge row ---
         if new_difficulty not in cls.DIFFICULTIES:
@@ -305,6 +352,15 @@ class ChallengeService:
         # --- Build the question set and persist a pending attempt ---
         count = cls._question_count_for(new_difficulty, question_count)
         questions, answers = cls._generate_question_set(challenge.challenge_type, count)
+
+        # Garbage-collect abandoned pending snapshots. Every "Generate" click on
+        # the web stakes a pending attempt that is never submitted (the web
+        # simulator is local); without cleanup the table grows unboundedly.
+        db.query(ChallengeAttempt).filter(
+            ChallengeAttempt.user_id == user_id,
+            ChallengeAttempt.completed.is_(False),
+            ChallengeAttempt.end_time.is_(None),
+        ).delete(synchronize_session=False)
 
         last_number = (
             db.query(func.max(ChallengeAttempt.attempt_number))

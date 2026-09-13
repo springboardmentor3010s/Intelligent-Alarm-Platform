@@ -93,7 +93,7 @@ export default function Dashboard() {
     return (
       <div className="page">
         <SectionHeader title="Dashboard" subtitle="Loading behavioral intelligence…" />
-        <div className="grid-cards grid-cards--metrics">
+        <div className="grid-cards grid-cards--square">
           {Array.from({ length: 4 }, (_, i) => <CardSkeleton key={i} showChart />)}
         </div>
       </div>
@@ -193,25 +193,29 @@ export default function Dashboard() {
         )}
       </Grid>
 
-      {/* Pillar Charts with Full Context: Value, Trend, Interpretation, and Action */}
+      {/* Pillar Charts: Perfect 2x2 Bento Square */}
       <div className="card-label mb-2"><span className="sys-label">Detailed Habit Pillars · Intelligence Breakdown</span></div>
-      <Grid className="grid-cards--duo">
-        {charts.map(c => {
+      <Grid className="grid-cards--square">
+        {charts.map((c, i) => {
           const meta = PILLAR_METADATA[c.label] || {};
           const currentVal = habitScore[c.key] ?? '-';
           return (
-            <Card key={c.label} className="p-4">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <div>
-                  <div className="card-label" style={{ marginBottom: '0.2rem' }}>{c.label}</div>
-                  <span className="text-xs text-muted-600">{meta.weight}</span>
+            <Card key={c.label} className="bento-tile">
+              <div className="bento-tile__head">
+                <span className="bento-tile__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                <div className="bento-tile__head-text">
+                  <span className="sys-label">Habit Pillar · Cognitive Track</span>
+                  <div className="bento-tile__title">{c.label}</div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="metric-value" style={{ fontSize: '1.75rem' }}>{currentVal}<span className="metric-denom">/100</span></div>
+                <div className="bento-tile__value">
+                  <div className="metric-value" style={{ fontSize: '1.75rem' }}>
+                    {currentVal}<span className="metric-denom">/100</span>
+                  </div>
+                  <span className="text-xs text-muted-600">{meta.weight}</span>
                 </div>
               </div>
 
-              <div className="chart-card">
+              <div className="chart-card bento-tile__chart">
                 <Line data={c.data} options={chartOpts} />
               </div>
 

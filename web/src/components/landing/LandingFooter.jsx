@@ -176,15 +176,15 @@ export default function LandingFooter() {
         <div className="lp-footer__attrib">
           <span className="sys-label sys-label--violet">Project Attribution</span>
           <p>
-            CerebroKognit is an internship project developed as part of the Infosys Virtual
-            Internship 7.0 program by Pawan Simha, an MCA student at Sapthagiri NPS University.
+            Academic internship project developed as part of the Infosys Virtual Internship 7.0
+            program by Pawan Simha, an MCA student at Sapthagiri NPS University.
           </p>
           <p>Project Guide and Mentor: Shanmukha Priya.</p>
           <div className="lp-footer__status-wrap">
-            <span className="sys-label sys-label--mint">Project Status</span>
+            <span className="sys-label sys-label--mint">About this project</span>
             <p>
-              Internship project. Product concepts, interface, and demonstration
-              features are presented for educational purposes.
+              Product concepts, interface, and demonstration features are presented for
+              educational purposes. CerebroKognit is a behavioral habit tool, not a medical device.
             </p>
           </div>
         </div>
