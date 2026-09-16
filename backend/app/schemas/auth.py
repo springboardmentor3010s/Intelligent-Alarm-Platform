@@ -40,3 +40,34 @@ class AuthRes(BaseModel):
     token_type: str = Field(default="bearer", description="Token type")
     expires_in: int = Field(description="Seconds until access token expiry")
     user: UserProfileRes
+
+
+# ============================================================
+# PHASE 2 SECURITY SCHEMAS
+# ============================================================
+
+class RefreshReq(BaseModel):
+    """Request body for POST /auth/refresh."""
+    refresh_token: str = Field(..., description="JWT refresh token to rotate")
+
+
+class PasswordResetRequestReq(BaseModel):
+    """Request body for POST /auth/password-reset/request."""
+    email: EmailStr = Field(..., description="User email (generic response on success)")
+
+
+class PasswordResetConfirmReq(BaseModel):
+    """Request body for POST /auth/password-reset/confirm."""
+    token: str = Field(..., min_length=1, description="Single-use reset token received via email")
+    new_password: str = Field(..., min_length=8, description="New password (plaintext, will be hashed)")
+
+
+class EmailVerifyConfirmReq(BaseModel):
+    """Request body for POST /auth/verify-email/confirm."""
+    token: str = Field(..., min_length=1, description="Single-use verification token received via email")
+
+
+class RoleUpdateReq(BaseModel):
+    """Request body for PUT /dashboard/users/{user_id}/role (admin-only)."""
+    role: str = Field(..., pattern=r"^(User|Wellness Coach|Administrator)$",
+                      description="New role name (User / Wellness Coach / Administrator)")

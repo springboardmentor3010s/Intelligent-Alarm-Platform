@@ -52,6 +52,8 @@ class User(Base):
     habit_scores = relationship("HabitScore", back_populates="user", cascade="all, delete-orphan")
     # Relationship to push notification tokens
     push_tokens = relationship("PushToken", back_populates="user", cascade="all, delete-orphan")
+    # Relationship to refresh / password-reset / email-verification tokens
+    auth_tokens = relationship("AuthToken", back_populates="user", cascade="all, delete-orphan")
     __table_args__ = (Index("ix_users_email_lower", func.lower(email)),)
 
 
@@ -189,3 +191,48 @@ class AlarmRole(Base):
     id = Column(Integer, primary_key=True, index=True)
     alarm_id = Column(Integer, ForeignKey("alarms.id", ondelete="CASCADE"), nullable=False)
     role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
+
+
+class AuthToken(Base):
+    """Server-side store for refresh / password-reset / email-verification tokens.
+
+    Only SHA-256 hashes of tokens are persisted (never the plaintext), so a DB
+    leak cannot be replayed. Rows carry an expiry and can be marked revoked /
+    single-use (used_at) for rotation and one-time redemption.
+    """
+    __tablename__ = "auth_tokens"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    kind = Column(String(40), nullable=False)  # refresh | password_reset | email_verification
+    token_hash = Column(String(64), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    revoked = Column(Boolean, default=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Relationships
+    user = relationship("User", back_populates="auth_tokens")
+    __table_args__ = (
+        Index("ix_auth_tokens_user_id", "user_id"),
+        Index("ix_auth_tokens_kind", "kind"),
+        Index("ix_auth_tokens_token_hash", "token_hash"),
+        UniqueConstraint("token_hash", name="uq_auth_tokens_token_hash"),
+    )
+
+
+class AuditLog(Base):
+    """Security-relevant audit trail (login outcomes, role changes, resets)."""
+    __tablename__ = "audit_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    event = Column(String(60), nullable=False)
+    actor_email = Column(String(254), nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    detail = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])
+    __table_args__ = (
+        Index("ix_audit_logs_user_id", "user_id"),
+        Index("ix_audit_logs_event", "event"),
+        Index("ix_audit_logs_created_at", "created_at"),
+    )

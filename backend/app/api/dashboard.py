@@ -4,16 +4,18 @@ Thin RBAC-guarded entry points; all aggregation lives in the admin and report
 services.
 """
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
 from ..database import get_db
-from ..Models import User
+from ..Models import User, UserRole
 from ..schemas import AdminUserRes, AdminAnalyticsRes
-from ..api.deps import get_current_user, require_roles
+from ..schemas.auth import RoleUpdateReq
+from ..api.deps import get_current_user, require_roles, get_or_create_role
 from ..services import admin_service, report_service
+from ..services.audit_service import log_event
 from ..workers import get_job_status, submit_to_background
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -121,4 +123,53 @@ def report_challenges(
     return _dispatch_report(
         report_service.challenges_report_records, db, current_user.id, days,
         format, "challenges", "Challenge Report", background_tasks, bool(async_flag),
+    )
+
+
+@router.put("/users/{user_id}/role")
+def update_user_role(
+    user_id: int,
+    payload: RoleUpdateReq,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(admin_only),
+):
+    """Assign a new role to a user (Administrator only).
+
+    Audit-logged so privilege escalation is always traceable.
+    """
+    target = db.query(User).filter(User.id == user_id).first()
+    if target is None:
+        from fastapi import HTTPException as _HTTP
+        raise _HTTP(status_code=404, detail="User not found")
+    if target.id == current_user.id:
+        from fastapi import HTTPException as _HTTP
+        raise _HTTP(status_code=400, detail="Cannot change your own role")
+
+    # Upsert: ensure only one role per user (replace existing)
+    existing_link = db.query(UserRole).filter(UserRole.user_id == user_id).first()
+    if existing_link is not None:
+        db.delete(existing_link)
+        db.flush()
+
+    role = get_or_create_role(db, payload.role)
+    db.add(UserRole(user_id=user_id, role_id=role.id))
+    log_event(
+        db, "role.changed",
+        user_id=user_id,
+        actor_email=current_user.email,
+        ip_address=request.client.host if request.client else None,
+        detail={"old_role": "replaced", "new_role": payload.role},
+    )
+    db.commit()
+    db.refresh(target)
+
+    return AdminUserRes(
+        id=target.id,
+        email=target.email,
+        is_active=target.is_active,
+        is_verified=target.is_verified,
+        created_at=target.created_at,
+        last_login=None,
+        role=payload.role,
     )

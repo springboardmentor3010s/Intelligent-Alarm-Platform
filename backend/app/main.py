@@ -1,6 +1,5 @@
 """Main FastAPI application for Intelligent Cognitive Alarm Platform."""
 
-import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -20,8 +19,9 @@ from .api.analytics import router as analytics_router
 from .api.users import router as users_router
 from .api.notifications import router as notifications_router
 from .api.feedback import router as feedback_router
-from .gateway import GatewayMiddleware, configure_logging
+from .gateway import GatewayMiddleware, SecurityHeadersMiddleware, configure_logging
 from .services.bootstrap import bootstrap_local_db
+from .core.config import get_cors_origins
 
 
 @asynccontextmanager
@@ -42,15 +42,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS configuration from env (comma-separated), with a local-dev fallback
-_cors_env = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:3000,http://localhost:5173,http://localhost:8080,http://127.0.0.1:5173",
-)
-allow_origins = [origin.strip() for origin in _cors_env.split(",") if origin.strip()]
+# CORS configuration from env (comma-separated). The allowlist is explicit:
+# production fails fast on an empty list and a wildcard is never used.
+allow_origins = get_cors_origins()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins or ["*"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,6 +55,10 @@ app.add_middleware(
 
 # Gateway middleware: request/trace IDs, rate limiting, structured logging.
 app.add_middleware(GatewayMiddleware)
+
+# Security headers: added last so Starlette places it outermost (sets headers
+# after all other middleware has finished processing).
+app.add_middleware(SecurityHeadersMiddleware)
 
 # OAuth2 password bearer token for JWT authentication
 # Defined in deps module and imported here for use in protected endpoints

@@ -5,7 +5,6 @@ per-user app preference settings. `services.auth` re-exports `AuthService` for
 backward compatibility.
 """
 
-import os
 import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
@@ -18,17 +17,20 @@ from sqlalchemy.orm import Session
 from ..Models import User
 from ..schemas.auth import AuthRegisterReq, AuthLoginReq, AuthRes, UserProfileRes
 from ..schemas import UserProfileUpdateReq, SettingsUpdateReq
+from ..core.config import get_secret_key
 
 
 class AuthService:
     """Authentication service handling user registration and login."""
 
-    SECRET_KEY = os.getenv(
-        "SECRET_KEY", "change_this_to_a_very_random_secret_key_min_32_bytes"
-    )
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 60
     REFRESH_TOKEN_EXPIRE_DAYS = 30
+
+    @classmethod
+    def _secret_key(cls) -> str:
+        """Read the JWT secret lazily via config (fail-fast in production)."""
+        return get_secret_key()
 
     @classmethod
     def _hash_password(cls, password: str) -> str:
@@ -51,7 +53,7 @@ class AuthService:
         else:
             expire = now + timedelta(minutes=cls.ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode = {"sub": subject, "exp": expire, "iat": now, "jti": uuid4().hex}
-        encoded_jwt = jwt.encode(to_encode, cls.SECRET_KEY, algorithm=cls.ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, cls._secret_key(), algorithm=cls.ALGORITHM)
         return encoded_jwt
 
     @classmethod
@@ -59,14 +61,14 @@ class AuthService:
         """Create JWT refresh token."""
         expire = datetime.now(timezone.utc) + timedelta(days=cls.REFRESH_TOKEN_EXPIRE_DAYS)
         to_encode = {"sub": subject, "exp": expire, "iat": datetime.now(timezone.utc), "type": "refresh", "jti": uuid4().hex}
-        encoded_jwt = jwt.encode(to_encode, cls.SECRET_KEY, algorithm=cls.ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, cls._secret_key(), algorithm=cls.ALGORITHM)
         return encoded_jwt
 
     @classmethod
     def _decode_token(cls, token: str) -> Optional[dict]:
         """Decode and validate JWT token."""
         try:
-            payload = jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
+            payload = jwt.decode(token, cls._secret_key(), algorithms=[cls.ALGORITHM])
             return payload
         except jwt.ExpiredSignatureError:
             return None

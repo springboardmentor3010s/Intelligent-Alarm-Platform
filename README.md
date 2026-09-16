@@ -19,15 +19,15 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
 | Backend Core Logic | Functional | ~95% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync, **server-authoritative challenge engine** all working & smoke-tested |
-| Backend Security | Good | ~95% | Env-driven JWT secret + CORS, RBAC enforced, **structured error envelope**, **rate limiting + request-id/structured logging (P1)** |
+| Backend Security | Good | ~95% | **Phase 2 (2026-09-16)**: secret fail-fast in production, CORS allowlist, refresh-token rotation + hashed single-use tokens, password-reset/email-verification, audit log, security headers, deactivation + admin role-change; env-driven JWT secret + RBAC, structured error envelope, rate limiting |
 | Web Dashboard | Good | ~95% | **Retro-futuristic redesign (2026-09-10)**: flat brand palette `#F4A442`/#3E7C17/#125C13/#E8E1D9 (no gradients, no glow), landing page, grouped nav IA, Home command-center dashboard, admin UI, brand login-bg; **responsive + overflow pass** (no page-level horizontal scroll at any width, fixed-clock clearance, 4→2→1 column chart/metric grids, mobile alarm/settings layouts) |
 | Mobile App | Good | ~80% | **Custom HOME/ALARMS/INSIGHTS/PROFILE bottom nav + redesigned screens (2026-09-10)**; alarm dismiss E2E functional; offline-first sync + Expo push-registration wired; on-device E2E + native push still pending (dev build) |
-| Testing | Good | ~95% | **Backend pytest suite (34, verified 3.11 + 3.14)**; **web Vitest (42) + mobile jest-expo (33)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
+| Testing | Good | ~95% | **Backend pytest suite (95, verified 3.11 + 3.14, coverage 74%)**; **web Vitest (49) + mobile jest-expo (47)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
 | Infrastructure/Docker | Good | ~90% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
 ### Known Critical Issues (remaining after M4)
 1. Mobile offline-first sync + push-token registration are wired and jest-tested (31) but **not yet on-device E2E-verified** — remote push needs an Expo **dev build** (Expo Go disables it)
-2. Test coverage now exists for backend (pytest 47), web (Vitest 49) and mobile (jest 47) with coverage tooling (pytest-cov 71%, @vitest/coverage-v8 69%, jest 28%); remaining: broader flow-level alarm-dismiss component coverage
+2. Test coverage now exists for backend (pytest **95**, coverage 74%), web (Vitest 49) and mobile (jest 47) with coverage tooling; remaining: broader flow-level alarm-dismiss component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Web settings are saved to `/users/settings` + `/users/{key}` (theme, notifications, auto-dismiss, vibrate) — completed 2026-09-08
 5. Local alarm scheduling + FCM/APNs delivery provider not yet implemented (needs dev build; M4 backlog)
@@ -133,7 +133,7 @@ docker-compose up -d db
 ```bash
 # From project root (or with DATABASE_URL set for a non-default target):
 alembic upgrade head
-# Migration is current with `app/Models.py` (revision 992b0ec03dba).
+# Migration is current with `app/Models.py` (revision c7e4a9b2d1f0).
 # `migrations/env.py` honors the `DATABASE_URL` env var; SQLite is the local-dev default.
 ```
 
@@ -221,7 +221,7 @@ POSTGRES_DB=cerebro_kognit
 POSTGRES_USER=cerebro_user
 POSTGRES_PASSWORD=change_me
 
-# ✅ SECRET_KEY is read from env by AuthService (Level 1 fix applied).
+# ⚠️ SECRET_KEY: set ENVIRONMENT=production → app refuses to start with a missing/placeholder key (fail-fast, Phase 2).
 SECRET_KEY=change_this_to_a_very_random_secret_key_min_32_bytes
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
@@ -260,7 +260,7 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 | **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migrations, 22/22 smoke (`smoke_m1.py`) |
 | **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ✅ Complete — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, 25/25 smoke (`smoke_m2.py`) |
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ✅ Complete — analytics service (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories), web wired to live data |
-| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — pytest (34), error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration (jest 33), web Vitest (42), sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; remaining: real cloud deploy |
+| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration, web Vitest, sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; **Phase 2 (2026-09-16)**: pytest grew to 95 (security suite), coverage 74%; remaining: real cloud deploy |
 
 Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone).
 
@@ -276,7 +276,7 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
 | `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
 | `python scripts/smoke_m2.py` | In-process M2 smoke test (25 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
-| `python -m pytest tests/` | Backend unit test suite (47 tests: auth, alarms, challenges, analytics, feedback, notifications) — verified on Python 3.11 + 3.14 |
+| `python -m pytest tests/` | Backend unit test suite (95 tests: auth, security, alarms, challenges, analytics, feedback, notifications) — verified on Python 3.11 + 3.14; coverage 74% |
 | `ruff check app tests scripts` | Lint the backend (E/F/W pragmatic rule set, clean) |
 
 ### Web

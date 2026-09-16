@@ -193,10 +193,10 @@ This document covers:
 | Requirement ID | Requirement Text | Priority | Notes |
 |---|---|---|---|
 | NF-SEC-001 | All passwords must be hashed using bcrypt with minimum 12-round cost. | Critical | Never store plaintext passwords. |
-| NF-SEC-002 | JWT tokens must be signed with HS256 algorithm using a server-side secret key. | Critical | ✅ **COMPLIANT as of M1 (2026-09-05).** `SECRET_KEY` is read from `os.getenv("SECRET_KEY")` with a clearly-marked development fallback (`backend/app/services/auth.py:15-17`). Requires an env secret in production. |
+| NF-SEC-002 | JWT tokens must be signed with HS256 algorithm using a server-side secret key. | Critical | ✅ **COMPLIANT (Phase 2, 2026-09-16).** `SECRET_KEY` is read from env via `get_secret_key()` (`backend/app/core/config.py`); startup **fail-fast** if missing/placeholder in `ENVIRONMENT=production`. Dev-only fallback remains for `development`. |
 | NF-SEC-003 | All API endpoints must validate JWT authentication on protected routes. | Critical | `401 Unauthorized` for missing/invalid tokens. |
 | NF-SEC-004 | Input validation must be enforced via Pydantic v2 models on all request bodies. | Critical | Prevents injection attacks; rejects malformed payloads. |
-| NF-SEC-005 | CORS must be configured via `CORS_ORIGINS` environment variable; `["*"]` prohibited in production. | High | ✅ **COMPLIANT as of M1 (2026-09-05).** `CORS_ORIGINS` env var is parsed in `backend/app/core/config.py`; `allow_credentials=True` is only set when a non-wildcard origin list is configured (`backend/app/main.py:18-26`). |
+| NF-SEC-005 | CORS must be configured via `CORS_ORIGINS` environment variable; `["*"]` prohibited in production. | High | ✅ **COMPLIANT (Phase 2, 2026-09-16).** Parsed by `get_cors_origins()` (`backend/app/core/config.py`); raises in production when empty; dev-fallback `DEV_CORS_ORIGINS`; wildcard never emitted. |
 | NF-SEC-006 | SQL injection must be prevented via SQLAlchemy parameterized queries (ORM). | Critical | No raw SQL string concatenation in data access layer. |
 | NF-SEC-007 | Sensitive telemetry data (sleep patterns, habit scores) must be encrypted at rest in PostgreSQL. | High | Use `pgcrypto` or application-level encryption for PII. |
 | NF-SEC-008 | Session revocation must be supported: invalidate JWTs on password change or admin revocation. | Medium | Optional: use JWT blacklist in Redis with `exp` check. |
@@ -895,6 +895,7 @@ FUNCTION sync_pending_records(records):
 | 1.4 | 2026-09-08 | architect | Refreshed to post-M4/build state: offline/-first sync + push-token registration rows implemented; testing matrix (pytest 32, Vitest 18, jest-expo 31, ruff, GitHub Actions CI); web app-shell/global-theme/Profile additions; migration HEAD `992b0ec03dba` |
 | 1.5 | 2026-09-10 | architect | Full audit pass: corrected UserProfileRes/AlarmCreateReq schemas, added push_tokens + alarm_roles to ER diagram, fixed admin dashboard status (complete), updated RBAC descriptions (staff+/admin/authenticated), corrected success response format (no wrapper envelope), fixed Tailwind reference, updated test counts (pytest 34, Vitest 42, jest 33) |
 | 1.6 | 2026-09-16 | architect | Phase 1 stabilization: corrected test counts to pytest **47**, Vitest **49**, jest **47**; added coverage tooling (pytest-cov, @vitest/coverage-v8, jest coverage); created `TEST_STATUS.md` |
+| 1.7 | 2026-09-16 | architect | Phase 2 security completion: production secret fail-fast, CORS allowlist enforcement, refresh-token rotation/revocation, password reset + email verification (expiring single-use hashed tokens in new `auth_tokens` table), audit-log table + middleware, security headers, account deactivation, admin role-change endpoint (audited); test suite grew to pytest **95** (added `test_security.py`, 48 tests), coverage **74%**; migration HEAD `c7e4a9b2d1f0` |
 
 ---
 
@@ -954,9 +955,10 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Offline Sync (server) | ✅ Complete (M4-backlog) | Idempotent upsert works and **mobile calls it** via `syncEngine.js` (offlineStore cache, sync-on-focus, offline banner) | 95% |
 | Dashboard + Reports | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `format` param; RBAC enforced; admin UI added | 95% |
 | ML Inference | ✅ Complete (M3) | Trained `difficulty_model.pt` served; rule-based fallback in container (no torch) | 85% |
-| Database Models + Migrations | ✅ Complete | 9 ORM tables (incl. `push_tokens` + `alarm_roles`); migration current (`992b0ec03dba`); 0→head verified fresh | 95% |
+| Database Models + Migrations | ✅ Complete | **11 ORM tables** (9 core + `auth_tokens` + `audit_logs`); migration current (`c7e4a9b2d1f0`); 0→head verified fresh | 95% |
 | Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
-| Testing (pytest) | ✅ Complete (M4) | 47 tests (auth, alarms, challenges, analytics, feedback, notifications); coverage 71%; verified Python 3.11 + 3.14 | 90% |
+| Security Hardening | ✅ Complete (Phase 2, 2026-09-16) | Secret fail-fast (`ENVIRONMENT=production`), CORS allowlist, refresh-token rotation + hashed single-use tokens, password reset/email verification, audit log, security headers, deactivate + role-change | 90% |
+| Testing (pytest) | ✅ Complete (M4 + Phase 2) | **95 tests** (auth, alarms, challenges, analytics, feedback, notifications, security); coverage **74%**; verified Python 3.11 + 3.14 | 92% |
 | CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 49) + mobile jest (47) | 90% |
 
 ### Web Dashboard
@@ -992,7 +994,7 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
 | Docker | ✅ Complete (M4) | CMD fixed, `.dockerignore`, compose up-tested (Postgres + migrations entrypoint + lean image + healthcheck) | 90% |
-| Database Migrations | ✅ Complete | Migration current (`992b0ec03dba`); `upgrade head` verified on fresh DB | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (47) + smoke_m1 (22) + smoke_m2 (25) + web test (49)/build + mobile jest (47) | 90% |
-| Testing | ✅ Complete (M4-backlog) | pytest 47 + Vitest 49 + jest 47; smoke_m1 (22) + smoke_m2 (25) regression gates; coverage tooling (2026-09-16) | 90% |
-| Environment Config | ✅ Complete | Secrets/CORS from env; 3 postgres vars honored for compose; `AUTO_INIT` SQLite auto-init | 90% |
+| Database Migrations | ✅ Complete | Migration current (`c7e4a9b2d1f0`); `upgrade head` verified on fresh DB | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (95) + smoke_m1 (22) + smoke_m2 (25) + web test (49)/build + mobile jest (47) | 90% |
+| Testing | ✅ Complete (M4-backlog + Phase 2) | pytest **95** + Vitest 49 + jest 47; smoke_m1 (22) + smoke_m2 (25) regression gates; coverage 74%/69%/28% (2026-09-16) | 92% |
+| Environment Config | ✅ Complete (Phase 2) | Secrets/CORS from env with prod fail-fast; `AUTO_INIT` SQLite auto-init | 95% |

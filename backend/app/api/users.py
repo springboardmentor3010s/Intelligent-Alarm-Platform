@@ -1,6 +1,6 @@
 """User profile and settings routes for Intelligent Cognitive Alarm Platform."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from typing import Dict
 
@@ -10,6 +10,8 @@ from ..schemas import UserProfileUpdateReq, SettingsUpdateReq
 from ..schemas.auth import UserProfileRes
 from ..api.deps import get_current_user
 from ..services import user_service
+from ..services.token_service import revoke_all_tokens
+from ..services.audit_service import log_event
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -49,3 +51,26 @@ def update_setting(
 ):
     """Update a single app preference (e.g. PUT /users/notifications)."""
     return user_service.update_user_setting(key, payload, db, current_user)
+
+
+@router.post("/deactivate", status_code=200)
+def deactivate_account(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Self-service account deactivation.
+
+    Sets ``is_active`` to False and revokes every active refresh token so
+    existing sessions are immediately invalidated.
+    """
+    current_user.is_active = False
+    revoke_all_tokens(db, current_user.id)
+    log_event(
+        db, "user.deactivated",
+        user_id=current_user.id,
+        actor_email=current_user.email,
+        ip_address=request.client.host if request.client else None,
+    )
+    db.commit()
+    return {"message": "Account deactivated. You will no longer be able to log in."}

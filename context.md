@@ -117,6 +117,8 @@ erDiagram
     ALARM ||--|{ ALARM_ROLES : assigned_roles
     ROLE ||--|{ ALARM_ROLES : assigned_to_alarms
     USER ||--|{ PUSH_TOKEN : owns_push_tokens
+    USER ||--|{ AUTH_TOKEN : owns_auth_tokens
+    USER ||--|{ AUDIT_LOG : audited_by
 
     USER {
         int id PK
@@ -126,6 +128,27 @@ erDiagram
         bool is_verified
         datetime created_at
         datetime updated_at
+    }
+
+    AUTH_TOKEN {
+        int id PK
+        int user_id FK
+        string kind  (refresh|password_reset|email_verification)
+        string token_hash UK
+        datetime expires_at
+        bool revoked
+        datetime used_at
+        datetime created_at
+    }
+
+    AUDIT_LOG {
+        int id PK
+        int user_id FK (nullable, SET NULL)
+        string event
+        string actor_email
+        string ip_address
+        json detail
+        datetime created_at
     }
 
     ROLE {
@@ -217,11 +240,17 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 | `/api/v1/auth/register` | POST | User registration | None | `AuthRegisterReq` | `AuthRes` | ✅ Working |
 | `/api/v1/auth/login` | POST | JWT login | None | `AuthLoginReq` | `AuthRes` | ✅ Working |
 | `/api/v1/auth/me` | GET | Current user profile | Bearer | None | `UserProfileRes` | ✅ Working |
+| `/api/v1/auth/refresh` | POST | Rotate refresh token for fresh access + refresh pair | None | `RefreshReq` | `AuthRes` | ✅ Phase 2 |
+| `/api/v1/auth/password-reset/request` | POST | Initiate password reset (generic response, no user enumeration) | None | `PasswordResetRequestReq` | `{"message": str}` | ✅ Phase 2 |
+| `/api/v1/auth/password-reset/confirm` | POST | Confirm reset token, set new password | None | `PasswordResetConfirmReq` | `{"message": str}` | ✅ Phase 2 |
+| `/api/v1/auth/verify-email/request` | POST | Send email-verification link (idempotent) | Bearer | None | `{"message": str}` | ✅ Phase 2 |
+| `/api/v1/auth/verify-email/confirm` | POST | Confirm verification token, mark user verified | None | `EmailVerifyConfirmReq` | `{"message": str, "is_verified": bool}` | ✅ Phase 2 |
 | `/api/v1/users/profile` | GET | Current user profile (users router) | Bearer | — | `UserProfileRes` | ✅ Working (M1) |
 | `/api/v1/users/profile` | PUT | Update profile | Bearer | `UserProfileUpdateReq` | `UserProfileRes` | ✅ Working (M1) |
 | `/api/v1/users/settings` | GET | Get user settings | Bearer | — | `UserSettingsRes` | ✅ Working (M1) |
 | `/api/v1/users/settings` | PUT | Update settings (tx | Bearer | `UserSettingsUpdateReq` | `UserSettingsRes` | ✅ Working (M1) |
 | `/api/v1/users/{key}` | PUT | Update scalar user field | Bearer | `UserFieldUpdateReq` | `UserProfileRes` | ✅ Working (M1) |
+| `/api/v1/users/deactivate` | POST | Deactivate own account (revokes refresh tokens; user becomes inactive → auth rejected) | Bearer | — | `{"deactivated": true}` | ✅ Phase 2 |
 | `/api/v1/alarms` | GET | List user's alarms | Bearer | — | `List[AlarmRes]` | ✅ Working |
 | `/api/v1/alarms` | POST | Create alarm | Bearer | `AlarmCreateReq` | `AlarmRes` | ✅ Working (M1: time/type/challenge/difficulty/recurrence wired) |
 | `/api/v1/alarms/{id}` | PUT | Update alarm | Bearer | `AlarmCreateReq` | `AlarmRes` | ✅ Working |
@@ -247,6 +276,7 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 | Path | Method | Description | Status |
 |---|---|---|---|
 | `/api/v1/dashboard/users` | GET | List all users (Admin) | ✅ Working — RBAC enforced (staff+); admin UI page delivered (`web/src/pages/Admin.jsx`) |
+| `/api/v1/dashboard/users/{user_id}/role` | PUT | Change user role (Admin; can't change own) | ✅ Phase 2 — `RoleUpdateReq`; audit logged |
 | `/api/v1/dashboard/analytics` | GET | Platform-wide analytics (Admin) | ✅ Working — admin-only enforced; uptime=99.9 placeholder (M3) |
 | `/api/v1/dashboard/reports/habits` | GET | Habit report (`format=csv|json|pdf|excel`) | ✅ Working (M4); `?async=1` + status (P4) |
 | `/api/v1/dashboard/reports/wake-up` | GET | Wake-up report (`format=csv|json|pdf|excel`) | ✅ Working (M4); `?async=1` + status (P4) |
@@ -467,7 +497,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | 2026-09-12 | architect | **App content scale-up + missing utilities defined + Circadian Trajectory colorized (web)**: (1) **Root cause found** — pages reference Tailwind-style utilities (`.text-sm`, `.text-xs`, `.text-muted-600`, `.mt-1..8`, `.mb-0..6`, `.p-4/5/6`, `.font-semibold`) everywhere but **Tailwind was never wired, so none of those rendered**; every margin/typography utility silently did nothing. Defined all used utilities in `index.css` (`.text-sm` 0.95rem / `.text-xs` 0.85rem, spacing 0.35–2.25rem, padding 1.25–2rem) so spacing and small-text finally apply. (3) **Font sizes up across app content**: h1 1.875→2.25rem, h2 1.5→1.75rem, h3 1.15→1.3rem, subtitle 0.925→1.05rem, sys-label 0.75→0.85rem, card-label 0.8→0.9rem, card-value 1.85→2.15rem, metric-value newly defined 1.7rem, score-ring num 2.35→2.75rem (ring 136→150px), next-alarm 2.5→2.9rem, stat 1.55→1.85rem (labels 0.775→0.9rem), timeline+pillar-meta+rec-title/action+readiness banner all bumped, badges/pills 0.75→0.85rem. (4) **Breathing room**: page gap 1.35→1.75rem, card padding 1.35→1.6rem, stat-strip gap 1.15→1.4rem, timeline gap 0.75→0.9rem, score-hero gap 2.5→3rem, chart height 260→280px / sm 220→240px. (5) **Circadian Trajectory colorized**: `.trend-card` violet top border + violet header LED label + chart area tinted; trend line now explicit `#6844FD` (was undefined→Chart default gray) with mint `rgba(88,246,202,0.16)` fill via `buildSeries` `border`/`bg`/`pointBorder` (chartUtils `makeDataset` honors `pointBorder`); empty-state uses dashed violet border + violet title. Gates: web **Vitest 49/49** + build clean (88.39KB CSS / 488.37KB JS), braces 853/853. Committed + pushed. | `web/src/index.css`, `web/src/pages/{Home,Dashboard}.jsx`, `web/src/utils/chartUtils.js`, `style.md`, `context.md` |
 | 2026-09-12 | architect | **Sidebar header logo → full footer lockup (web)**: replaced the square `JustLogo.webp` mark + "CerebroKognit" gradient-text wordmark in the sidebar header with the full **wide logo lockup** (`WideLight`/`WideDark.webp`, the exact `variant="wide"` used in the landing footer). `Sidebar.jsx` now renders `<BrandLogo variant="wide">` as `.sidebar-brand__logo--wide` plus a second `<BrandLogo variant="mark">` as `.sidebar-brand__logo--mark`; CSS shows the wide lockup (height 32px) in the expanded sidebar and swaps to the 34px square mark when `.app-shell--collapsed` (the 80px rail can't fit the wide lockup). Removed the dead `.sidebar-brand__word` rules + leftover `.app-shell--collapsed .sidebar-brand__word { display:none }`. Collapsed hover crossfade (mark→chevron) untouched. Gates: web **Vitest 49/49** + `npm run build` clean (88.32KB CSS / 488.43KB JS), CSS brace balance 856/856. Committed `8ab946c` + pushed. | `web/src/components/layout/Sidebar.jsx`, `web/src/index.css`, this file |
 | 2026-09-12 | architect | **Sidebar JustLogo visibility fix (web)**: the JustLogo mark was visible even with the sidebar **expanded** because `.brand-logo-img { display:inline-flex }` (later in file, equal specificity) overrode `.sidebar-brand__logo--mark { display:none }`. Scoped the sidebar brand display rules under `.sidebar-brand` (`0,2,0` beats `0,1,0`) so the mark hides when expanded and only renders in the collapsed rail. Gates: Vitest **49/49**, build clean, braces 856/856. Committed `04beade` + pushed. Also: **collapse-button focus fix** — clicking the collapse chevron left the button focused, triggering `:focus-within` and keeping the chevron visible over the JustLogo in the collapsed rail; `Sidebar.jsx` now blurs the button immediately after click so the hover-only crossfade (JustLogo at rest, chevron on hover) works. Committed `098b072` + pushed. Then **JustLogo aspect ratio fix** — `JustLogo.webp` is actually **751×539** (not square); it was being squashed into a fixed 34×34 box. `.brand-logo-img--mark`/`.sidebar-brand__logo--mark` now use `height:34px; width:auto` so the mark renders at its real 751:539 ratio (~47px wide) undistorted in the collapsed rail. Gates: Vitest **49/49**, build clean (88.38KB CSS). | `web/src/index.css`, `web/src/components/layout/Sidebar.jsx`, this file |
-| 2026-09-16 | architect | **Phase 1 Stabilization (test + codebase stability)**: ran full CI-equivalent gates locally — all green: ruff clean, pytest **47/47** (count corrected from stale 34; verified by `--collect-only`, grew +13 via `test_feedback` (8) + `test_notifications` (9) minus overlap after M4), smoke_m1 **22/22**, smoke_m2 **25/25**, web Vitest **49/49**, web build clean, mobile jest **47/47**. Added coverage tooling: **pytest-cov** (backend, total **71%**; `pytest.ini` addopts `--cov=app --cov-report=term-missing --no-cov-on-fail`, `requirements.txt` + `pytest-cov>=6.0.0`), **@vitest/coverage-v8** (web, **69.21%** stmts; `vite.config.js` coverage block + `test` script `vitest run --coverage`), **jest coverage** (mobile, **27.93%** lines; `mobile/package.json` jest `collectCoverage`). Created **`TEST_STATUS.md`** (full command/expected/actual matrix + coverage baseline + unresolved issues). No tests removed/weakened; no business logic changed. Committed `011967a` (7 files). Package-lock updated for web. Remaining coverage gaps: mobile 27.93% (screens/tabs untested), web 69.21% (Admin/Challenge/Reports/Settings <20%), backend 71% (`ai_engine/*`, `services/cache.py` 0%). | Success 2026-09-16 | `backend/requirements.txt`, `backend/pytest.ini`, `web/package.json`, `web/vite.config.js`, `web/package-lock.json`, `mobile/package.json`, `TEST_STATUS.md`, this file |
+| 2026-09-16 | architect | **Phase 2: Authentication & Security Completion (backend)**: **config hardening** — new `app/core/config.py`: `environment()` (development default), `is_production()`, `get_secret_key()` (startup fail-fast in production when SECRET_KEY missing/placeholder → `RuntimeError`), `get_cors_origins()` (parses `CORS_ORIGINS`, raises in production if empty, dev-fallback `DEV_CORS_ORIGINS`, never `["*"]`); `AuthService` now reads secret lazily via config (removed hardcoded constant); `main.py` CORS uses the allowlist. **New tables + migration `c7e4a9b2d1f0`**: `auth_tokens` (refresh/password_reset/email_verification, `token_hash` UK — raw tokens stored **only as SHA-256**, single-use via `revoked`+`used_at`, cascade delete) + `audit_logs` (event, actor_email, ip_address, detail JSON, user SET NULL). **New services**: `services/token_service.py` (`hash_token`/`create_auth_token`/`verify_auth_token` (single-use)/`revoke_all_tokens`/`cleanup_expired`; TTLs 30d/30min/24h), `services/audit_service.py` (`log_event`), `integrations/email_sender.py` (EmailSender protocol + NoopSender raising NotImplementedError; DI via `get_email_sender`; tokens never logged). **New endpoints**: `POST /auth/refresh` (rotation), `POST /auth/password-reset/request`+`/confirm`, `POST /auth/verify-email/request`+`/confirm`, `POST /users/deactivate` (revokes refresh tokens), `PUT /dashboard/users/{user_id}/role` (admin `RoleUpdateReq`, can't change own, audit logged). Bootstrap/register/login now store refresh-token hashes; login audits `login.success`/`login.failed`/`login.blocked_inactive`; register lowercases email. **Gateway**: `SecurityHeadersMiddleware` (nosniff/DENY/CSP frame-ancestors/no-referrer/X-Permitted-Cross-Domain/HSTS prod-only) registered outermost; rate-limit prefixes extended (register/login/refresh/password-reset/request). **Tests**: `tests/test_security.py` — 11 classes/48 tests (secret fail-fast 4, CORS allowlist 4, refresh flow 7 + raw-token-never-stored assertion, password reset 5, email verification 3, deactivation 3, audit 5, security headers 3, resource isolation 7, role-change/RBAC 4, API compatibility 3); conftest gained `ENVIRONMENT=development`, `email_sender` DI fixture, `registered_user`, shared-engine `admin_headers`. Migration fixed to use `(CURRENT_TIMESTAMP)` (SQLite-compatible) after smoke_m2 exposed `now()` = unknown function. **Gates green**: ruff clean, pytest **95/95** (47 prior + 48), smoke_m1 22/22, smoke_m2 25/25 (fresh-DB alembic incl. new migration), coverage 71%→**74%**. Committed + pushed. | Success 2026-09-16 | `backend/app/core/{__init__,config}.py`, `backend/app/services/{token_service,audit_service}.py`, `backend/app/integrations/email_sender.py`, `backend/app/gateway/security_headers.py`, `backend/app/api/{auth,users,dashboard}.py`, `backend/app/Models.py`, `backend/app/schemas/auth.py`, `migrations/versions/c7e4a9b2d1f0_add_auth_tokens_audit_logs.py`, `backend/tests/{conftest.py,test_security.py}`, `backend/.env.example`, `context.md` |
 
 ### Implementation Priority Order
 1. **Level 0 — Repository Foundation** — `.gitignore`, `.gitattributes`, cleanup, initial commit

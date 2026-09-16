@@ -11,6 +11,7 @@ error handling (`app.main`), health checks, and OpenAPI docs (FastAPI).
 
 from .logging import configure_logging
 from .middleware import GatewayMiddleware
+from .security_headers import SecurityHeadersMiddleware
 from .rate_limit import (
     AUTH_LIMITER,
     GLOBAL_LIMITER,
@@ -21,6 +22,7 @@ from .rate_limit import (
 __all__ = [
     "configure_logging",
     "GatewayMiddleware",
+    "SecurityHeadersMiddleware",
     "AUTH_LIMITER",
     "GLOBAL_LIMITER",
     "SlidingWindowRateLimiter",

@@ -12,10 +12,11 @@ _BACKEND = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _BACKEND not in sys.path:
     sys.path.insert(0, _BACKEND)
 
-# Env must be set before the app imports so database.py/auth.py read them.
+# Env must be set before the app imports so database.py/config.py/auth.py read them.
 os.environ["SECRET_KEY"] = "test_secret_key_that_is_long_enough"
 os.environ["DATABASE_URL"] = "sqlite://"
 os.environ["CORS_ORIGINS"] = "http://testserver"
+os.environ["ENVIRONMENT"] = "development"
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
@@ -128,3 +129,70 @@ def solved_math_attempt(client, user_headers):
     res = sub.json()
     assert res["correct"] is True and res["completed"] is True
     return res
+
+
+# ------------------------------------------------------------------
+# Phase 2: email-sender capture + admin fixture
+# ------------------------------------------------------------------
+
+class CapturingSender:
+    """Email sender that records tokens for assertions in tests."""
+
+    def __init__(self):
+        self.password_resets: dict[str, str] = {}   # email → raw token
+        self.verifications: dict[str, str] = {}     # email → raw token
+
+    def send_password_reset(self, email: str, token: str) -> None:
+        self.password_resets[email] = token
+
+    def send_verification(self, email: str, token: str) -> None:
+        self.verifications[email] = token
+
+
+@pytest.fixture()
+def email_sender():
+    """Provide a CapturingSender wired into the app via DI override."""
+    from app.integrations.email_sender import get_email_sender
+
+    sender = CapturingSender()
+    app.dependency_overrides[get_email_sender] = lambda: sender
+    yield sender
+    app.dependency_overrides.pop(get_email_sender, None)
+
+
+@pytest.fixture()
+def registered_user(client):
+    """Register a fresh user and return (email, password, user_id, headers)."""
+    email = f"reg_{uuid.uuid4().hex[:10]}@test.io"
+    reg = client.post("/api/v1/auth/register", json={
+        "email": email,
+        "password": "password123",
+        "timezone": "UTC",
+    })
+    assert reg.status_code == 200, reg.text
+    data = reg.json()
+    return email, "password123", data["user"]["id"], {"Authorization": f"Bearer {data['access_token']}"}
+
+
+@pytest.fixture()
+def admin_headers(client, db):
+    """Register a user and promote to Administrator via the same test DB; return admin auth headers."""
+    email = f"admin_{uuid.uuid4().hex[:8]}@test.io"
+    reg = client.post("/api/v1/auth/register", json={
+        "email": email,
+        "password": "password123",
+        "timezone": "UTC",
+    })
+    assert reg.status_code == 200, reg.text
+    token = reg.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Promote to Administrator via the shared test session (not app.database)
+    from app.api.deps import get_or_create_role
+    from app.Models import UserRole, User
+    user = db.query(User).filter(User.email == email).first()
+    admin_role = get_or_create_role(db, "Administrator", "Full access admin")
+    db.add(UserRole(user_id=user.id, role_id=admin_role.id))
+    db.commit()
+
+    return headers
