@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Card } from '../styles';
 import { Line } from 'react-chartjs-2';
 import { buildSeries, makeChartOptions } from '../utils/chartUtils';
 import {
@@ -11,7 +10,12 @@ import {
   SectionHeader,
   Badge,
   ActivityIcon,
+  BarChartIcon,
+  FileTextIcon,
+  ClockIcon,
+  BrainIcon,
 } from '../components/ui';
+import { apiFetch } from '../utils/api';
 
 const FORMATS = {
   csv: { ext: 'csv', mime: 'text/csv', label: 'CSV' },
@@ -29,16 +33,25 @@ const METRICS = [
 const REPORT_TYPES = [
   {
     type: 'habits',
+    area: 'exp-habits',
+    short: 'Habit Performance',
+    icon: FileTextIcon,
     title: 'Daily Habit Performance Report',
     desc: 'Weighted 35/25/20/20 composite scoring history, wake times, and daily circadian index.',
   },
   {
     type: 'wake-up',
+    area: 'exp-wake',
+    short: 'Wake-up Telemetry',
+    icon: ClockIcon,
     title: 'Wake-up & Snooze Telemetry',
     desc: 'Event-by-event dismissal log, snooze latency metrics, and scheduled trigger comparisons.',
   },
   {
     type: 'challenges',
+    area: 'exp-challenges',
+    short: 'Challenge Log',
+    icon: BrainIcon,
     title: 'Cognitive Puzzle Challenge Report',
     desc: 'Per-attempt question accuracy, response times, difficulty ratings, and category performance.',
   },
@@ -54,9 +67,7 @@ export default function Reports() {
   const [days, setDays] = useState(7);
 
   useEffect(() => {
-    const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-
-    fetch('/api/v1/habits/score', { headers })
+    apiFetch('/api/v1/habits/score')
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -68,7 +79,7 @@ export default function Reports() {
         setReportData(null);
       });
 
-    fetch(`/api/v1/habits/score/history?days=${days}`, { headers })
+    apiFetch(`/api/v1/habits/score/history?days=${days}`)
       .then(res => (res.ok ? res.json() : []))
       .then(data => setHistory(Array.isArray(data) ? data : []))
       .catch(console.error);
@@ -103,9 +114,7 @@ export default function Reports() {
     setDownloading(`${_type}:${formatKey}`);
     const fmt = FORMATS[formatKey];
     try {
-      const res = await fetch(`/api/v1/dashboard/reports/${_type}?format=${formatKey}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
+      const res = await apiFetch(`/api/v1/dashboard/reports/${_type}?format=${formatKey}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -131,19 +140,19 @@ export default function Reports() {
 
       {error && <div className="banner banner-warning">{error}</div>}
 
-      {/* Analytical Overview Cards */}
-      <div className="reports-grid">
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <div className="card-label mb-0"><span className="sys-label">Habit Score Breakdown</span></div>
-            <Badge tone="brand">Composite Analysis</Badge>
+      {/* Reports command bento */}
+      <div className="reports-bento">
+        {/* Score hero */}
+        <section className="bento bento--score">
+          <div className="bento__head">
+            <BarChartIcon size={14} />
+            <span>Score Breakdown</span>
+            <span className="bento__chip">Composite Analysis</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.5rem 0 1rem' }}>
-            <span style={{ fontSize: '2.4rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
-              {reportData.overall_score}
-            </span>
-            <span className="metric-denom" style={{ fontSize: '1.1rem' }}>/100</span>
+          <div className="rp-score">
+            <span className="rp-score__num">{reportData.overall_score}</span>
+            <span className="rp-score__denom">/100</span>
           </div>
 
           <div className="report-metrics">
@@ -159,12 +168,14 @@ export default function Reports() {
               </div>
             ))}
           </div>
-        </Card>
+        </section>
 
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <div className="card-label mb-0"><span className="sys-label">Circadian Trajectory</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* Circadian trajectory rail */}
+        <section className="bento bento--trajectory">
+          <div className="bento__head bento__head--spread">
+            <ActivityIcon size={14} />
+            <span>Circadian Trajectory</span>
+            <div className="bento__head-actions">
               <div className="segmented segmented--range" role="group" aria-label="Report date range">
                 {RANGE_OPTIONS.map(d => (
                   <button
@@ -195,40 +206,34 @@ export default function Reports() {
               </div>
             </>
           ) : (
-            <div style={{ background: 'var(--surface-2)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', marginTop: '0.75rem' }}>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '0.4rem' }}>
-                Insufficient Baseline For Plotting
-              </div>
-              <p className="text-sm text-muted-600" style={{ lineHeight: 1.5 }}>
+            <div className="rp-baseline">
+              <div className="rp-baseline__title">Insufficient Baseline For Plotting</div>
+              <p className="text-sm text-muted-600">
                 At least 2 active morning wake-up records are needed to compute stability curves in the last {days} days.
               </p>
             </div>
           )}
-        </Card>
-      </div>
+        </section>
 
-      {/* Secondary Data Export Console */}
-      <div className="mt-6">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <div className="card-label mb-0"><span className="sys-label">Export Data Records</span></div>
-          <span className="text-xs text-muted-600">All exports formatted for analytical processing</span>
-        </div>
-
-        <div className="export-grid">
-          {REPORT_TYPES.map(r => (
-            <Card key={r.type} className="p-4 export-card">
-              <div className="title" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1rem', color: 'var(--text)' }}>
-                {r.title}
+        {/* Export tiles */}
+        {REPORT_TYPES.map(r => {
+          const Icon = r.icon;
+          return (
+            <section key={r.type} className={`bento bento--export bento--${r.area}`}>
+              <div className="bento__head">
+                <Icon size={14} />
+                <span>{r.short}</span>
+                <span className="bento__chip">CSV &middot; PDF &middot; Excel</span>
               </div>
-              <p className="text-sm text-muted-600 mt-1" style={{ fontSize: '0.85rem', lineHeight: 1.45 }}>
-                {r.desc}
-              </p>
+
+              <div className="rp-exp__title">{r.title}</div>
+              <p className="rp-exp__desc">{r.desc}</p>
+
               <div className="export-actions">
                 {Object.entries(FORMATS).map(([key, fmt]) => (
                   <button
                     key={key}
                     className="btn btn-secondary"
-                    style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
                     onClick={() => download(r.type, key)}
                     disabled={downloading === `${r.type}:${key}`}
                   >
@@ -236,9 +241,9 @@ export default function Reports() {
                   </button>
                 ))}
               </div>
-            </Card>
-          ))}
-        </div>
+            </section>
+          );
+        })}
       </div>
     </div>
   );

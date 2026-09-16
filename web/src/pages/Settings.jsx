@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Grid } from '../styles';
 import { Toggle, SunIcon, MoonIcon, SectionHeader, Badge } from '../components/ui';
 import { getTheme, setTheme as applyTheme } from '../theme';
+import { apiFetch } from '../utils/api';
 
 const SETTING_KEYS = ['notifications', 'auto_dismiss', 'vibrate'];
 
@@ -28,8 +29,7 @@ export default function Settings() {
   const [theme, setThemeState] = useState(getTheme);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    fetch('/api/v1/users/settings', { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/v1/users/settings')
       .then(res => (res.ok ? res.json() : null))
       .then(data => {
         if (data) setSettings({ notifications: !!data.notifications, auto_dismiss: !!data.auto_dismiss, vibrate: !!data.vibrate });
@@ -45,10 +45,9 @@ export default function Settings() {
   const toggleSetting = key => {
     const next = !settings[key];
     setSettings(s => ({ ...s, [key]: next }));
-    const token = localStorage.getItem('token');
-    fetch(`/api/v1/users/${key}`, {
+    apiFetch(`/api/v1/users/${key}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ [key]: next }),
     }).catch(err => console.warn(`Could not persist ${key}`, err));
   };

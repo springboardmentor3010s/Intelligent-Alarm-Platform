@@ -19,53 +19,77 @@ function fromParts({ h12, minute, period }) {
 /**
  * Alarm/event time picker that follows the user's global 12/24 preference.
  * In 24h mode it renders the native browser `<input type="time">`; in 12h mode
- * it renders Hour / Minute / AM-PM selects. Always emits a 24h "HH:MM" value,
- * so the payload contract is unchanged.
+ * it renders a prominent clock face plus Hour / Minute / AM-PM selector rows.
+ * Always emits a 24h "HH:MM" value, so the payload contract is unchanged.
  */
 export default function TimeInput({ id, value = '07:00', onChange, className }) {
   if (!hour12()) {
     return (
-      <input
-        id={id}
-        type="time"
-        className={className}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-      />
+      <div className={`time-picker${className ? ` ${className}` : ''}`}>
+        <input
+          id={id}
+          type="time"
+          className="time-picker__native"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+        />
+      </div>
     );
   }
 
   const { h12, minute, period } = toParts(value);
+  const face = `${String(h12).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${period}`;
 
   return (
-    <div className={`time-input${className ? ` ${className}` : ''}`}>
-      <select
-        aria-label="Hour"
-        value={h12}
-        onChange={e => onChange(fromParts({ h12: Number(e.target.value), minute, period }))}
-      >
-        {Array.from({ length: 12 }, (_, i) => i + 1).map(x => (
-          <option key={x} value={x}>{x}</option>
-        ))}
-      </select>
-      <span className="time-input__sep">:</span>
-      <select
-        aria-label="Minute"
-        value={minute}
-        onChange={e => onChange(fromParts({ h12, minute: Number(e.target.value), period }))}
-      >
-        {MINUTES.map(m => (
-          <option key={m} value={m}>{m}</option>
-        ))}
-      </select>
-      <select
-        aria-label="Period"
-        value={period}
-        onChange={e => onChange(fromParts({ h12, minute, period: e.target.value }))}
-      >
-        <option value="AM">AM</option>
-        <option value="PM">PM</option>
-      </select>
+    <div className={`time-picker${className ? ` ${className}` : ''}`}>
+      <div className="time-picker__face" aria-hidden="true">
+        {face}
+      </div>
+
+      <div className="time-picker__controls">
+        <div className="time-picker__seg">
+          <span className="time-picker__seg-label">Hour</span>
+          <select
+            aria-label="Hour"
+            className="time-picker__select"
+            value={h12}
+            onChange={e => onChange(fromParts({ h12: Number(e.target.value), minute, period }))}
+          >
+            {Array.from({ length: 12 }, (_, i) => i + 1).map(x => (
+              <option key={x} value={x}>{String(x).padStart(2, '0')}</option>
+            ))}
+          </select>
+        </div>
+
+        <span className="time-picker__sep" aria-hidden="true">:</span>
+
+        <div className="time-picker__seg">
+          <span className="time-picker__seg-label">Minute</span>
+          <select
+            aria-label="Minute"
+            className="time-picker__select"
+            value={minute}
+            onChange={e => onChange(fromParts({ h12, minute: Number(e.target.value), period }))}
+          >
+            {MINUTES.map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="time-picker__seg time-picker__seg--period">
+          <span className="time-picker__seg-label">Period</span>
+          <select
+            aria-label="Period"
+            className="time-picker__select"
+            value={period}
+            onChange={e => onChange(fromParts({ h12, minute, period: e.target.value }))}
+          >
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+          </select>
+        </div>
+      </div>
     </div>
   );
 }

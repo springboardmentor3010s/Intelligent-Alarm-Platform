@@ -18,6 +18,7 @@ import {
 } from '../components/ui';
 import { formatTimeOfDay, formatWeekday } from '../utils/timeFormat';
 import { getTheme, subscribeTheme } from '../theme';
+import { apiFetch } from '../utils/api';
 import { Link } from 'react-router-dom';
 
 const WEIGHTS = [
@@ -58,9 +59,7 @@ export default function Home() {
   const [, setTick] = useState(0);
 
   useEffect(() => {
-    const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-
-    fetch('/api/v1/habits/score', { headers })
+    apiFetch('/api/v1/habits/score')
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -72,12 +71,12 @@ export default function Home() {
         setHabitScore(null);
       });
 
-    fetch('/api/v1/habits/score/history?days=7', { headers })
+    apiFetch('/api/v1/habits/score/history?days=7')
       .then(res => (res.ok ? res.json() : []))
       .then(data => setHistory(Array.isArray(data) ? data : []))
       .catch(console.error);
 
-    fetch('/api/v1/alarms', { headers })
+    apiFetch('/api/v1/alarms')
       .then(res => (res.ok ? res.json() : []))
       .then(data => setAlarms(Array.isArray(data) ? data : []))
       .catch(console.error);

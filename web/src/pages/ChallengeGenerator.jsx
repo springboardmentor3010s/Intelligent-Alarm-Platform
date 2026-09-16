@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Grid } from '../styles';
 import {
   Badge,
@@ -6,14 +6,15 @@ import {
   Skeleton,
   SparklesIcon,
   PlayIcon,
-  RotateIcon,
-  BrainIcon,
   SectionHeader,
   ActivityIcon,
   AlertCircleIcon,
   CheckCircleIcon,
   LiveChallengeSimulator,
+  SlidersIcon,
+  RotateIcon,
 } from '../components/ui';
+import { apiFetch } from '../utils/api';
 
 const TYPE_CONFIG = {
   Math: {
@@ -86,102 +87,19 @@ function DifficultyLaser({ difficulty }) {
   );
 }
 
-/**
- * Dominant "AI in-flight model" card. Reads like a live product surface:
- * model status, tuned chip, type/objective/laser meta, and edge-case note.
- */
-function AiRecommendedCard({ challenge, generating, onSet, onSurprise, flash, setting = false }) {
-  const typeInfo = TYPE_CONFIG[challenge.challenge_type] || {};
-  return (
-    <Card className={`ai-challenge-card${flash ? ' ai-challenge-card--fresh' : ''}`}>
-      <div className="ai-challenge-card__head">
-        <div className="ai-challenge-card__identity">
-          <span className="ai-challenge-card__icon">
-            <SparklesIcon size={20} />
-          </span>
-          <div className="ai-challenge-card__headline">
-            <span className="sys-label">AI Recommended Next Challenge</span>
-            <div className="ai-challenge-card__title">
-              {challenge.title || `${challenge.challenge_type} Challenge`}
-            </div>
-          </div>
-        </div>
-        <div className="ai-challenge-card__status">
-          <span className="pill pill-success">
-            <span className="led led--on" aria-hidden="true" /> Model online
-          </span>
-          <span className="pill pill-brand">Adaptive ML</span>
-        </div>
-      </div>
-
-      <p className="ai-challenge-card__desc">
-        {typeInfo.desc ||
-          'Calibrated to your performance curve to stimulate prefrontal neural firing.'}
-      </p>
-
-      <div className="ai-challenge-card__meta">
-        <span className="ai-challenge-card__chip">
-          <span className="sys-label">Type</span>
-          <Badge tone="mono">{challenge.challenge_type}</Badge>
-        </span>
-        <span className="ai-challenge-card__chip">
-          <span className="sys-label">Objective</span>
-          <span className="ai-challenge-card__objective">
-            {typeInfo.objective || 'Cognitive Focus'}
-          </span>
-        </span>
-        <span className="ai-challenge-card__chip ai-challenge-card__chip--laser">
-          <DifficultyLaser difficulty={challenge.difficulty} />
-        </span>
-      </div>
-
-      <div className="ai-challenge-card__note">
-        <BrainIcon size={15} />
-        <span>
-          A live model surface: difficulty adapts to your recent attempts, none of the copy above
-          is placeholder filler.
-        </span>
-      </div>
-
-      <div className="ai-challenge-card__actions">
-        <button className="btn btn-primary" onClick={onSet} disabled={generating || setting}>
-          <PlayIcon size={15} /> {setting ? 'Setting…' : 'Set as Wake Gate'}
-        </button>
-        <button className="btn btn-ghost" onClick={onSurprise} disabled={generating}>
-          <RotateIcon size={14} /> Surprise me
-        </button>
-      </div>
-    </Card>
-  );
-}
-
 export default function ChallengeGenerator() {
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [token] = useState(localStorage.getItem('token'));
   const [error, setError] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [recommendedChallenge, setRecommendedChallenge] = useState(null);
   const [selectedType, setSelectedType] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All Levels');
-  const [justPicked, setJustPicked] = useState(false);
   const [savingAlarm, setSavingAlarm] = useState(false);
   const [wakeNotice, setWakeNotice] = useState(null); // { ok: bool, text } for Set as Wake Gate
-  const aiCardRef = useRef(null);
-
-  /* After a user pick, bring the AI card into view and flash its border so the
-     "clicked card -> next challenge" hand-off is obvious. */
-  useEffect(() => {
-    if (!justPicked || !recommendedChallenge) return undefined;
-    aiCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    const t = setTimeout(() => setJustPicked(false), 1400);
-    return () => clearTimeout(t);
-  }, [justPicked, recommendedChallenge]);
 
   useEffect(() => {
-    fetch('/api/v1/challenges', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
+    apiFetch('/api/v1/challenges')
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -196,13 +114,11 @@ export default function ChallengeGenerator() {
       .finally(() => setLoading(false));
 
     // Also pre-fetch the recommended next challenge
-    fetch('/api/v1/challenges/next', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
+    apiFetch('/api/v1/challenges/next')
       .then(res => (res.ok ? res.json() : null))
       .then(setRecommendedChallenge)
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   const generateNext = async (challengeType, difficulty) => {
     setGenerating(true);
@@ -212,16 +128,13 @@ export default function ChallengeGenerator() {
       if (challengeType && challengeType !== 'All') params.set('challenge_type', challengeType);
       if (difficulty && difficulty !== 'All Levels') params.set('difficulty', difficulty);
       const qs = params.toString();
-      const res = await fetch(`/api/v1/challenges/next${qs ? `?${qs}` : ''}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const res = await apiFetch(`/api/v1/challenges/next${qs ? `?${qs}` : ''}`);
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.detail || 'Generation failed');
       }
       const data = await res.json();
       setRecommendedChallenge(data);
-      setJustPicked(true);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -233,39 +146,35 @@ export default function ChallengeGenerator() {
      challenge (type + difficulty), instead of the previous no-op that merely
      regenerated the same challenge. Skips creation when an identical Daily
      wake gate is already active for this user. */
-  const setAsWakeGate = async () => {
-    if (!recommendedChallenge || savingAlarm) return;
+  const setAsWakeGate = async (challengeType, difficulty) => {
+    if (savingAlarm) return;
     setSavingAlarm(true);
     setWakeNotice(null);
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    };
     try {
-      const existing = await fetch('/api/v1/alarms', { headers });
+      const existing = await apiFetch('/api/v1/alarms');
       const myAlarms = existing.ok ? await existing.json() : [];
       const duplicate = Array.isArray(myAlarms) && myAlarms.some(a =>
         a.is_enabled &&
         a.alarm_type === 'Daily' &&
-        a.challenge_type === recommendedChallenge.challenge_type &&
-        a.difficulty === recommendedChallenge.difficulty
+        a.challenge_type === challengeType &&
+        a.difficulty === difficulty
       );
       if (duplicate) {
         setWakeNotice({
           ok: true,
-          text: `Already active: your ${recommendedChallenge.difficulty} ${recommendedChallenge.challenge_type} wake gate is already set.`,
+          text: `Already active: your ${difficulty} ${challengeType} wake gate is already set.`,
         });
         return;
       }
-      const res = await fetch('/api/v1/alarms', {
+      const res = await apiFetch('/api/v1/alarms', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: `${recommendedChallenge.challenge_type} Wake Gate`,
+          title: `${challengeType} Wake Gate`,
           type: 'Daily',
           time: '07:00',
-          challenge_type: recommendedChallenge.challenge_type,
-          difficulty: recommendedChallenge.difficulty,
+          challenge_type: challengeType,
+          difficulty: difficulty,
         }),
       });
       if (!res.ok) {
@@ -274,7 +183,7 @@ export default function ChallengeGenerator() {
       }
       setWakeNotice({
         ok: true,
-        text: `Wake gate set: ${recommendedChallenge.challenge_type} at ${recommendedChallenge.difficulty} difficulty, daily 07:00.`,
+        text: `Wake gate set: ${challengeType} at ${difficulty} difficulty, daily 07:00.`,
       });
     } catch (err) {
       setWakeNotice({ ok: false, text: err.message });
@@ -288,6 +197,11 @@ export default function ChallengeGenerator() {
     const matchesDiff = selectedDifficulty === 'All Levels' || c.difficulty === selectedDifficulty;
     return matchesType && matchesDiff;
   });
+
+  const resetFilters = () => {
+    setSelectedType('All');
+    setSelectedDifficulty('All Levels');
+  };
 
   if (loading) {
     return (
@@ -311,33 +225,114 @@ export default function ChallengeGenerator() {
       <SectionHeader
         title="Challenges"
         subtitle="Adaptive cognitive puzzles engineered to overcome sleep inertia and prime focus"
-      >
-        <button
-          className="btn btn-primary"
-          onClick={() => generateNext()}
-          disabled={generating}
-          aria-busy={generating}
-        >
-          <SparklesIcon size={16} />
-          {generating ? 'Generating…' : 'Generate Adaptive Challenge'}
-        </button>
-      </SectionHeader>
+      />
 
       {error && <div className="banner banner-warning">{error}</div>}
 
-      {/* Dominant AI Recommended / Current Challenge surface */}
-      {recommendedChallenge && (
-        <div ref={aiCardRef} className="ai-challenge-card-anchor">
-          <AiRecommendedCard
-            challenge={recommendedChallenge}
-            generating={generating}
-            flash={justPicked}
-            setting={savingAlarm}
-            onSet={setAsWakeGate}
-            onSurprise={() => generateNext()}
+      {/* Command bento: tune + live adaptive practice + filters */}
+      <div className="challenge-bento">
+        {/* Tune: regenerate by type + difficulty */}
+        <section className="bento bento--tune">
+          <div className="bento__head">
+            <SlidersIcon size={15} />
+            <span>Generate &amp; Tune</span>
+          </div>
+          <div className="bento__row">
+            <div className="bento__field">
+              <label className="form-field-label" htmlFor="gen-type">Challenge Type</label>
+              <select
+                id="gen-type"
+                value={selectedType}
+                onChange={e => setSelectedType(e.target.value)}
+              >
+                {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="bento__field">
+              <label className="form-field-label" htmlFor="gen-diff">Difficulty</label>
+              <select
+                id="gen-diff"
+                value={selectedDifficulty}
+                onChange={e => setSelectedDifficulty(e.target.value)}
+              >
+                {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => generateNext(selectedType, selectedDifficulty)}
+            disabled={generating}
+            aria-busy={generating}
+          >
+            <SparklesIcon size={15} />
+            {generating ? 'Generating…' : 'Generate Adaptive Challenge'}
+          </button>
+        </section>
+
+        {/* Adaptive AI Practice Simulator */}
+        <section className="bento bento--practice">
+          <LiveChallengeSimulator
+            practice={recommendedChallenge}
+            onWakeGate={setAsWakeGate}
+            wakeSaving={savingAlarm}
           />
-        </div>
-      )}
+        </section>
+
+        {/* Filters: unified cognitive type + difficulty panel (spans full width) */}
+        <section className="bento bento--filters catalog-filters">
+          <div className="catalog-filters__head">
+            <span className="catalog-filters__title">
+              <SlidersIcon size={15} />
+              Catalog Filters
+            </span>
+            <span className="catalog-filters__meta">
+              <span className="catalog-filters__count" role="status">
+                Showing <strong className="tabular">{filtered.length}</strong> of {challenges.length}
+              </span>
+              {(selectedType !== 'All' || selectedDifficulty !== 'All Levels') && (
+                <button type="button" className="btn catalog-filters__reset" onClick={resetFilters} title="Clear the active filters">
+                  <RotateIcon size={13} /> Reset
+                </button>
+              )}
+            </span>
+          </div>
+
+          <div className="catalog-filters__groups">
+            <div className="cf-group">
+              <span className="cf-group__label">Cognitive Type</span>
+              <div className="cf-pills" role="group" aria-label="Filter by cognitive type">
+                {TYPES.map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`cf-pill${selectedType === t ? ' is-active' : ''}`}
+                    onClick={() => setSelectedType(t)}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="cf-group">
+              <span className="cf-group__label">Difficulty</span>
+              <div className="cf-pills" role="group" aria-label="Filter by difficulty">
+                {DIFFICULTIES.map(d => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`cf-pill${selectedDifficulty === d ? ' is-active' : ''}`}
+                    onClick={() => setSelectedDifficulty(d)}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
 
       {wakeNotice && (
         <div className={`banner ${wakeNotice.ok ? 'banner-success' : 'banner-error'} mt-3`} role="status">
@@ -350,44 +345,6 @@ export default function ChallengeGenerator() {
         </div>
       )}
 
-      {/* Interactive Hands-On Practice Simulator */}
-      <LiveChallengeSimulator practice={recommendedChallenge} />
-
-      {/* Filtering & Grouping surface */}
-      <div className="challenge-filters">
-        <div className="challenge-filters__row">
-          <span className="sys-label challenge-filters__label">Cognitive Type</span>
-          <div className="challenge-type-pills" role="group" aria-label="Filter by cognitive type">
-            {TYPES.map(t => (
-              <button
-                key={t}
-                type="button"
-                className={`challenge-type-pill${selectedType === t ? ' is-active' : ''}`}
-                onClick={() => setSelectedType(t)}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="challenge-filters__row">
-          <span className="sys-label challenge-filters__label">Difficulty</span>
-          <div className="segmented" role="group" aria-label="Filter by difficulty">
-            {DIFFICULTIES.map(d => (
-              <button
-                key={d}
-                type="button"
-                className={selectedDifficulty === d ? 'is-active' : ''}
-                onClick={() => setSelectedDifficulty(d)}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Challenge Catalog Grid */}
       {filtered.length === 0 ? (
         <div className="mt-4">
@@ -398,10 +355,7 @@ export default function ChallengeGenerator() {
             action={
               <button
                 className="btn btn-secondary"
-                onClick={() => {
-                  setSelectedType('All');
-                  setSelectedDifficulty('All Levels');
-                }}
+                onClick={resetFilters}
               >
                 Reset Filters
               </button>

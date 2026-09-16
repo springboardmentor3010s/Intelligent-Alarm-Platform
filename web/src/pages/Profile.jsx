@@ -14,6 +14,7 @@ import {
   getTimeFormat,
   setTimeFormat,
 } from '../utils/timeFormat';
+import { apiFetch } from '../utils/api';
 
 const DIFFICULTIES = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
 
@@ -55,10 +56,9 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
     Promise.all([
-      fetch('/api/v1/users/profile', { headers }),
-      fetch('/api/v1/users/settings', { headers }),
+      apiFetch('/api/v1/users/profile'),
+      apiFetch('/api/v1/users/settings'),
     ])
       .then(([profRes, setRes]) =>
         Promise.all([profRes.ok ? profRes.json() : Promise.reject(new Error(`HTTP ${profRes.status}`)), setRes.json()])
@@ -87,14 +87,9 @@ export default function Profile() {
     setSaving(true);
     setError(null);
     try {
-      const headers = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      };
-
-      const res = await fetch('/api/v1/users/profile', {
+      const res = await apiFetch('/api/v1/users/profile', {
         method: 'PUT',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
       if (!res.ok) {
@@ -104,9 +99,9 @@ export default function Profile() {
       const updated = await res.json();
 
       if (format !== initialFormat) {
-        const fmtRes = await fetch('/api/v1/users/time_format', {
+        const fmtRes = await apiFetch('/api/v1/users/time_format', {
           method: 'PUT',
-          headers,
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ time_format: format }),
         });
         if (!fmtRes.ok) {

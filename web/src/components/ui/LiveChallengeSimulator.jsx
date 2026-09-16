@@ -58,7 +58,7 @@ function poolIndexFor(level, pool) {
   return found >= 0 ? found : Math.min(Math.max(level - 1, 0), pool.length - 1);
 }
 
-export default function LiveChallengeSimulator({ practice = null }) {
+export default function LiveChallengeSimulator({ practice = null, onWakeGate = null, wakeSaving = false }) {
   const hasMirror = practice?.challenge_type && POOL[practice.challenge_type];
   const mirrorType = hasMirror ? practice.challenge_type : 'Math';
 
@@ -149,7 +149,7 @@ export default function LiveChallengeSimulator({ practice = null }) {
           <div className="sim-head__title">
             <span className="stat-card__icon sim-head__icon"><SparklesIcon size={17} /></span>
             <div className="sim-head__title-text">
-              <div className="sys-label">Interactive Practice Simulator</div>
+              <div className="sys-label">Adaptive AI Practice Simulator</div>
               {!active ? (
                 <div className="sim-head__sub">
                   {hasMirror && !manual
@@ -180,9 +180,22 @@ export default function LiveChallengeSimulator({ practice = null }) {
           </span>
         </div>
 
-        <button type="button" className="btn sim-rand-btn" onClick={handleRandomize} title="Pick a random challenge type and difficulty">
-          <RotateIcon size={15} /> Randomize
-        </button>
+        <div className="sim-head__actions">
+          <button type="button" className="btn sim-rand-btn" onClick={handleRandomize} title="Pick a random challenge type and difficulty">
+            <RotateIcon size={15} /> Randomize
+          </button>
+          {onWakeGate && (
+            <button
+              type="button"
+              className="btn btn-primary sim-gate-btn"
+              onClick={() => onWakeGate(mirrorSeed, DIFF_STEPS[diffLevel])}
+              disabled={wakeSaving}
+              title="Create a daily wake gate alarm for this challenge"
+            >
+              <SparklesIcon size={15} /> {wakeSaving ? 'Setting…' : 'Set as Wake Gate'}
+            </button>
+          )}
+        </div>
       </div>
 
       {!active ? (
@@ -190,8 +203,8 @@ export default function LiveChallengeSimulator({ practice = null }) {
           <div className="sim-idle__copy">
             <p className="text-sm text-muted-600">
               {hasMirror && !manual
-                ? `Practice the ${mirrorType} sample below. Every answer moves the simulated difficulty, and the question adapts to your tier.`
-                : `Practice a random ${mirrorSeed} sample. Every answer moves the simulated difficulty, and the question adapts to your tier.`}
+                ? `Practice the ${mirrorType} sample below. The Adaptive AI moves the simulated difficulty on every answer, and the question adapts to your tier.`
+                : `Practice a random ${mirrorSeed} sample. The Adaptive AI moves the simulated difficulty on every answer, and the question adapts to your tier.`}
             </p>
             <button className="btn btn-primary" onClick={handleStart}>
               <SparklesIcon size={16} /> Start Practice Challenge

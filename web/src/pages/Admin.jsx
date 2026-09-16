@@ -11,11 +11,10 @@ import {
   ActivityIcon,
 } from '../components/ui';
 import { formatDate } from '../utils/timeFormat';
+import { apiFetch } from '../utils/api';
 
 async function getJSON(path) {
-  const res = await fetch(`/api/v1${path}`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  });
+  const res = await apiFetch(`/api/v1${path}`);
   const body = await res.json().catch(() => null);
   return { status: res.status, body };
 }

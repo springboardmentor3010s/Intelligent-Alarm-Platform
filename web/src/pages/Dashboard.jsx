@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Grid, MetricCard } from '../styles';
+import { Card, Grid } from '../styles';
 import { Line } from 'react-chartjs-2';
 import { buildHabitCharts, makeChartOptions } from '../utils/chartUtils';
-import { getTheme, subscribeTheme } from '../theme';
+import { subscribeTheme } from '../theme';
 import { CardSkeleton, Badge, SectionHeader } from '../components/ui';
 import ErrorState from '../components/ui/ErrorState';
+import { apiFetch } from '../utils/api';
 
 const PRIORITY_TONE = { high: 'danger', medium: 'warm', low: 'success', 1: 'danger', 2: 'warm', 3: 'success' };
 const CATEGORY_LABEL = {
@@ -46,9 +47,8 @@ export default function Dashboard() {
 
   const load = () => {
     setError(null);
-    const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
 
-    fetch('/api/v1/habits/score', { headers })
+    apiFetch('/api/v1/habits/score')
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -60,17 +60,17 @@ export default function Dashboard() {
         setHabitScore(null);
       });
 
-    fetch('/api/v1/habits/score/history?days=7', { headers })
+    apiFetch('/api/v1/habits/score/history?days=7')
       .then(res => (res.ok ? res.json() : []))
       .then(data => setHistory(Array.isArray(data) ? data : []))
       .catch(console.error);
 
-    fetch('/api/v1/analytics/me', { headers })
+    apiFetch('/api/v1/analytics/me')
       .then(res => (res.ok ? res.json() : null))
       .then(setAnalytics)
       .catch(console.error);
 
-    fetch('/api/v1/analytics/recommendations', { headers })
+    apiFetch('/api/v1/analytics/recommendations')
       .then(res => (res.ok ? res.json() : []))
       .then(data => setRecommendations(Array.isArray(data) ? data : []))
       .catch(console.error);
@@ -83,22 +83,6 @@ export default function Dashboard() {
 
   const habitCharts = buildHabitCharts(history.filter(h => h.overall_score !== null));
   const chartOpts = makeChartOptions();
-
-  const isLightTheme = getTheme() !== 'dark';
-  const accentHex = isLightTheme ? '#6844FD' : '#58F6CA';
-  const accentBg = isLightTheme ? 'rgba(104, 68, 253, 0.12)' : 'rgba(88, 246, 202, 0.12)';
-  const challengeChart = habitCharts.challenge
-    ? {
-        ...habitCharts.challenge,
-        datasets: habitCharts.challenge.datasets.map(ds => ({
-          ...ds,
-          borderColor: accentHex,
-          backgroundColor: accentBg,
-          pointBackgroundColor: accentHex,
-          pointBorderColor: accentHex,
-        })),
-      }
-    : habitCharts.challenge;
 
   if (error && !habitScore) {
     return (
@@ -123,7 +107,7 @@ export default function Dashboard() {
   const available = history.filter(h => h.overall_score !== null).length;
   const charts = [
     { label: 'Wake-up Consistency', key: 'wake_up_consistency', data: habitCharts.wakeUp },
-    { label: 'Challenge Completion', key: 'challenge_completion', data: challengeChart },
+    { label: 'Challenge Completion', key: 'challenge_completion', data: habitCharts.challenge },
     { label: 'Snooze Reduction', key: 'snooze_reduction', data: habitCharts.snooze },
     { label: 'Sleep Schedule Adherence', key: 'sleep_schedule_adherence', data: habitCharts.sleep },
   ];
@@ -137,56 +121,46 @@ export default function Dashboard() {
 
       {error && <div className="banner banner-warning">{error}</div>}
 
-      {/* Top Intelligence Overview (Bento Grid) */}
-      <Grid className="dash-top">
-        <Card className="p-4 dash-hero">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div className="card-label">Composite Habit Score</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '0.25rem' }}>
-                <span className="metric-value" style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1 }}>
-                  {habitScore.overall_score}
-                </span>
-                <span className="metric-denom" style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                  /100
-                </span>
+      <div className="analytics-bento">
+        <Card className="bento-score">
+          <div>
+            <div className="card-label">Composite Habit Score</div>
+            <div className="bento-score__head">
+              <div className="bento-score__num">
+                <span className="metric-value">{habitScore.overall_score}</span>
+                <span className="metric-denom">/100</span>
               </div>
+              <Badge tone={habitScore.overall_score >= 80 ? 'success' : habitScore.overall_score >= 60 ? 'brand' : 'warm'}>
+                {habitScore.overall_score >= 80 ? 'Optimal Trajectory' : habitScore.overall_score >= 60 ? 'Active Discipline' : 'Calibrating'}
+              </Badge>
             </div>
-            <Badge tone={habitScore.overall_score >= 80 ? 'success' : habitScore.overall_score >= 60 ? 'brand' : 'warm'}>
-              {habitScore.overall_score >= 80 ? 'Optimal Trajectory' : habitScore.overall_score >= 60 ? 'Active Discipline' : 'Calibrating'}
-            </Badge>
           </div>
 
-          <div style={{ marginTop: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
+          <div className="bento-score__bar">
+            <div className="bar-head">
               <span>Circadian Efficiency</span>
               <span className="tabular">{habitScore.overall_score}%</span>
             </div>
-            <div style={{ height: '8px', background: 'var(--surface-3)', borderRadius: '9999px', overflow: 'hidden' }}>
+            <div className="bar-track">
               <div
-                style={{
-                  height: '100%',
-                  width: `${Math.min(100, Math.max(0, habitScore.overall_score))}%`,
-                  background: 'var(--grad-primary)',
-                  borderRadius: '9999px',
-                  transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-                }}
+                className="bar-fill"
+                style={{ width: `${Math.min(100, Math.max(0, habitScore.overall_score))}%` }}
               />
             </div>
           </div>
 
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+          <div className="bento-score__formula">
             <strong>Weighted formula:</strong> 35% Consistency · 25% Challenge · 20% Snooze · 20% Adherence
           </div>
         </Card>
 
         {analytics && (
-          <Card className="p-4 dash-tele">
-            <div className="card-label mb-3">Cognitive Telemetry Summary</div>
+          <Card className="bento-tele">
+            <div className="card-label">Cognitive Telemetry</div>
             <div className="telemetry-grid">
               <div className="telemetry-item">
                 <span className="text-xs text-muted-600" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span className="led led--on" /> Total Alarms
+                  <span className="led led--on" style={{ background: 'var(--c-violet)' }} /> Total Alarms
                 </span>
                 <span className="metric-value">{analytics.total_alarms}</span>
               </div>
@@ -198,7 +172,7 @@ export default function Dashboard() {
               </div>
               <div className="telemetry-item">
                 <span className="text-xs text-muted-600" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span className="led led--on led--live" style={{ background: 'var(--c-violet)' }} /> Avg Snooze Count
+                  <span className="led led--on" style={{ background: 'var(--c-violet)' }} /> Avg Snooze Count
                 </span>
                 <span className="metric-value">{analytics.average_snooze_count?.toFixed(1)}</span>
               </div>
@@ -211,11 +185,37 @@ export default function Dashboard() {
             </div>
           </Card>
         )}
-      </Grid>
 
-      {/* Pillar Charts: Perfect 2x2 Bento Square */}
-      <div className="card-label mb-2"><span className="sys-label">Habit Pillars · Intelligence Breakdown</span></div>
-      <Grid className="grid-cards--square">
+        {recommendations.length > 0 && (
+          <div className="bento-recs">
+            <div className="card-label mb-3">
+              <span className="sys-label">Personalized AI Recommendations</span>
+            </div>
+            <Grid className="grid-cards--3">
+              {recommendations.map(r => (
+                <Card key={r.id} className="p-4 rec-card">
+                  <div className="rec-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                    <Badge tone="brand">{CATEGORY_LABEL[r.category] || r.category}</Badge>
+                    <Badge tone={PRIORITY_TONE[r.priority] || 'subtle'}>
+                      {typeof r.priority === 'number' ? `P${r.priority}` : r.priority}
+                    </Badge>
+                  </div>
+                  <div className="rec-title mt-2">
+                    {r.title}
+                  </div>
+                  <p className="text-sm text-muted-600 mt-2" style={{ lineHeight: 1.55 }}>{r.message}</p>
+                  {r.suggested_action && (
+                    <div className="rec-action mt-4">
+                      <span className="dot-bullet" aria-hidden="true" />
+                      {r.suggested_action}
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </Grid>
+          </div>
+        )}
+
         {charts.map((c, i) => {
           const meta = PILLAR_METADATA[c.label] || {};
           const currentVal = habitScore[c.key] ?? '-';
@@ -224,13 +224,11 @@ export default function Dashboard() {
               <div className="bento-tile__head">
                 <span className="bento-tile__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                 <div className="bento-tile__head-text">
-                  <span className="sys-label">Habit Pillar · Cognitive Track</span>
+                  <span className="sys-label">Habit Pillar</span>
                   <div className="bento-tile__title">{c.label}</div>
                 </div>
                 <div className="bento-tile__value">
-                  <div className="metric-value" style={{ fontSize: '1.75rem' }}>
-                    {currentVal}<span className="metric-denom">/100</span>
-                  </div>
+                  <div className="metric-value">{currentVal}<span className="metric-denom">/100</span></div>
                   <span className="text-xs text-muted-600">{meta.weight}</span>
                 </div>
               </div>
@@ -240,53 +238,24 @@ export default function Dashboard() {
               </div>
 
               <div className="pillar-meta">
-                <div className="pillar-meta__row">
-                  <span className="pillar-meta__tag">Interpretation</span>
+                <div className="pillar-meta__col">
+                  <span className="pillar-meta__tag">About this metric</span>
                   <p className="pillar-meta__text">{meta.interpretation}</p>
                 </div>
-                <div className="pillar-meta__row">
-                  <span className="pillar-meta__tag pillar-meta__tag--action">Recommended Action</span>
+                <div className="pillar-meta__col">
+                  <span className="pillar-meta__tag pillar-meta__tag--action">Recommended</span>
                   <p className="pillar-meta__action">{meta.recommendedAction}</p>
                 </div>
               </div>
             </Card>
           );
         })}
-      </Grid>
-      <div className="chart-note">
-        Tracking {available} of 7 recorded days. Only real server-verified habit scoring events are plotted.
-      </div>
 
-      {/* Actionable Recommendations Module (Google Gemini Style) */}
-      {recommendations.length > 0 && (
-        <div>
-          <div className="card-label mb-3">
-            <span className="sys-label">Personalized AI Recommendations</span>
-          </div>
-          <Grid className="grid-cards--3">
-            {recommendations.map(r => (
-              <Card key={r.id} className="p-4 rec-card">
-                <div className="rec-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <Badge tone="brand">{CATEGORY_LABEL[r.category] || r.category}</Badge>
-                  <Badge tone={PRIORITY_TONE[r.priority] || 'subtle'}>
-                    {typeof r.priority === 'number' ? `P${r.priority}` : r.priority}
-                  </Badge>
-                </div>
-                <div className="rec-title mt-2">
-                  {r.title}
-                </div>
-                <p className="text-sm text-muted-600 mt-2" style={{ lineHeight: 1.55 }}>{r.message}</p>
-                {r.suggested_action && (
-                  <div className="rec-action mt-4">
-                    <span className="dot-bullet" aria-hidden="true" />
-                    {r.suggested_action}
-                  </div>
-                )}
-              </Card>
-            ))}
-          </Grid>
+        <div className="chart-note bento-note">
+          <span className="chart-note__label">Disclaimer</span>
+          Tracking {available} of 7 recorded days. Only real server-verified habit scoring events are plotted.
         </div>
-      )}
+      </div>
     </div>
   );
 }
