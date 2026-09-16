@@ -27,7 +27,7 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 ### Known Critical Issues (remaining after M4)
 1. Mobile offline-first sync + push-token registration are wired and jest-tested (31) but **not yet on-device E2E-verified** — remote push needs an Expo **dev build** (Expo Go disables it)
-2. Test coverage now exists for backend (pytest 34), web (Vitest 42) and mobile (jest 33); remaining: broader flow-level alarm-dismiss component coverage
+2. Test coverage now exists for backend (pytest 47), web (Vitest 49) and mobile (jest 47) with coverage tooling (pytest-cov 71%, @vitest/coverage-v8 69%, jest 28%); remaining: broader flow-level alarm-dismiss component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Web settings are saved to `/users/settings` + `/users/{key}` (theme, notifications, auto-dismiss, vibrate) — completed 2026-09-08
 5. Local alarm scheduling + FCM/APNs delivery provider not yet implemented (needs dev build; M4 backlog)
@@ -276,7 +276,7 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
 | `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
 | `python scripts/smoke_m2.py` | In-process M2 smoke test (25 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
-| `python -m pytest tests/` | Backend unit test suite (34 tests: auth, alarms, challenges, analytics, sync, reports, notifications) — verified on Python 3.11 + 3.14 |
+| `python -m pytest tests/` | Backend unit test suite (47 tests: auth, alarms, challenges, analytics, feedback, notifications) — verified on Python 3.11 + 3.14 |
 | `ruff check app tests scripts` | Lint the backend (E/F/W pragmatic rule set, clean) |
 
 ### Web

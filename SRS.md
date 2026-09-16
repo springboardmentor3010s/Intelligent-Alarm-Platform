@@ -894,6 +894,7 @@ FUNCTION sync_pending_records(records):
 | 1.3 | 2026-09-06 | architect | Refreshed to post-M2 state: `POST /challenges/submit`, no-answer-leak `/next`, and mobile E2E dismiss marked complete; corrected `load_dotenv` note in issue #6; migration HEAD `1c584bd4a5b0`; `smoke_m2.py` 25/25 added to testing matrix |
 | 1.4 | 2026-09-08 | architect | Refreshed to post-M4/build state: offline/-first sync + push-token registration rows implemented; testing matrix (pytest 32, Vitest 18, jest-expo 31, ruff, GitHub Actions CI); web app-shell/global-theme/Profile additions; migration HEAD `992b0ec03dba` |
 | 1.5 | 2026-09-10 | architect | Full audit pass: corrected UserProfileRes/AlarmCreateReq schemas, added push_tokens + alarm_roles to ER diagram, fixed admin dashboard status (complete), updated RBAC descriptions (staff+/admin/authenticated), corrected success response format (no wrapper envelope), fixed Tailwind reference, updated test counts (pytest 34, Vitest 42, jest 33) |
+| 1.6 | 2026-09-16 | architect | Phase 1 stabilization: corrected test counts to pytest **47**, Vitest **49**, jest **47**; added coverage tooling (pytest-cov, @vitest/coverage-v8, jest coverage); created `TEST_STATUS.md` |
 
 ---
 
@@ -955,8 +956,8 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | ML Inference | ✅ Complete (M3) | Trained `difficulty_model.pt` served; rule-based fallback in container (no torch) | 85% |
 | Database Models + Migrations | ✅ Complete | 9 ORM tables (incl. `push_tokens` + `alarm_roles`); migration current (`992b0ec03dba`); 0→head verified fresh | 95% |
 | Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
-| Testing (pytest) | ✅ Complete (M4) | 34 tests (auth, alarms, challenges, analytics, notifications, sync, reports); verified Python 3.11 + 3.14 | 90% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 42) + mobile jest (33) | 90% |
+| Testing (pytest) | ✅ Complete (M4) | 47 tests (auth, alarms, challenges, analytics, feedback, notifications); coverage 71%; verified Python 3.11 + 3.14 | 90% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 49) + mobile jest (47) | 90% |
 
 ### Web Dashboard
 
@@ -992,6 +993,6 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 |---|---|---|---|
 | Docker | ✅ Complete (M4) | CMD fixed, `.dockerignore`, compose up-tested (Postgres + migrations entrypoint + lean image + healthcheck) | 90% |
 | Database Migrations | ✅ Complete | Migration current (`992b0ec03dba`); `upgrade head` verified on fresh DB | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (34) + smoke_m1 (22) + smoke_m2 (25) + web test (42)/build + mobile jest (33) | 90% |
-| Testing | ✅ Complete (M4-backlog) | pytest 34 + Vitest 42 + jest 33; smoke_m1 (22) + smoke_m2 (25) regression gates | 90% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (47) + smoke_m1 (22) + smoke_m2 (25) + web test (49)/build + mobile jest (47) | 90% |
+| Testing | ✅ Complete (M4-backlog) | pytest 47 + Vitest 49 + jest 47; smoke_m1 (22) + smoke_m2 (25) regression gates; coverage tooling (2026-09-16) | 90% |
 | Environment Config | ✅ Complete | Secrets/CORS from env; 3 postgres vars honored for compose; `AUTO_INIT` SQLite auto-init | 90% |
