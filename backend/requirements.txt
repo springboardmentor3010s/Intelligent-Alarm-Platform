@@ -25,5 +25,6 @@ alembic>=1.13.0  # database migrations
 
 # Testing
 pytest>=8.0.0
+pytest-cov>=6.0.0  # coverage reporting (run: pytest --cov)
 ruff>=0.8.0  # linter (run: ruff check app tests scripts)
 httpx==0.28.1  # TestClient transport used by starlette 1.6.0 (absent in fresh CI -> RuntimeError)
