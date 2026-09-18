@@ -165,6 +165,32 @@ class ChallengeSubmitReq(BaseModel):
     user_answers: Optional[List[str]] = Field(None, description="Ordered answers (multi-question challenges)")
     time_taken_seconds: int = Field(..., ge=0, description="Time from challenge start to submission")
 
+    @field_validator("user_answer", mode="before")
+    @classmethod
+    def _coerce_single_answer(cls, value: Any) -> Any:
+        """Accept a bare number as a valid answer format (normalize to text)."""
+        if value is None or isinstance(value, str):
+            return value
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return str(value)
+        return value
+
+    @field_validator("user_answers", mode="before")
+    @classmethod
+    def _coerce_multi_answers(cls, value: Any) -> Any:
+        """Accept numbers inside the answer list and normalize each to text."""
+        if value is None or not isinstance(value, (list, tuple)):
+            return value
+        return ["" if item is None else (item if isinstance(item, str) else str(item)) for item in value]
+
+
+class ChallengeQuestionResultRes(BaseModel):
+    """Per-question verification result (never reveals an incorrect answer)."""
+    index: int
+    correct: bool
+    answer_type: str
+    feedback: str
+
 
 class ChallengeSubmitRes(BaseModel):
     """Response schema for a challenge submission."""
@@ -174,6 +200,8 @@ class ChallengeSubmitRes(BaseModel):
     completed: bool = Field(..., description="Attempt marked complete after verification")
     correct_answers: int = Field(..., ge=0)
     total_questions: int = Field(..., gt=0)
+    results: List[ChallengeQuestionResultRes] = Field(default_factory=list)
+    message: str = ""
 
 
 # ============================================================
@@ -188,6 +216,28 @@ class HabitScoreRes(BaseModel):
     snooze_reduction: int = Field(..., ge=0, le=100, description="0-100")
     sleep_schedule_adherence: int = Field(..., ge=0, le=100, description="0-100")
     overall_score: int = Field(..., ge=0, le=100, description="Weighted composite 0-100")
+
+    model_config = {"from_attributes": True}
+
+
+# ============================================================
+# PRODUCTIVITY SCHEMAS (Phase 7 — manual user-entered tracking)
+# ============================================================
+
+class ProductivityLogReq(BaseModel):
+    """Request schema for logging one day of productivity (user-entered only)."""
+    date: Optional[str] = Field(None, description="YYYY-MM-DD; defaults to today (UTC)")
+    score: int = Field(..., ge=0, le=100, description="Self-assessed day score 0-100")
+    note: Optional[str] = Field(None, max_length=500, description="Optional free-text note")
+
+
+class ProductivityLogRes(BaseModel):
+    """Response schema for a productivity log entry."""
+    id: int
+    date: str
+    score: int
+    note: Optional[str] = None
+    source: str = "user-entered"
 
     model_config = {"from_attributes": True}
 
@@ -209,7 +259,12 @@ class AnalyticsRes(BaseModel):
 
 
 class RecommendationRes(BaseModel):
-    """Response schema for a personalized recommendation (M3)."""
+    """Response schema for a personalized recommendation (M3, Phase 6).
+
+    Every recommendation explains itself: `reason` states in plain language
+    why it fired, and `source_metric` points at the driving measurement
+    (`{"key": ..., "value": ...}`) so clients and coaches can audit it.
+    """
     id: int
     category: str  # "sleep" | "wake_up" | "habit" | "challenge"
     priority: str  # "high" | "medium" | "low"
@@ -217,6 +272,8 @@ class RecommendationRes(BaseModel):
     message: str
     suggested_action: Optional[str] = None
     metrics: Dict[str, Any] = Field(default_factory=dict)
+    reason: Optional[str] = None
+    source_metric: Optional[Dict[str, Any]] = None
 
 
 # ============================================================
@@ -270,7 +327,12 @@ class AdminUserRes(BaseModel):
 
 
 class AdminAnalyticsRes(BaseModel):
-    """Response schema for admin analytics."""
+    """Response schema for admin analytics.
+
+    `system_uptime_percentage` is a measured lifetime API success ratio (100.0
+    when idle-but-healthy, 0.0 when the database is unreachable) — never a
+    hard-coded constant. See `services.system_status`.
+    """
     total_users: int = 0
     active_users_today: int = 0
     new_users_this_week: int = 0
@@ -278,6 +340,24 @@ class AdminAnalyticsRes(BaseModel):
     platform_habit_score_avg: float = 0.0
     top_challenge_types: List[Dict[str, Any]] = Field(default_factory=list)
     system_uptime_percentage: float = 0.0
+    uptime_seconds: float = 0.0
+    db_connected: bool = False
+
+
+class CoachAssignmentReq(BaseModel):
+    """Request schema for assigning a user to a coach's cohort (admin only)."""
+    coach_id: int = Field(..., description="User id of the Wellness Coach")
+    user_id: int = Field(..., description="User id to place in the coach's cohort")
+
+
+class CoachAssignmentRes(BaseModel):
+    """Response schema for a coach cohort assignment."""
+    id: int
+    coach_id: int
+    user_id: int
+    created_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
 
 
 # ============================================================

@@ -36,5 +36,39 @@ def get_recommendations(
 def get_ml_status(
     current_user: User = Depends(get_current_user),
 ):
-    """Get ML model status (for diagnostics)."""
+    """Get ML model status: availability, version, fallback, last training.
+
+    The difficulty weights are synthetic-trained (never on real user data);
+    see `AI_FEATURES.md` for provenance and limitations.
+    """
     return AdaptiveDifficultyService.get_model_status()
+
+
+@router.get("/anomalies", response_model=dict)
+def get_anomalies(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Baseline anomaly assessment (statistical checks, gated on history).
+
+    Returns `{"available": bool, ...}`; `available` is False with a reason
+    when the user lacks the minimum scored history — never fabricated.
+    """
+    from ..ai_engine.anomaly import assess
+
+    return assess(db, current_user.id)
+
+
+@router.get("/forecast", response_model=dict)
+def get_forecast(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Baseline performance forecast (linear trend, gated on history).
+
+    Returns `{"available": bool, ...}`; `available` is False with a reason
+    when the user lacks the minimum time-series data.
+    """
+    from ..ai_engine.performance_prediction import forecast
+
+    return forecast(db, current_user.id)

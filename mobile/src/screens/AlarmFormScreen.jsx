@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
+import { useAlarmScheduler } from '../hooks/useAlarmScheduler';
 import { useTheme } from '../theme/ThemeContext';
 import { SysLabel, ChipRow } from '../components/ui';
 
@@ -15,6 +16,7 @@ const COUNTS = [3, 4, 5];
 export default function AlarmFormScreen({ route, navigation }) {
   const { token } = useAuthContext();
   const { colors, ui, fonts } = useTheme();
+  const { syncAlarms } = useAlarmScheduler();
   const alarmId = route.params?.alarmId;
 
   const [title, setTitle] = useState('');
@@ -65,6 +67,13 @@ export default function AlarmFormScreen({ route, navigation }) {
         body,
       });
       if (!res.ok) throw new Error('Request failed');
+      // Re-plan the on-device reminders so the new/edited window is armed.
+      try {
+        const fresh = await apiFetch('/api/v1/alarms', { headers: { Authorization: `Bearer ${token}` } });
+        if (fresh.ok) await syncAlarms(await fresh.json());
+      } catch (e) {
+        // scheduling is best-effort; AlarmsTab resyncs on next focus
+      }
       navigation.goBack();
     } catch (e) {
       Alert.alert('Error', 'Could not save the alarm. Check your connection and try again.');

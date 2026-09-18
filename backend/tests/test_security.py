@@ -73,6 +73,21 @@ class TestSecretKeyFailFast:
         with patch.dict(os.environ, {"ENVIRONMENT": "production", "SECRET_KEY": "a-real-secret-that-is-at-least-32-bytes-long!"}):
             assert get_secret_key() == "a-real-secret-that-is-at-least-32-bytes-long!"
 
+    def test_lifespan_refuses_placeholder_secret_in_production(self):
+        """App lifespan raises at boot (not first request) on placeholder secret (Phase 9)."""
+        import asyncio
+
+        from app.core.config import PLACEHOLDER_SECRET
+        from app.main import app, lifespan
+
+        async def _enter():
+            async with lifespan(app):
+                pass
+
+        with patch.dict(os.environ, {"ENVIRONMENT": "production", "SECRET_KEY": PLACEHOLDER_SECRET}):
+            with pytest.raises(RuntimeError, match="SECRET_KEY is missing or set to the placeholder"):
+                asyncio.run(_enter())
+
 
 # ─── 2. CORS allowlist ───────────────────────────────────────────
 

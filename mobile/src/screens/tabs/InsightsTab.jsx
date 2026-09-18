@@ -19,6 +19,8 @@ export default function InsightsTab() {
   const { colors, ui, fonts } = useTheme();
   const { score, loading, fetchHabitScore } = useHabitScore(token);
   const [history, setHistory] = useState([]);
+  const [prodHistory, setProdHistory] = useState([]);
+  const [prodCorr, setProdCorr] = useState(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -26,6 +28,15 @@ export default function InsightsTab() {
       apiFetch('/api/v1/habits/score/history?days=7', { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => (r.ok ? r.json() : []))
         .then((data) => setHistory(Array.isArray(data) ? data : []))
+        .catch(() => {});
+      // Productivity comes only from days the user logged (user-entered).
+      apiFetch('/api/v1/productivity/history?days=7', { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data) => setProdHistory(Array.isArray(data) ? data : []))
+        .catch(() => {});
+      apiFetch('/api/v1/productivity/correlation?days=30', { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then(setProdCorr)
         .catch(() => {});
     }, [token, fetchHabitScore])
   );
@@ -75,8 +86,15 @@ export default function InsightsTab() {
       })}
 
       <SectionHeader tone="violet" style={styles.sectionHeader}>7-day track</SectionHeader>
-      {history.length > 0 ? (
-        history.slice(-7).map((h) => {
+      {(() => {
+        // Render only days with a real stored score; gap days stay honest gaps.
+        const scored = history.filter((h) => h.overall_score !== null && h.overall_score !== undefined);
+        if (scored.length === 0) {
+          return (
+            <Text style={[styles.emptyText, { color: colors.textFaint }]}>Not enough data yet - keep waking up to build your trend.</Text>
+          );
+        }
+        return scored.slice(-7).map((h) => {
           const v = Number(h.overall_score) || 0;
           return (
             <View key={h.date} style={styles.histRow}>
@@ -87,10 +105,32 @@ export default function InsightsTab() {
               <Text style={[styles.histVal, { color: colors.text, fontFamily: fonts.monoMedium }]}>{v}</Text>
             </View>
           );
-        })
+        });
+      })()}
+      <SectionHeader tone="violet" style={styles.sectionHeader}>Productivity · you log it</SectionHeader>
+      {prodHistory.length === 0 ? (
+        <Text style={[styles.emptyText, { color: colors.textFaint }]}>
+          No logged productivity yet — log daily scores on the web Reports page to build this trend.
+        </Text>
       ) : (
-        <Text style={[styles.emptyText, { color: colors.textFaint }]}>Not enough data yet - keep waking up to build your trend.</Text>
+        [...prodHistory].reverse().map((h) => {
+          const v = Number(h.score) || 0;
+          return (
+            <View key={h.date} style={styles.histRow}>
+              <Text style={[styles.histDate, { color: colors.textMuted, fontFamily: fonts.monoMedium }]}>{String(h.date).slice(5)}</Text>
+              <View style={[styles.histBar, { backgroundColor: colors.surface2 }]}>
+                <View style={[styles.histFill, { width: `${Math.min(100, v)}%`, backgroundColor: colors.emerald }]} />
+              </View>
+              <Text style={[styles.histVal, { color: colors.text, fontFamily: fonts.monoMedium }]}>{v}</Text>
+            </View>
+          );
+        })
       )}
+      <Text style={[styles.emptyText, { color: colors.textFaint }]} accessibilityLiveRegion="polite">
+        {prodCorr?.available
+          ? `Inferred: ${prodCorr.message}`
+          : 'Wake-up/productivity association appears here once enough paired days exist.'}
+      </Text>
     </ScrollView>
   );
 }

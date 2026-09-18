@@ -128,7 +128,11 @@ def compute_wake_up_consistency_trend(
 def compute_recent_activity(
     db: Session, user_id: int, days: int = 7
 ) -> Dict[str, Any]:
-    """Real per-day activity summary for the last N days."""
+    """Real per-day activity summary for the last N days.
+
+    Accuracy figures count only *submitted* attempts (`end_time` set):
+    pending snapshots that were never submitted are activity, not failures.
+    """
     now = datetime.now(timezone.utc)
     recent_cutoff = now - timedelta(days=days)
 
@@ -151,7 +155,10 @@ def compute_recent_activity(
     )
     attempts = (
         db.query(ChallengeAttempt)
-        .filter(ChallengeAttempt.user_id == user_id)
+        .filter(
+            ChallengeAttempt.user_id == user_id,
+            ChallengeAttempt.end_time.isnot(None),
+        )
         .count()
         or 0
     )
@@ -165,7 +172,10 @@ def compute_recent_activity(
             func.avg(ChallengeAttempt.time_taken_seconds),
         )
         .join(Challenge, Challenge.id == ChallengeAttempt.challenge_id)
-        .filter(ChallengeAttempt.user_id == user_id)
+        .filter(
+            ChallengeAttempt.user_id == user_id,
+            ChallengeAttempt.end_time.isnot(None),
+        )
         .group_by(Challenge.challenge_type)
         .all()
     )
@@ -212,7 +222,10 @@ def get_user_analytics_summary(db: Session, user_id: int) -> Dict[str, Any]:
 
     attempts = (
         db.query(ChallengeAttempt)
-        .filter(ChallengeAttempt.user_id == user_id)
+        .filter(
+            ChallengeAttempt.user_id == user_id,
+            ChallengeAttempt.end_time.isnot(None),
+        )
         .all()
     )
     total_q = sum(a.total_questions for a in attempts) or 1

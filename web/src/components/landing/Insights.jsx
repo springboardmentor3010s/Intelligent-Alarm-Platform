@@ -45,10 +45,11 @@ export default function Insights() {
               <span className="lp-metric__label">{m.label}</span>
             </div>
           ))}
-          <p className="lp-insights__note">
-            Sample numbers only; your real dashboard shows your actual morning data.
-          </p>
         </div>
+
+        <p className="lp-insights__note">
+          Sample numbers only; your real dashboard shows your actual morning data.
+        </p>
       </div>
     </LandingSection>
   );

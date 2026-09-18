@@ -14,10 +14,12 @@ from ..Models import ChallengeAttempt
 def verify_finished_attempt(
     db: Session, user_id: int, attempt_id: int
 ) -> ChallengeAttempt:
-    """Return the attempt only when it belongs to the user and was fully solved.
+    """Return the attempt only when it belongs to the user, was fully solved,
+    and has not already been redeemed to dismiss an alarm.
 
     Raises:
         HTTPException 404 - attempt missing or owned by another user
+        HTTPException 409 - attempt already consumed by a previous dismissal
         HTTPException 400 - attempt incomplete / not all questions correct
     """
     attempt = db.query(ChallengeAttempt).filter(
@@ -27,6 +29,12 @@ def verify_finished_attempt(
 
     if not attempt:
         raise HTTPException(status_code=404, detail="Challenge attempt not found")
+
+    if attempt.consumed_at is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="This challenge attempt has already been used to dismiss an alarm",
+        )
 
     if not attempt.completed or attempt.correct_answers < attempt.total_questions:
         raise HTTPException(

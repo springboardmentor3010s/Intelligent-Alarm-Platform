@@ -76,8 +76,8 @@ ENGINE_REGISTRY: Dict[str, Dict[str, str]] = {
     "recommendations": {"status": "implemented", "module": "app.ai_engine.recommendations"},
     "challenge_generation": {"status": "implemented", "module": "app.ai_engine.challenge_generation"},
     "behavior_analysis": {"status": "implemented", "module": "app.ai_engine.behavior_analysis"},
-    "anomaly_detection": {"status": "planned", "module": "app.ai_engine.anomaly"},
-    "performance_prediction": {"status": "planned", "module": "app.ai_engine.performance_prediction"},
+    "anomaly_detection": {"status": "implemented (baseline)", "module": "app.ai_engine.anomaly"},
+    "performance_prediction": {"status": "implemented (baseline)", "module": "app.ai_engine.performance_prediction"},
 }
 
 

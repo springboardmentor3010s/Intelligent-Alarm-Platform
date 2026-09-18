@@ -1,5 +1,25 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { apiFetch, authHeaders, parseApiError } from '../utils/api';
+
+/**
+ * Error carrying the HTTP status so screens can react precisely:
+ * 400 malformed, 404 unknown/cross-user, 409 already submitted, 410 expired.
+ */
+export class ChallengeError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = 'ChallengeError';
+    this.status = status;
+  }
+}
+
+/** Seconds left before a served challenge attempt expires (null when unknown). */
+export function secondsUntil(expiresAt, from = Date.now()) {
+  if (!expiresAt) return null;
+  const deadline = Date.parse(expiresAt);
+  if (Number.isNaN(deadline)) return null;
+  return Math.max(0, Math.round((deadline - from) / 1000));
+}
 
 export function useChallenge(token) {
   const [loadState, setLoadState] = useState({ loading: false, current: null, error: null });
@@ -18,7 +38,7 @@ export function useChallenge(token) {
         headers: authHeaders(token),
       });
       if (!response.ok) {
-        throw new Error(await parseApiError(response));
+        throw new ChallengeError(await parseApiError(response), response.status);
       }
       const data = await response.json();
       setStartedAt(Date.now());
@@ -50,10 +70,15 @@ export function useChallenge(token) {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      throw new Error(await parseApiError(response));
+      throw new ChallengeError(await parseApiError(response), response.status);
     }
     return response.json();
   };
 
-  return { ...loadState, fetchChallenge, submitChallenge, elapsedSeconds };
+  const reset = () => {
+    setLoadState({ loading: false, current: null, error: null });
+    setStartedAt(null);
+  };
+
+  return { ...loadState, fetchChallenge, submitChallenge, elapsedSeconds, reset };
 }

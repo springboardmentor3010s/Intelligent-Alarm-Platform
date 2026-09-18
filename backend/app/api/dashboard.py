@@ -11,10 +11,10 @@ from uuid import uuid4
 
 from ..database import get_db
 from ..Models import User, UserRole
-from ..schemas import AdminUserRes, AdminAnalyticsRes
+from ..schemas import AdminUserRes, AdminAnalyticsRes, CoachAssignmentReq, CoachAssignmentRes
 from ..schemas.auth import RoleUpdateReq
 from ..api.deps import get_current_user, require_roles, get_or_create_role
-from ..services import admin_service, report_service
+from ..services import admin_service, coach_service, report_service
 from ..services.audit_service import log_event
 from ..workers import get_job_status, submit_to_background
 
@@ -65,8 +65,57 @@ def list_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(staff_only),
 ):
-    """List all users (Admin/Wellness Coach only)."""
-    return admin_service.list_users(db)
+    """List visible users.
+
+    Administrators see everyone; Wellness Coaches see only users assigned to
+    their cohort (scope enforced server-side, never client-side).
+    """
+    if coach_service.is_admin(db, current_user.id):
+        return admin_service.list_users(db)
+    return coach_service.list_cohort_users(db, current_user.id)
+
+
+@router.post("/coach/assignments", response_model=CoachAssignmentRes, status_code=201)
+def assign_cohort_user(
+    payload: CoachAssignmentReq,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(admin_only),
+):
+    """Assign a user to a wellness coach's cohort (Administrator only)."""
+    row = coach_service.assign_user(db, payload.coach_id, payload.user_id)
+    return row
+
+
+@router.delete("/coach/assignments")
+def unassign_cohort_user(
+    coach_id: int = Query(..., ge=1),
+    user_id: int = Query(..., ge=1),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(admin_only),
+):
+    """Remove a user from a coach's cohort (Administrator only)."""
+    coach_service.unassign_user(db, coach_id, user_id)
+    return {"removed": True}
+
+
+@router.get("/coach/users", response_model=list[AdminUserRes])
+def list_cohort_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(staff_only),
+):
+    """Cohort roster: coaches see their assigned users, admins see everyone."""
+    return coach_service.list_cohort_users(db, current_user.id)
+
+
+@router.get("/coach/users/{user_id}", response_model=dict)
+def get_cohort_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(staff_only),
+):
+    """Scoped per-user coaching view (habit adherence, sleep trend, challenge
+    performance, progress). Coaches outside the assignment scope get 403."""
+    return coach_service.get_cohort_user_detail(db, current_user.id, user_id)
 
 
 @router.get("/analytics", response_model=AdminAnalyticsRes)
@@ -123,6 +172,26 @@ def report_challenges(
     return _dispatch_report(
         report_service.challenges_report_records, db, current_user.id, days,
         format, "challenges", "Challenge Report", background_tasks, bool(async_flag),
+    )
+
+
+@router.get("/reports/productivity")
+def report_productivity(
+    days: int = Query(7, ge=1, le=365),
+    format: str = Query("csv", pattern="^(csv|json|pdf|excel)$"),
+    background_tasks: BackgroundTasks = None,
+    async_flag: int = Query(0, alias="async"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Export user-entered productivity logs (FR-REP-004).
+
+    Contains only days the user actually logged; empty accounts export an
+    honest empty file, never fabricated scores.
+    """
+    return _dispatch_report(
+        report_service.productivity_report_records, db, current_user.id, days,
+        format, "productivity", "Productivity Report", background_tasks, bool(async_flag),
     )
 
 

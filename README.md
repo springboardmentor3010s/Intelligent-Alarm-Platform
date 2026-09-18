@@ -13,24 +13,24 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 ## Project Status
 
-> **Current Stage**: Functional Prototype — **Milestones 1–4 delivered** + **M4 backlog (offline sync, mobile push registration, web/mobile tests, UI app-shell pass, presentation) landed** (2026-09-07/08) + **product-wide retro-futuristic redesign (web + mobile) landed** (2026-09-10)
-> Status updated: 2026-09-10.
+> **Current Stage**: Functional Prototype — **Milestones 1–4 delivered** + **M4 backlog (offline sync, mobile push registration, web/mobile tests, UI app-shell pass, presentation) landed** (2026-09-07/08) + **product-wide retro-futuristic redesign (web + mobile) landed** (2026-09-10) + **Phase 2 auth/security + Phase 3 alarm/notification workflow landed** (2026-09-16/17)
+> Status updated: 2026-09-17.
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
 | Backend Core Logic | Functional | ~95% | Auth, RBAC, profiles/settings, tz-aware alarms, habits, sync, **server-authoritative challenge engine** all working & smoke-tested |
 | Backend Security | Good | ~95% | **Phase 2 (2026-09-16)**: secret fail-fast in production, CORS allowlist, refresh-token rotation + hashed single-use tokens, password-reset/email-verification, audit log, security headers, deactivation + admin role-change; env-driven JWT secret + RBAC, structured error envelope, rate limiting |
 | Web Dashboard | Good | ~95% | **Retro-futuristic redesign (2026-09-10)**: flat brand palette `#F4A442`/#3E7C17/#125C13/#E8E1D9 (no gradients, no glow), landing page, grouped nav IA, Home command-center dashboard, admin UI, brand login-bg; **responsive + overflow pass** (no page-level horizontal scroll at any width, fixed-clock clearance, 4→2→1 column chart/metric grids, mobile alarm/settings layouts) |
-| Mobile App | Good | ~80% | **Custom HOME/ALARMS/INSIGHTS/PROFILE bottom nav + redesigned screens (2026-09-10)**; alarm dismiss E2E functional; offline-first sync + Expo push-registration wired; on-device E2E + native push still pending (dev build) |
-| Testing | Good | ~95% | **Backend pytest suite (95, verified 3.11 + 3.14, coverage 74%)**; **web Vitest (49) + mobile jest-expo (47)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
+| Mobile App | Good | ~85% | **Custom HOME/ALARMS/INSIGHTS/PROFILE bottom nav + redesigned screens (2026-09-10)**; alarm dismiss E2E functional; offline-first sync + Expo push registration wired; **Phase 3 (2026-09-17)**: on-device local alarm scheduling (`expo-notifications`, channel `cerebrokognit-alarms`), notification-tap → challenge gate routing, offline alarm cache; on-device E2E still requires the manual checklist |
+| Testing | Good | ~95% | **Backend pytest suite (107, verified 3.11 + 3.14, coverage 75%)**; **web Vitest (49) + mobile jest-expo (69)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
 | Infrastructure/Docker | Good | ~90% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
-### Known Critical Issues (remaining after M4)
-1. Mobile offline-first sync + push-token registration are wired and jest-tested (31) but **not yet on-device E2E-verified** — remote push needs an Expo **dev build** (Expo Go disables it)
-2. Test coverage now exists for backend (pytest **95**, coverage 74%), web (Vitest 49) and mobile (jest 47) with coverage tooling; remaining: broader flow-level alarm-dismiss component coverage
+### Known Critical Issues (remaining after Phase 3)
+1. Mobile on-device notification delivery is **not yet E2E-verified** — run `mobile/REAL_DEVICE_CHECKLIST.md`. Remote push needs an Expo **dev build** (Expo Go disables token acquisition); local scheduling works in Expo Go
+2. Test coverage now exists for backend (pytest **107**, coverage 75%), web (Vitest 49) and mobile (jest 69) with coverage tooling; remaining: broader flow-level alarm-dismiss component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Web settings are saved to `/users/settings` + `/users/{key}` (theme, notifications, auto-dismiss, vibrate) — completed 2026-09-08
-5. Local alarm scheduling + FCM/APNs delivery provider not yet implemented (needs dev build; M4 backlog)
+5. `PUSH_PROVIDER=expo` requires `EXPO_ACCESS_TOKEN` to avoid relay throttling/401s; defaults to `noop` (strict) outside production
 
 > M1-resolved issues: hardcoded JWT secret, admin auth bypass, CORS `*`, stale migration, wrong Dockerfile CMD, `load_dotenv` override — all fixed in M1.
 > M2-resolved issues: challenge answer leak, template random-mismatch bugs, missing `/challenges/submit`, broken mobile dismiss flow, challenge analytics placeholders — all fixed in M2 (see `context.md` continuity log).
@@ -65,9 +65,9 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 ```
 > Redis, MongoDB, and the ML model cache are **planned components** — not implemented in the current codebase.
 
-**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 34 HTTP endpoints (30 unique paths) under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications.
+**Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 43 HTTP endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications.
 **Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **5 nav sections (Overview/Wake/Insights/Account/Administration)** with a collapsible icon rail and a global circular theme toggle in the topbar.
-**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); **offline-first sync + Expo push-token registration wired & jest-tested (2026-09-07)**; native push delivery pending (needs an Expo dev build).
+**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); **offline-first sync + Expo push-token registration wired & jest-tested**; **Phase 3: on-device local alarm scheduling (Android channel `cerebrokognit-alarms`), notification-tap → challenge-gate routing, offline alarm cache**; remote push delivery needs an Expo dev build.
 **Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 9 ORM tables with performance indexes.
 
 ---
@@ -260,7 +260,7 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 | **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migrations, 22/22 smoke (`smoke_m1.py`) |
 | **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ✅ Complete — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, 25/25 smoke (`smoke_m2.py`) |
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ✅ Complete — analytics service (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories), web wired to live data |
-| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration, web Vitest, sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; **Phase 2 (2026-09-16)**: pytest grew to 95 (security suite), coverage 74%; remaining: real cloud deploy |
+| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration, web Vitest, sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; **Phase 2 (2026-09-16)**: pytest grew to 95 (security suite), coverage 74%; **Phase 3 (2026-09-17)**: Expo-push provider + `PUSH_PROVIDER`, `/notifications/status` + `/notifications/test`, `/alarms/{id}/notify`, on-device local scheduling + tap routing, pytest 107, mobile jest 69; remaining: real cloud deploy + on-device verification |
 
 Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone).
 
@@ -276,7 +276,7 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
 | `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
 | `python scripts/smoke_m2.py` | In-process M2 smoke test (25 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
-| `python -m pytest tests/` | Backend unit test suite (95 tests: auth, security, alarms, challenges, analytics, feedback, notifications) — verified on Python 3.11 + 3.14; coverage 74% |
+| `python -m pytest tests/` | Backend unit test suite (107 tests: auth, security, alarms, challenges, analytics, feedback, notifications) — verified on Python 3.11 + 3.14; coverage 75% |
 | `ruff check app tests scripts` | Lint the backend (E/F/W pragmatic rule set, clean) |
 
 ### Web
@@ -284,14 +284,18 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 |---|---|
 | `npm run dev` | Start Vite dev server |
 | `npm run build` | Build for production |
-| `npm test` | Run Vitest frontend unit tests (42) |
+| `npm test` | Run Vitest frontend unit tests (49) |
 
 ### Mobile
 | Command | Description |
 |---|---|
 | `npx expo start` | Start Expo dev server |
 | `npx expo start --android` | Launch Android emulator |
-| `npx jest --ci` | Run jest-expo mobile tests (33) |
+| `npx jest --ci` | Run jest-expo mobile tests (69) |
+| `npx expo export --platform android` | Produce a release bundle (compile check) |
+
+> Before claiming Phase 3 delivery, walk `mobile/REAL_DEVICE_CHECKLIST.md` on a
+> physical device — automated tests cannot prove a reminder actually fires.
 
 ---
 
@@ -300,9 +304,10 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 | Document | Purpose |
 |---|---|
 | `README.md` | This file — quick start, status, architecture |
-| `SRS.md` | Software Requirements Specification (IEEE format, v1.4) |
+| `SRS.md` | Software Requirements Specification (IEEE format, v1.8) |
 | `PRD.md` | Product Requirements Document — vision, personas, modules |
 | `context.md` | System Memory & State Anchor — session continuity, discrepancy matrix |
+| `mobile/REAL_DEVICE_CHECKLIST.md` | Manual on-device verification for the alarm/notification workflow |
 
 > Removed from the repo 2026-09-10 (recoverable via git history): `ARCHITECTURE.md`, `CHANGELOG.md`,
 > `Milestone.md`, `plan.md`, `HierarchicalRemediationPlan.md`, `UI_Wireframes.md`, `infrastructure/`,

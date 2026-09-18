@@ -55,3 +55,43 @@ def list_device_tokens(
 ):
     """List the current user's registered push tokens."""
     return NotificationService.list_tokens(db, current_user)
+
+
+@router.get("/status", response_model=dict)
+def notification_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Describe the push delivery configuration (provider, configured status).
+
+    This is a diagnostics read: it reports whether real FCM/APNs delivery is
+    enabled and how many device tokens the current user has registered. It does
+    not itself deliver anything.
+    """
+    from ..integrations import messaging
+
+    provider = messaging.get_provider()
+    tokens = NotificationService.list_tokens(db, current_user)
+    return {
+        "provider": getattr(provider, "name", "unknown"),
+        "configured": not isinstance(provider, messaging.NoopProvider),
+        "registered_tokens": len(tokens),
+        "message": (
+            "Push delivery configured via Expo push relay."
+            if not isinstance(provider, messaging.NoopProvider)
+            else "Push delivery not configured (PUSH_PROVIDER=expo to enable)."
+        ),
+    }
+
+
+@router.post("/test", response_model=dict)
+def send_test_notification(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Deliver a test notification to the current user's devices.
+
+    Requires ``PUSH_PROVIDER=expo`` and at least one registered token. The
+    summary is returned verbatim so callers can see sent/failed counts.
+    """
+    return NotificationService.send_test(db, current_user)

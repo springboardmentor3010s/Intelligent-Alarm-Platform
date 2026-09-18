@@ -12,6 +12,16 @@ from .rate_limit import AUTH_LIMITER, GLOBAL_LIMITER
 
 logger = logging.getLogger("gateway")
 
+
+def _record_outcome(status_code) -> None:
+    """Feed the lifetime success-ratio counters; never break the request path."""
+    try:
+        from ..services.system_status import record_request
+
+        record_request(status_code)
+    except Exception:
+        pass
+
 # Path prefixes that get the tighter auth rate limit. Everything else uses the
 # global limiter.
 AUTH_PATH_PREFIXES = (
@@ -69,6 +79,7 @@ class GatewayMiddleware(BaseHTTPMiddleware):
                 path,
                 client,
             )
+            _record_outcome(429)
             return _too_many_requests(request_id)
 
         start = time.perf_counter()
@@ -84,8 +95,10 @@ class GatewayMiddleware(BaseHTTPMiddleware):
                 duration_ms,
                 client,
             )
+            _record_outcome(500)
             raise
         duration_ms = (time.perf_counter() - start) * 1000
+        _record_outcome(response.status_code)
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Trace-ID"] = request_id
         if request.method != "GET":

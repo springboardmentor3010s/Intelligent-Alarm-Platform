@@ -78,3 +78,41 @@ def get_cors_origins() -> List[str]:
             )
         origins = list(DEV_CORS_ORIGINS)
     return origins
+
+
+# ---------------------------------------------------------------------------
+# Push delivery configuration
+# ---------------------------------------------------------------------------
+
+_PUSH_PROVIDERS = {"noop", "expo"}
+
+
+def get_push_provider() -> str:
+    """Return the selected push provider name (default ``noop``).
+
+    ``expo`` enables real FCM/APNs delivery through Expo's push relay. Any
+    unknown value is rejected in production (fail fast) and falls back to
+    ``noop`` in development.
+    """
+    name = os.getenv("PUSH_PROVIDER", "noop").strip().lower() or "noop"
+    if name not in _PUSH_PROVIDERS:
+        if is_production():
+            raise RuntimeError(
+                f"PUSH_PROVIDER={name!r} is not a supported provider "
+                f"({sorted(_PUSH_PROVIDERS)})."
+            )
+        return "noop"
+    return name
+
+
+def get_expo_access_token() -> str:
+    """Return the Expo push access token (empty = unauthenticated push)."""
+    return os.getenv("EXPO_ACCESS_TOKEN", "").strip()
+
+
+def get_push_expo_url() -> str:
+    """Return the Expo push service endpoint (overridable for testing)."""
+    return (
+        os.getenv("PUSH_EXPO_URL", "https://exp.host/--/api/v2/push/send").strip()
+        or "https://exp.host/--/api/v2/push/send"
+    )

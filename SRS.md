@@ -1,8 +1,8 @@
 # SRS.md - Software Requirements Specification (IEEE Format)
 
 **System**: Intelligent Cognitive Alarm Platform  
-**Version**: 1.5  
-**Date**: 2026-09-10  
+**Version**: 1.8  
+**Date**: 2026-09-17  
 **Organization**: CerebroKognit Project  
 **Contact**: architect@cerebrokognit.local
 
@@ -118,7 +118,7 @@ This document covers:
 |---|---|---|---|
 | FR-BA-001 | The system shall analyze snooze pattern trends over time (daily, weekly, monthly). | High | Aggregated from `alarms.times_snoozed` and `challenge_attempts`. |
 | FR-BA-002 | The system shall track wake-up behavior: successful dismissals, failed attempts, average time-to-dismiss. | High | Derived from `challenge_attempts.start_time`/`end_time` and `alarms` table. |
-| FR-BA-003 | The system shall correlate productivity metrics with wake-up consistency (if user logs productivity data). | Low | Optional; user-defined productivity goals stored and correlated. |
+| FR-BA-003 | The system shall correlate productivity metrics with wake-up consistency (if user logs productivity data). | Low | ✅ **IMPLEMENTED (Phase 7).** Manual daily logs (`productivity_logs`, user-entered 0-100) + gated Pearson correlation (`GET /productivity/correlation`, ≥4 paired days, association-only message, `source: inferred`). |
 | FR-BA-004 | The system shall analyze sleep pattern analytics: bedtime consistency, sleep duration vs. target. | High | Ingested from user-provided sleep data; stored for habit score computation. |
 
 ### 2.7 Recommendation Engine
@@ -135,20 +135,22 @@ This document covers:
 | Requirement ID | Requirement Text | Priority | Notes |
 |---|---|---|---|
 | FR-DD-001 | The system shall provide a User Dashboard displaying: habit scores, alarm history, wake-up statistics, challenge performance. | High | React.js component consuming `/api/v1/habits/score` and `/api/v1/analytics/me`. |
-| FR-DD-002 | The system shall provide a Wellness Coach Dashboard displaying: user behavior insights, habit adherence analytics, sleep trend reports, progress monitoring. | High | ⚠️ **NOT IMPLEMENTED.** Admin-lite access and coach user cohort filtering do not exist. |
+| FR-DD-002 | The system shall provide a Wellness Coach Dashboard displaying: user behavior insights, habit adherence analytics, sleep trend reports, progress monitoring. | High | ✅ **IMPLEMENTED (Phase 5).** `coach_assignments` table + `coach_service` scope enforcement; `POST/DELETE /dashboard/coach/assignments` (admin), `GET /dashboard/coach/users` + `GET /dashboard/coach/users/{id}` (coach sees assigned cohort only, admin sees all; out-of-scope reads return 403). `GET /dashboard/users` is cohort-scoped for coaches. Detail view reuses the single-source habit/analytics services so values match user dashboards and exports. |
 | FR-DD-003 | The system shall provide an Admin Dashboard displaying: user management, platform analytics, recommendation monitoring, system reports. | High | ✅ **COMPLETE (M4).** Backend endpoints + RBAC enforced; admin UI page (`web/src/pages/Admin.jsx`) with metric cards, top challenge types, users table, RBAC-gated 403 panel. |
 | FR-DD-004 | Dashboards shall support responsive design for mobile, tablet, and desktop form factors. | Medium | ✅ Custom CSS media queries + viewport-based grid/flex layouts (`index.css`); sidebar collapses, cards restack, nav switches to mobile drawer. |
 
 ### 2.9 Notification & Reminder System
 
-> ✅ **Registration channel IMPLEMENTED (P5, 2026-09-07)**: `push_tokens` table, `POST|DELETE /api/v1/notifications/register`, `GET /api/v1/notifications/tokens`, idempotent re-register with ownership reassignment; `integrations/messaging.py` provider protocol. Delivery (FCM/APNs) remains **planned**.
+> ✅ **Delivery IMPLEMENTED (Phase 3, 2026-09-17)**: push tokens (P5) plus an **Expo Push Service** provider (`integrations/messaging.py::ExpoPushProvider`), env-selected via `PUSH_PROVIDER=noop|expo` (default `noop`, strict-raise; production fails fast on unknown values), optional `EXPO_ACCESS_TOKEN`, dead-token pruning (`DeviceNotRegistered`/`MismatchSenderId`), and in-process dedupe (`alarm:{id}:{next_trigger}`). On-device delivery is via **expo-notifications local scheduling** (Android channel `cerebrokognit-alarms`, importance MAX), which fires with no network. New diagnostics: `GET /notifications/status`, `POST /notifications/test`, `POST /alarms/{id}/notify`.
+>
+> On-device firing must still be verified per `mobile/REAL_DEVICE_CHECKLIST.md`; remote push requires an Expo dev build (Expo Go disables token acquisition).
 
 | Requirement ID | Requirement Text | Priority | Notes |
 |---|---|---|---|
-| FR-NT-001 | The system shall support bedtime reminders: configurable countdown to target bedtime. | High | ⚠️ Configurable trigger time planned; delivery channel pending provider. |
-| FR-NT-002 | The system shall support wake-up reminders with customizable alarm tones and snooze behavior prompts. | Medium | Stored in `alarms`; played via mobile OS notification APIs (planned). |
-| FR-NT-003 | The system shall send habit alerts: streak notifications, snooze increase warnings, milestone celebrations. | Medium | Delivery via FCM/native push — **planned**; token registration ready (P5). |
-| FR-NT-004 | The system shall send challenge reminders: if alarm dismissed without challenge (e.g., snoozed), prompt on next ring. | Medium | Ensures cognitive engagement per alarm cycle; scheduling planned. |
+| FR-NT-001 | The system shall support bedtime reminders: configurable countdown to target bedtime. | High | ⚠️ Delivery channel available; per-user bedtime schedule UI still planned. |
+| FR-NT-002 | The system shall support wake-up reminders with customizable alarm tones and snooze behavior prompts. | Medium | ✅ **IMPLEMENTED (Phase 3)** — alarms fire via on-device local notifications (channel `cerebrokognit-alarms`); sound/vibration/urgency set by the channel; snooze prompt on the Alarm screen. |
+| FR-NT-003 | The system shall send habit alerts: streak notifications, snooze increase warnings, milestone celebrations. | Medium | 🟡 Delivery channel **implemented** (Expo push + `notify_alarm_due`); habit-specific alert triggers still planned. |
+| FR-NT-004 | The system shall send challenge reminders: if alarm dismissed without challenge (e.g., snoozed), prompt on next ring. | Medium | 🟡 `POST /alarms/{id}/notify` re-delivers the alarm-due notification; dismiss gate unchanged. Automatic "ring without challenge" trigger still planned. |
 
 ### 2.10 Reports & Export System
 
@@ -157,7 +159,7 @@ This document covers:
 | FR-REP-001 | The system shall generate habit reports (PDF) with daily/weekly/monthly trend analysis. | High | ✅ **IMPLEMENTED (M4)** — `GET /dashboard/reports/habits?format=pdf` (reportlab). |
 | FR-REP-002 | The system shall generate wake-up reports (PDF/CSV) with wake-up timestamps, snooze counts, success rates. | High | ✅ **IMPLEMENTED (M4)** — `GET /dashboard/reports/wake-up?format=pdf`. |
 | FR-REP-003 | The system shall generate challenge performance reports (PDF/CSV) with quiz analysis: types attempted, accuracy, difficulty progression. | Medium | ✅ **IMPLEMENTED (M4)** — `GET /dashboard/reports/challenges?format=pdf`. |
-| FR-REP-004 | The system shall generate productivity reports (PDF/CSV) correlating wake-up consistency with user-defined productivity goals. | Low | ❌ Optional; user-provided data — not implemented. |
+| FR-REP-004 | The system shall generate productivity reports (PDF/CSV) correlating wake-up consistency with user-defined productivity goals. | Low | ✅ **IMPLEMENTED (Phase 7).** `GET /dashboard/reports/productivity` (`csv/json/pdf/excel`); exports user-entered log rows only, honest-empty for new accounts. |
 | FR-REP-005 | The system shall generate sleep analytics reports (PDF) with bedtime/wake-time trends and sleep duration analysis. | High | ⚠️ Sleep trends available via `/dashboard/reports/wake-up`; standalone sleep report module not split out. |
 | FR-REP-005 | All reports shall be exportable in PDF and Excel (.xlsx) formats. | High | ✅ **IMPLEMENTED (M4)** — `format=csv\|json\|pdf\|excel` on all three report endpoints via `services/report_export.py`; web Reports page downloads CSV (PDF/Excel downloads available via API / admin context). |
 
@@ -310,15 +312,18 @@ class UserProfileRes(BaseModel):
 
 > Backend additions since P1: `GET /api/v1/auth/register` (verification stub) and `GET /api/v1/auth/login` (token inspector) — diagnostics; no auth, intended for debug/smoke use.
 
-#### 4.1.3.1 Notification Endpoints (P5, 2026-09-07)
+#### 4.1.3.1 Notification Endpoints (P5, 2026-09-07; delivery added Phase 3, 2026-09-17)
 
 | Endpoint | Method | Path | Auth | Request | Response |
 |---|---|---|---|---|---|
 | Register push token | POST | `/api/v1/notifications/register` | Bearer | `PushRegisterReq` | `PushRegisterRes` |
 | Deregister push token | DELETE | `/api/v1/notifications/register` | Bearer | `PushRegisterReq` | `PushDeregisterRes` |
 | List push tokens | GET | `/api/v1/notifications/tokens` | Bearer | — | `List[PushTokenRes]` |
+| Provider status | GET | `/api/v1/notifications/status` | Bearer | — | `{provider, configured, registered_tokens}` |
+| Send test push | POST | `/api/v1/notifications/test` | Bearer | — | delivery summary |
+| Notify alarm due | POST | `/api/v1/alarms/{alarm_id}/notify` | Bearer | — | delivery summary |
 
-`POST register` is idempotent: re-registering the same token reassigns it to the authenticating user (ownership transfer between accounts). Delivery provider (FCM/APNs) is **planned** behind `integrations/messaging.py` (MessagingProvider protocol); `NotificationService.send()` raises `NotImplementedError` until wired.
+`POST register` is idempotent: re-registering the same token reassigns it to the authenticating user (ownership transfer between accounts). Delivery is implemented behind `integrations/messaging.py` (`MessagingProvider` protocol): `NoopProvider` (strict-raise) and `ExpoPushProvider` (Expo Push Service relay covering FCM + APNs), selected by `PUSH_PROVIDER`. Dead tokens are pruned on `DeviceNotRegistered`/`MismatchSenderId`; duplicate deliveries for the same `alarm:{id}:{next_trigger}` are suppressed in-process.
 
 #### 4.1.3.2 Async Report Endpoints (P4, 2026-09-07)
 
@@ -427,7 +432,12 @@ class ChallengeRes(BaseModel):
 | Get Habit Score | GET | `/api/v1/habits/score` | Bearer | — | `HabitScoreRes` |
 | Get Habit Score History | GET | `/api/v1/habits/score/history` | Bearer | `days` query param | `List[HabitScoreRes]` |
 | Get User Analytics | GET | `/api/v1/analytics/me` | Bearer | — | `AnalyticsRes` |
-| Get ML Status | GET | `/api/v1/analytics/ml-status` | Bearer | — | `dict` |
+| Get ML Status | GET | `/api/v1/analytics/ml-status` | Bearer | — | availability, `model_version`, `training_data`, fallback, `feature_contract`, `last_training` (Phase 6) |
+| Get Recommendations | GET | `/api/v1/analytics/recommendations` | Bearer | — | `List[RecommendationRes]` incl. `reason` + `source_metric` (Phase 6) |
+| Get Anomalies | GET | `/api/v1/analytics/anomalies` | Bearer | — | gated baseline assessment `{available, anomalies[]}` (Phase 6) |
+| Get Forecast | GET | `/api/v1/analytics/forecast` | Bearer | — | gated baseline trend `{available, trend, confidence, horizon_days}` (Phase 6) |
+| Log Productivity | POST | `/api/v1/productivity/log` | Bearer | `ProductivityLogReq` (score 0-100, date, note) | `ProductivityLogRes` (201; upsert; `source: user-entered`) (Phase 7) |
+| Productivity History/Trend/Correlation | GET | `/api/v1/productivity/history`, `/trend`, `/correlation` | Bearer | `days` | logged days / gated trend / gated Pearson correlation (Phase 7) |
 
 ##### 4.1.5.1 HabitScoreRes (Pydantic v2)
 ```python
@@ -494,11 +504,16 @@ class SyncRecordRes(BaseModel):
 
 | Endpoint | Method | Path | Auth | Request | Response |
 |---|---|---|---|---|---|
-| List All Users (Admin) | GET | `/api/v1/dashboard/users` | Bearer (Staff+: Admin, Wellness Coach) | — | `List[AdminUserRes]` |
-| Platform Analytics (Admin) | GET | `/api/v1/dashboard/analytics` | Bearer (Admin only) | — | `AdminAnalyticsRes` |
+| List All Users (Admin) | GET | `/api/v1/dashboard/users` | Bearer (Staff+: Admin, Wellness Coach) | — | `List[AdminUserRes]` (coaches: assigned cohort only) |
+| Platform Analytics (Admin) | GET | `/api/v1/dashboard/analytics` | Bearer (Admin only) | — | `AdminAnalyticsRes` (measured uptime, Phase 5) |
+| Assign Cohort User | POST | `/api/v1/dashboard/coach/assignments` | Bearer (Admin only) | `CoachAssignmentReq` | `CoachAssignmentRes` (201; 409 on duplicate) |
+| Unassign Cohort User | DELETE | `/api/v1/dashboard/coach/assignments?coach_id=&user_id=` | Bearer (Admin only) | query ids | `{"removed": true}` |
+| List Cohort Users | GET | `/api/v1/dashboard/coach/users` | Bearer (Staff+) | — | `List[AdminUserRes]` (coaches: assigned only; admins: all) |
+| Cohort User Detail | GET | `/api/v1/dashboard/coach/users/{user_id}` | Bearer (Staff+) | — | habit score + history + analytics + sleep/wake trends + challenge performance + progress (403 outside cohort) |
 | Habit Report | GET | `/api/v1/dashboard/reports/habits` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON |
 | Wake-Up Report | GET | `/api/v1/dashboard/reports/wake-up` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON |
 | Challenge Report | GET | `/api/v1/dashboard/reports/challenges` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON |
+| Productivity Report | GET | `/api/v1/dashboard/reports/productivity` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON (user-entered rows only; honest-empty) (Phase 7) |
 | Update User Profile | PUT | `/api/v1/users/profile` | Bearer | `UserProfileUpdateReq` | `UserProfileRes` |
 
 > ✅ **NOTE:** `PUT /api/v1/users/profile` (plus `GET /api/v1/users/profile`, `GET/PUT /api/v1/users/settings`, `PUT /api/v1/users/{key}`) is **IMPLEMENTED as of M1** in `backend/app/api/users.py`. FR-REP-005 (PDF + Excel export) is **IMPLEMENTED as of M4** — all three report endpoints accept `format=csv|json|pdf|excel` via `backend/app/services/report_export.py`.
@@ -524,7 +539,9 @@ class AdminAnalyticsRes(BaseModel):
     alarm_dismissal_success_rate: float
     platform_habit_score_avg: float
     top_challenge_types: List[dict]  # {type, attempts, accuracy}
-    system_uptime_percentage: float
+    system_uptime_percentage: float  # measured lifetime API success ratio (services/system_status.py), 0.0 when DB unreachable
+    uptime_seconds: float  # measured process age since boot
+    db_connected: bool  # live SELECT 1 round-trip at measurement time
 ```
 
 ### 4.2 Data Flow Diagrams (Mermaid Format)
@@ -792,7 +809,7 @@ flowchart TD
 |---|---|
 | **M1 (Weeks 1–2)** | ✅ Project repository initialized with `backend/`, `mobile/`, `web/`, `docker-compose.yml`<br>✅ PostgreSQL schema created and `alembic upgrade head` runs without errors<br>✅ Auth endpoints `/register`, `/login`, `/me` functional with JWT tokens<br>✅ User profile CRUD operational<br>✅ Basic alarm creation (Daily type) working<br>✅ `.env.example` present in `backend/` with all required variables |
 | **M2 (Weeks 3–4)** | ✅ Challenge engine operational: all 7 challenge types generatable<br>✅ Adaptive difficulty engine adjusts difficulty based on correct/incorrect responses<br>✅ Wake-up verification: alarm dismisses only after challenge completion<br>✅ `challenge_attempts` table populated with `correct_answers`, `total_questions`, `completed`<br>✅ `times_snoozed` incremented on snooze action<br>✅ Mobile app can fetch and display challenges via `/api/v1/challenges` |
-| **M3 (Weeks 5–6)** | ✅ Adaptive difficulty engine functional: level changes (Beginner→Easy→Medium→Hard→Expert) based on performance<br>✅ Habit scoring engine computes `overall_score` = weighted composite (35/25/20/20)<br>✅ Recommendation engine generates at least 3 types of personalized recommendations (sleep, wake-up, habit)<br>✅ Habit dashboards (User + Wellness Coach) display scores and trends<br>✅ ML model inference wrapper operational (PyTorch/Scikit-learn)<br>✅ Background sync idempotent: upsert on retry produces no duplicates |
+| **M3 (Weeks 5–6)** | ✅ Adaptive difficulty engine functional: level changes (Beginner→Easy→Medium→Hard→Expert) based on performance<br>✅ Habit scoring engine computes `overall_score` = weighted composite (35/25/20/20)<br>✅ Recommendation engine generates at least 3 types of personalized recommendations (sleep, wake-up, habit)<br>✅ Habit dashboards (User + Wellness Coach) display scores and trends<br>✅ ML model inference wrapper operational (PyTorch only; scikit-learn/XGBoost are unused dependencies)<br>✅ Background sync idempotent: upsert on retry produces no duplicates |
 | **M4 (Weeks 7–8)** | ✅ Executive dashboards (User, Wellness Coach, Admin) operational with responsive design<br>✅ Report export: PDF and Excel for habit, wake-up, challenge, and sleep analytics<br>✅ End-to-end workflow: alarm trigger → challenge → dismissal → habit score update demonstrable<br>✅ Docker compose up -d starts all services (DB, API, Web, Mobile)<br>✅ Security testing: JWT validation, Pydantic input validation, CORS configuration<br>✅ Performance benchmarking: API p95 < 200ms, challenge inference < 100ms<br>✅ Final documentation: PRD.md, SRS.md, context.md all updated and versioned |
 
 ### 6.2 Test Case Summary
@@ -896,6 +913,12 @@ FUNCTION sync_pending_records(records):
 | 1.5 | 2026-09-10 | architect | Full audit pass: corrected UserProfileRes/AlarmCreateReq schemas, added push_tokens + alarm_roles to ER diagram, fixed admin dashboard status (complete), updated RBAC descriptions (staff+/admin/authenticated), corrected success response format (no wrapper envelope), fixed Tailwind reference, updated test counts (pytest 34, Vitest 42, jest 33) |
 | 1.6 | 2026-09-16 | architect | Phase 1 stabilization: corrected test counts to pytest **47**, Vitest **49**, jest **47**; added coverage tooling (pytest-cov, @vitest/coverage-v8, jest coverage); created `TEST_STATUS.md` |
 | 1.7 | 2026-09-16 | architect | Phase 2 security completion: production secret fail-fast, CORS allowlist enforcement, refresh-token rotation/revocation, password reset + email verification (expiring single-use hashed tokens in new `auth_tokens` table), audit-log table + middleware, security headers, account deactivation, admin role-change endpoint (audited); test suite grew to pytest **95** (added `test_security.py`, 48 tests), coverage **74%**; migration HEAD `c7e4a9b2d1f0` |
+| 1.8 | 2026-09-17 | architect | Phase 3 alarm/notification workflow: Expo Push Service provider (`ExpoPushProvider`) with `PUSH_PROVIDER`/`EXPO_ACCESS_TOKEN` config + prod fail-fast, dead-token pruning, in-process dedupe, structured alarm/notification logs, `GET /notifications/status` + `POST /notifications/test` + `POST /alarms/{id}/notify`, on-device local scheduling (`expo-notifications`, Android channel `cerebrokognit-alarms`), notification-tap → challenge-gate routing, offline alarm cache, `mobile/REAL_DEVICE_CHECKLIST.md`; pytest **107**, mobile jest **69**, backend coverage **75%** |
+| 1.9 | 2026-09-17 | architect | Phase 5 analytics/habit/dashboard completion: measured uptime via `services/system_status.py` (boot time, gateway-fed lifetime success counters, live DB check; `/health` extended; 99.9 placeholder removed from `platform_analytics`; `uptime_seconds`/`db_connected` added to `AdminAnalyticsRes`), Wellness Coach cohort (`coach_assignments` table, migration `e7a2c4d6b810`, `coach_service` scope enforcement, `POST/DELETE /dashboard/coach/assignments` + `GET /dashboard/coach/users[/{id}]`, cohort-scoped `/dashboard/users`), single-source reports (habit rows from `get_habit_score_history`; tz-aware ordered wake-up/challenge builders with UTC-aware ISO output), documented 35/25/20/20 formula, `days` 1..365 validation, Reports wake-up timeline + range-honoring exports, Dashboard/InsightsTab empty states; `test_phase5_analytics.py` (11 tests); pytest **151**, mobile jest **75** |
+| 1.10 | 2026-09-17 | architect | Phase 6 AI intelligence (honest ML): `ai_engine/features.py` (frozen 4-feature model contract + 6 rule signals, clamped); `difficulty.py` v1.0.0 — synthetic-training honesty header, 6-signal `rule_based_v2` with explanations, PII-free inference logging, extended `ml-status` (version/training_data/fallback/feature_contract/last_training), DB-backed `recommend_difficulty` wired into `ChallengeService` (±1 band kept); train script writes `difficulty_model.meta.json` (re-trained: val 0.937) + `evaluate_difficulty_model.py` (held-out synthetic 0.935, monotonic, sane extremes — PASS); gated **baseline** anomaly (`GET /analytics/anomalies`) + forecast (`GET /analytics/forecast`) with `available` flags; `RecommendationRes.reason` + `source_metric` on all 10 recs; `AI_FEATURES.md` (6 features × 8 columns + limitations); `test_ai_engine.py` (17 tests); pytest **168** |
+| 1.11 | 2026-09-17 | architect | Phase 7 coach + productivity: web `Admin.jsx` coach mode (cohort roster from `/dashboard/coach/users`, empty-cohort state, per-user detail — profile/adherence/alarms/challenges/sleep/progress; partial-403 handling so coaches are no longer locked out) + `Admin.test.jsx` (4 tests); manual productivity tracking — `productivity_logs` table (migration `f2b1d8e4a903`, unique user+date, upsert), `productivity_service` (user-entered logs, gated trend, gated Pearson wake/productivity correlation with association-only message, `source` labels), owner-only `/productivity/*` routes, `GET /dashboard/reports/productivity` (real-data-only exports), web Reports log form + trend + correlation with provenance badges, mobile InsightsTab trend; `test_productivity.py` (9 tests); FR-BA-003/FR-REP-004 implemented; pytest **177**, Vitest **56** |
+| 1.12 | 2026-09-17 | architect | Phase 8 full integration & E2E: executable journey suite `tests/test_e2e_workflows.py` (9 tests covering W01–W20) + `E2E_TEST_REPORT.md` (20 workflows with preconditions/actions/expected/actual/evidence; W17 server-path PASS, real-device leg MANUAL per checklist; no Playwright — no browser harness in repo/CI); pytest **186** (339 total with Vitest 56 + jest 75) |
+| 1.13 | 2026-09-17 | architect | Phase 9 local prod validation (NO public-cloud deploy): `ml_models/.gitkeep` (fresh-clone COPY fix), exact-pinned `requirements-runtime.txt`, hardened `backend/Dockerfile` (non-root appuser), new `web/Dockerfile` (node→nginx SPA) + `.dockerignore`, env-driven compose + `docker-compose.prod.yml` (`:?` secret guards, production env, unpublished DB port), guarded Sentry hook, boot-time prod secret guard in lifespan + test; validated live — both images build, alembic head `f2b1d8e4a903` on fresh Postgres, container E2E (register→dismiss→habit 73), web 200 + SPA fallback, restart recovery, pg_dump→destroy→restore, logs, placeholder-secret boot refusal; new `DEPLOYMENT_GUIDE/OPERATIONS_GUIDE/USER_GUIDE/API_REFERENCE/FINAL_VALIDATION_REPORT.md`; pytest **187** |
 
 ---
 
@@ -930,7 +953,7 @@ FUNCTION sync_pending_records(records):
 | ~~13~~ | 🟡 | ~~Web dashboard renders hardcoded mock chart data~~ | `web/src/utils/chartUtils.js` | **RESOLVED (M3):** Home/Dashboard/Reports wired to live `/habits/score/history` | — |
 | ~~14~~ | 🟡 | ~~Web silently substitutes fake scores (70) on API failure~~ | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | **RESOLVED (M3):** `'—'` fallback removed; real API data only | — |
 | 18 | 🟢 | Triplicated divergent schema definitions | `schemas/__init__.py`, `schemas/all.py`, `schemas/auth.py` | Drift risk; consolidation required | Level 2 |
-| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + backlog):** pytest (34), Vitest (42), jest-expo (33), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
+| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + phases):** pytest (186), Vitest (56), jest-expo (75), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
 
 ---
 
@@ -949,17 +972,18 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Alarm Dismiss | ✅ Complete | `/next` → `/submit` → `/dismiss` verified end-to-end (smoke_m2: ownership, all-correct gate, 400/404 paths) | 95% |
 | Challenge Engine (7 types) | ✅ Complete | 7×5 deterministic templates; no answer leak; server-authoritative submit (smoke_m2) | 95% |
 | Habit Scoring (35/25/20/20) | ✅ Complete | Real weighted computation + history (smoke-verified) | 95% |
-| Analytics | ✅ Complete (M3) | Real sleep estimate (alarm gaps/preference), 5-pt trend band, per-type recent activity, `generated_at`; recommendations endpoint live | 95% |
-| Recommendations | ✅ Complete (M3) | `GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted (FR-RE-001..004) | 95% |
-| ML Difficulty Inference | ✅ Complete (M3) | Trained `backend/ml_models/difficulty_model.pt`; `ml-status model_loaded=true`; rule-based fallback retained | 95% |
+| Analytics | ✅ Complete (M3 + Phase 6) | Real sleep estimate (alarm gaps/preference), 5-pt trend band, per-type recent activity, `generated_at`; recommendations endpoint live; gated baseline anomaly + forecast endpoints | 96% |
+| Recommendations | ✅ Complete (M3 + Phase 6) | `GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted (FR-RE-001..004); every rec carries `reason` + `source_metric` | 96% |
+| ML Difficulty Inference | ✅ Complete (M3 + Phase 6) | `difficulty_model.pt` v1.0.0, **synthetic-trained** (documented in `AI_FEATURES.md`; re-trained 2026-09-17, held-out synthetic acc 0.935, monotonic); `ml-status` reports version/fallback/training record; 6-signal rule fallback with explanations; inference logged without PII | 96% |
 | Offline Sync (server) | ✅ Complete (M4-backlog) | Idempotent upsert works and **mobile calls it** via `syncEngine.js` (offlineStore cache, sync-on-focus, offline banner) | 95% |
 | Dashboard + Reports | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `format` param; RBAC enforced; admin UI added | 95% |
 | ML Inference | ✅ Complete (M3) | Trained `difficulty_model.pt` served; rule-based fallback in container (no torch) | 85% |
 | Database Models + Migrations | ✅ Complete | **11 ORM tables** (9 core + `auth_tokens` + `audit_logs`); migration current (`c7e4a9b2d1f0`); 0→head verified fresh | 95% |
 | Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
 | Security Hardening | ✅ Complete (Phase 2, 2026-09-16) | Secret fail-fast (`ENVIRONMENT=production`), CORS allowlist, refresh-token rotation + hashed single-use tokens, password reset/email verification, audit log, security headers, deactivate + role-change | 90% |
-| Testing (pytest) | ✅ Complete (M4 + Phase 2) | **95 tests** (auth, alarms, challenges, analytics, feedback, notifications, security); coverage **74%**; verified Python 3.11 + 3.14 | 92% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 49) + mobile jest (47) | 90% |
+| Notification Delivery | ✅ Complete (Phase 3, 2026-09-17) | `ExpoPushProvider` behind `PUSH_PROVIDER`, dead-token pruning, dedupe, `/notifications/status` + `/notifications/test` + `/alarms/{id}/notify`; delivery config strict-raise by default | 85% |
+| Testing (pytest) | ✅ Complete (M4 + Phase 2/3/5/6/7/8/9) | **187 tests** (auth, alarms, challenges, analytics, coach cohort, productivity, feedback, notifications, security incl. boot guard, uptime, AI engine, E2E journeys); coverage **75%**; verified Python 3.11 + 3.14 | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 56) + mobile jest (75) | 90% |
 
 ### Web Dashboard
 
@@ -969,9 +993,9 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Home / Charts | ✅ Complete (M3) | Home/Dashboard/Reports wired to live `/habits/score/history`; honest/theme-aware charts (`makeChartOptions`) | 90% |
 | Alarm Management | ✅ Complete | Full form (time picker, type, challenge, difficulty, recurrence); CRUD works | 90% |
 | Challenge Generator | ✅ Complete | List + adaptive next | 85% |
-| Reports | ✅ Complete (M4) | CSV/PDF/Excel/JSON downloads wired + export cards + trend state | 90% |
+| Reports | ✅ Complete (M4 + Phase 5) | CSV/PDF/Excel/JSON downloads wired + export cards + trend state; exports honor the selected 7/14/30-day range; wake-up alarm timeline with empty state (same source as exports) | 94% |
 | Settings (Profile/Settings) | ✅ Complete | Paged Profile (`PUT /users/profile`) + Settings (`/users/settings`, `/users/{key}`, theme control) | 90% |
-| Admin Dashboard | ✅ Complete (M4) | `web/src/pages/Admin.jsx` — metric cards, top challenge types, users table, RBAC 403 panel, `/admin` route | 85% |
+| Admin Dashboard | ✅ Complete (M4 + Phase 5) | `web/src/pages/Admin.jsx` — metric cards, top challenge types, users table, RBAC 403 panel, `/admin` route; uptime metric now renders the measured value (Phase 5) | 88% |
 | App Shell | ✅ Complete (2026-09-10) | Collapsible sidebar (5 nav sections), global Light/Dark theme (`theme.js`), mobile drawer + ESC, session restore, LiveClock, responsive overflow pass | 95% |
 | Landing Page | ✅ Complete (2026-09-10) | Marketing hero ("WAKE WITH PURPOSE."), 4 feature cards, 3-step protocol, CTA, footer | 90% |
 | Timezone System | ✅ Complete (2026-09-08) | Searchable timezone picker, 12/24h format, LiveClock, TimeInput, timeFormat.js | 90% |
@@ -980,21 +1004,22 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
-| Auth / Navigation | ⚠️ Partial | Login works; no registration screen | 70% |
-| Alarm Display | ⚠️ Partial | Lists alarms; no creation UI | 50% |
-| Alarm Dismiss | ✅ Complete | Runs `/next` → `/submit` → `/dismiss` with matching payload (M2) | 90% |
+| Auth / Navigation | ✅ Complete | Login + shared `AuthContext`; registration still web-only | 80% |
+| Alarm Display | ✅ Complete | HOME/ALARMS/INSIGHTS/PROFILE tabs; alarms list + create/edit form (`AlarmFormScreen`) | 85% |
+| Alarm Dismiss | ✅ Complete | Runs `/next` → `/submit` → `/dismiss` with matching payload (M2); notification tap routes to the gated Alarm screen | 90% |
 | Challenge Flow | ✅ Complete | Fetches `/next`, submits `/submit`, renders verification result (M2) | 85% |
 | Profile | ✅ Complete | Calls now-implemented `PUT /users/profile` | 80% |
 | Settings | ✅ Complete | Calls now-implemented `PUT /users/settings` + `/users/{key}` | 80% |
-| Offline Sync | ✅ Implemented (2026-09-07) | `sync/offlineStore.js` + `syncEngine.js` + `useSync`; Home/Challenge cache + sync-on-focus + offline banner | 90% |
-| Push Notifications | ✅ Registration wired | Expo token registered to `/api/v1/notifications/register` on login; FCM delivery provider pending (native dev build) | 70% |
+| Offline Sync | ✅ Implemented (2026-09-07) | `sync/offlineStore.js` + `syncEngine.js` + `useSync`; Home/Challenge/Alarms cache + sync-on-focus + offline banner | 90% |
+| Push Notifications | ✅ Complete (Phase 3) | Expo token registered on login; `ExpoPushProvider` delivery backend; **on-device local scheduling** (`expo-notifications`, channel `cerebrokognit-alarms`) + tap→challenge routing; remote push needs a dev build | 85% |
 
 ### Infrastructure
 
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
-| Docker | ✅ Complete (M4) | CMD fixed, `.dockerignore`, compose up-tested (Postgres + migrations entrypoint + lean image + healthcheck) | 90% |
-| Database Migrations | ✅ Complete | Migration current (`c7e4a9b2d1f0`); `upgrade head` verified on fresh DB | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (95) + smoke_m1 (22) + smoke_m2 (25) + web test (49)/build + mobile jest (47) | 90% |
-| Testing | ✅ Complete (M4-backlog + Phase 2) | pytest **95** + Vitest 49 + jest 47; smoke_m1 (22) + smoke_m2 (25) regression gates; coverage 74%/69%/28% (2026-09-16) | 92% |
+| Docker | ✅ Complete (M4 + Phase 9) | Pinned lean image (non-root), env-driven compose + prod overlay (secret guards), web nginx image, Postgres migrations entrypoint; prod-container validated (migrate/E2E/restart/backup-restore/logs) — see FINAL_VALIDATION_REPORT.md | 95% |
+| Database Migrations | ✅ Complete | Migration current (`e7a2c4d6b810` adds `coach_assignments`); `upgrade head` verified on fresh DB | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (187) + smoke_m1 (22) + smoke_m2 (25) + web test (56)/build + mobile jest (75) | 90% |
+| Testing | ✅ Complete (M4-backlog + Phase 2/3/5/6/7/8/9) | pytest **187** + Vitest 56 + jest 75; smoke_m1 (22) + smoke_m2 (25) regression gates; `E2E_TEST_REPORT.md` (W01–W20); `FINAL_VALIDATION_REPORT.md` (prod-container evidence); coverage 75%/69%/31% (2026-09-17) | 95% |
+| On-Device Verification | 🟡 Manual | `mobile/REAL_DEVICE_CHECKLIST.md` written; firing must be confirmed on a physical device | 40% |
 | Environment Config | ✅ Complete (Phase 2) | Secrets/CORS from env with prod fail-fast; `AUTO_INIT` SQLite auto-init | 95% |

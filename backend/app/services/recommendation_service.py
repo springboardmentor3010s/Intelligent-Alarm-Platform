@@ -33,10 +33,17 @@ def _snooze_counts(db: Session, user_id: int) -> int:
 
 
 def _attempt_matrix(db: Session, user_id: int) -> dict:
-    """Aggregate attempt stats: type accuracy, difficulty accuracy, unattempted types, avg time."""
+    """Aggregate attempt stats: type accuracy, difficulty accuracy, unattempted types, avg time.
+
+    Only submitted attempts (`end_time` set) inform accuracy thresholds:
+    pending snapshots are not evidence of failure.
+    """
     recent = (
         db.query(ChallengeAttempt)
-        .filter(ChallengeAttempt.user_id == user_id)
+        .filter(
+            ChallengeAttempt.user_id == user_id,
+            ChallengeAttempt.end_time.isnot(None),
+        )
         .all()
     )
     challenges = {
@@ -99,6 +106,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
                 "bedtime by 15 minutes) and keep the schedule for a week."
             ),
             "metrics": {"sleep_duration_avg": round(avg_sleep, 1), "target_range": [RECOMMENDED_SLEEP_MIN, RECOMMENDED_SLEEP_MAX]},
+            "reason": "Estimated nightly sleep fell below the healthy 7-9h band.",
+            "source_metric": {"key": "sleep_duration_avg", "value": round(avg_sleep, 1)},
         })
     elif avg_sleep and avg_sleep > RECOMMENDED_SLEEP_MAX:
         recs.append({
@@ -112,6 +121,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
             ),
             "suggested_action": "Consider setting an earlier wake-up alarm in 15-minute steps to right-size your sleep.",
             "metrics": {"sleep_duration_avg": round(avg_sleep, 1), "target_range": [RECOMMENDED_SLEEP_MIN, RECOMMENDED_SLEEP_MAX]},
+            "reason": "Estimated nightly sleep rose above the healthy 7-9h band.",
+            "source_metric": {"key": "sleep_duration_avg", "value": round(avg_sleep, 1)},
         })
     elif avg_sleep and pref_minutes and abs(avg_sleep - pref_minutes / 60.0) >= 1.0:
         recs.append({
@@ -125,6 +136,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
             ),
             "suggested_action": "Shift your bedtime 15 minutes to close the gap toward your target.",
             "metrics": {"sleep_duration_avg": round(avg_sleep, 1), "sleep_preference_minutes": pref_minutes},
+            "reason": "Measured sleep differs from the user's stated target by at least an hour.",
+            "source_metric": {"key": "sleep_duration_avg", "value": round(avg_sleep, 1)},
         })
 
     # --- FR-RE-002: Wake-up optimization ---
@@ -151,6 +164,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
                 f"difficulty level — it gives your brain a concrete task to wake into."
             ),
             "metrics": {"total_snoozes": snoozes, "suggested_challenge_type": anchor},
+            "reason": "Total snooze count crossed the intervention threshold (3+).",
+            "source_metric": {"key": "total_snoozes", "value": snoozes},
         })
     elif trend == "declining":
         recs.append({
@@ -161,6 +176,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
             "message": "Your wake-up consistency has been trending downward over the last two weeks.",
             "suggested_action": "Re-cue a fixed wake time and complete challenges within 2 minutes of the alarm to rebuild the habit.",
             "metrics": {"wake_up_consistency_trend": trend},
+            "reason": "The 14-day wake-up consistency trend is classified as declining.",
+            "source_metric": {"key": "wake_up_consistency_trend", "value": trend},
         })
 
     # --- FR-RE-003: Habit improvement guidance (behavioural thresholds) ---
@@ -192,6 +209,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
                 "message": f"Your challenge completion rate rose {pct_change}% versus last week.",
                 "suggested_action": "Keep the momentum — try one extra challenge type this week.",
                 "metrics": {"completion_change_pct": pct_change},
+                "reason": "Week-over-week completion rate improved by at least 20%.",
+                "source_metric": {"key": "completion_change_pct", "value": pct_change},
             })
     if streak >= 3:
         recs.append({
@@ -202,6 +221,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
             "message": f"You have {streak} consecutive completed challenge(s) in a row.",
             "suggested_action": "Protect your streak by completing today's challenge before dismissing the alarm.",
             "metrics": {"current_streak": streak},
+            "reason": "Consecutive completed attempts reached a 3+ streak.",
+            "source_metric": {"key": "current_streak", "value": streak},
         })
 
     # --- FR-RE-004: Personalized challenge recommendations ---
@@ -217,6 +238,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
                 f"to broaden the cognitive workout."
             ),
             "metrics": {"unattempted_types": matrix["unattempted_types"]},
+            "reason": "Coverage gap: these challenge types have zero attempts on record.",
+            "source_metric": {"key": "unattempted_types", "value": matrix["unattempted_types"]},
         })
     else:
         diff_stats = matrix["diff_stats"]
@@ -233,6 +256,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
                 "message": f"Accuracy is below 60% at {', '.join(sorted(struggling))} difficulty.",
                 "suggested_action": f"Dial the difficulty back to train at {struggling[0]} before stepping up.",
                 "metrics": {"low_accuracy_difficulties": sorted(struggling)},
+                "reason": "Per-difficulty accuracy fell below the 60% reinforcement threshold.",
+                "source_metric": {"key": "low_accuracy_difficulties", "value": sorted(struggling)},
             })
         elif diff_stats:
             mastered = [
@@ -248,6 +273,8 @@ def generate_recommendations(db: Session, user_id: int) -> list:
                     "message": f"You're consistently scoring 80%+ at {', '.join(sorted(mastered))} difficulty.",
                     "suggested_action": "Increase difficulty one notch to keep the workouts challenging.",
                     "metrics": {"mastered_difficulties": sorted(mastered)},
+                    "reason": "Per-difficulty accuracy reached the 80%+ mastery threshold.",
+                    "source_metric": {"key": "mastered_difficulties", "value": sorted(mastered)},
                 })
 
     # Cap at 6 and order by priority.

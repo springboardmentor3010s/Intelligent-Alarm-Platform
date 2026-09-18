@@ -115,7 +115,16 @@ function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [mobileNavOpen]);
 
-  const handleAuth = () => setAuthed(true);
+  const handleAuth = (data) => {
+    if (data?.user) {
+      try {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      } catch {
+        /* storage unavailable */
+      }
+    }
+    setAuthed(true);
+  };
 
   const handleLogout = () => {
     setMobileNavOpen(false);

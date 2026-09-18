@@ -126,6 +126,7 @@ timezone: browserTimeZone(),
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
       onAuth(data);
+      setLoading(false);
     } catch (err) {
       setMessage({ type: 'error', text: `Backend unreachable: ${err.message}` });
       setLoading(false);
@@ -156,6 +157,7 @@ timezone: browserTimeZone(),
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
       onAuth(data);
+      setLoading(false);
     } catch (err) {
       setMessage({ type: 'error', text: `Demo login failed: ${err.message}` });
       setLoading(false);

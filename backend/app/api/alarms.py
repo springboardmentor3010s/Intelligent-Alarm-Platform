@@ -71,3 +71,19 @@ def dismiss_alarm(
 ):
     """Dismiss an alarm by verifying challenge completion."""
     return alarm_service.dismiss_alarm(db, current_user, alarm_id, request)
+
+
+@router.post("/{alarm_id}/notify", response_model=dict)
+def notify_alarm_due(
+    alarm_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Trigger a push notification that this alarm is due.
+
+    Sends via the configured provider (Expo relay → FCM/APNs) to every token the
+    owner registered. The payload carries the alarm id + challenge pointer so the
+    pushed screen opens the correct challenge. Returns the delivery summary —
+    ``configured=False`` means delivery is not enabled (no-op provider).
+    """
+    return alarm_service.notify_alarm_due(db, current_user, alarm_id)

@@ -5,6 +5,7 @@ challenge linking, CRUD, snooze, and dismissal (including the habit-score
 refresh). Routers delegate here so `api/alarms.py` stays thin.
 """
 
+import logging
 from datetime import datetime, timedelta, time as dtime, timezone
 from zoneinfo import ZoneInfo
 
@@ -14,7 +15,10 @@ from sqlalchemy.orm import Session
 from ..Models import User, Alarm, Challenge
 from ..schemas import AlarmCreateReq, AlarmDismissReq, AlarmRes, DismissRes
 from ..services.habit_scoring_service import refresh_habit_score
+from ..services.notification_service import NotificationService
 from ..services.verification_service import verify_finished_attempt
+
+logger = logging.getLogger("alarms")
 
 
 def _user_tz(current_user: User) -> ZoneInfo:
@@ -122,6 +126,37 @@ def _find_owned_alarm(db: Session, user_id: int, alarm_id: int) -> Alarm:
     return alarm
 
 
+def _log_alarm(name: str, alarm: Alarm, **extra) -> None:
+    """Emit a structured alarm lifecycle log line."""
+    logger.info(
+        "alarm.%s alarm_id=%s user_id=%s title=%s type=%s enabled=%s next_trigger=%s %s",
+        name,
+        alarm.id,
+        alarm.user_id,
+        alarm.title,
+        alarm.alarm_type,
+        alarm.is_enabled,
+        alarm.next_trigger.isoformat() if alarm.next_trigger else None,
+        " ".join(f"{k}={v}" for k, v in extra.items()),
+    )
+
+
+def notify_alarm_due(db: Session, user: User, alarm_id: int) -> dict:
+    """Trigger a push delivery for an alarm that is due (request-side hook).
+
+    Ownership is validated here before any delivery is attempted. The delivery
+    itself is delegated to ``NotificationService.send_alarm_due``, which fans
+    out to all the owner's registered devices and deduplicates per trigger.
+    """
+    alarm = _find_owned_alarm(db, user.id, alarm_id)
+    summary = NotificationService.send_alarm_due(db, alarm)
+    logger.info(
+        "alarm.notify alarm_id=%s user_id=%s summary=%s",
+        alarm.id, alarm.user_id, summary,
+    )
+    return summary
+
+
 def list_alarms(db: Session, user_id: int) -> list[AlarmRes]:
     """List all alarms for the current user."""
     alarms = db.query(Alarm).filter(Alarm.user_id == user_id).all()
@@ -157,6 +192,7 @@ def create_alarm(db: Session, user: User, payload: AlarmCreateReq) -> AlarmRes:
     db.add(alarm)
     db.commit()
     db.refresh(alarm)
+    _log_alarm("created", alarm)
     return _to_alarm_res(alarm)
 
 
@@ -185,12 +221,14 @@ def update_alarm(
 
     db.commit()
     db.refresh(alarm)
+    _log_alarm("updated", alarm)
     return _to_alarm_res(alarm)
 
 
 def delete_alarm(db: Session, user_id: int, alarm_id: int) -> dict:
     """Delete an alarm."""
     alarm = _find_owned_alarm(db, user_id, alarm_id)
+    _log_alarm("deleted", alarm)
     db.delete(alarm)
     db.commit()
     return {"status": "success", "message": "Alarm deleted"}
@@ -219,6 +257,7 @@ def snooze_alarm(db: Session, user_id: int, alarm_id: int) -> AlarmRes:
 
     db.commit()
     db.refresh(alarm)
+    _log_alarm("snoozed", alarm, snooze_count=alarm.times_snoozed)
     return _to_alarm_res(alarm)
 
 
@@ -238,8 +277,9 @@ def dismiss_alarm(
     if not alarm.is_enabled:
         raise HTTPException(status_code=400, detail="Alarm already dismissed")
 
-    # Verify the challenge completed correctly (all questions correct)
-    verify_finished_attempt(db, user.id, request.challenge_attempt_id)
+    # Verify the challenge completed correctly (all questions correct) and has
+    # not already been redeemed. This binds one solved attempt to one dismissal.
+    attempt = verify_finished_attempt(db, user.id, request.challenge_attempt_id)
 
     # Mark alarm as dismissed (disabled)
     alarm.is_enabled = False
@@ -261,10 +301,18 @@ def dismiss_alarm(
         alarm.is_enabled = True
     # OneTime alarms stay disabled
 
+    # Consume the attempt so it cannot be replayed to dismiss another occurrence.
+    attempt.consumed_at = datetime.now(timezone.utc)
+    db.add(alarm)
+    db.add(attempt)
+    db.commit()
+    db.refresh(alarm)
+
     # Update habit score using the proper weighted computation
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     refresh_habit_score(db, user.id, today)
 
+    _log_alarm("dismissed", alarm, attempt_id=request.challenge_attempt_id)
     return DismissRes(
         alarm_id=alarm.id,
         successfully_dismissed=True,

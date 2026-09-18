@@ -216,7 +216,18 @@ export default function Dashboard() {
           </div>
         )}
 
-        {charts.map((c, i) => {
+        {available === 0 ? (
+          <Card className="bento-tile">
+            <div className="bento-tile__head-text">
+              <span className="sys-label">Habit Pillars</span>
+              <div className="bento-tile__title">No scored days yet</div>
+            </div>
+            <p className="text-sm text-muted-600" style={{ lineHeight: 1.55 }}>
+              Pillar charts appear after your first scored morning. Set an alarm, solve the
+              wake-up challenge, and your 35/25/20/20 breakdown will plot here.
+            </p>
+          </Card>
+        ) : charts.map((c, i) => {
           const meta = PILLAR_METADATA[c.label] || {};
           const currentVal = habitScore[c.key] ?? '-';
           return (

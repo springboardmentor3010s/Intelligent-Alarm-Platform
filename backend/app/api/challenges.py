@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..Models import User, Challenge, ChallengeAttempt
+from ..Models import User, Challenge
 from ..schemas import ChallengeListRes, ChallengeRes, ChallengeSubmitReq, ChallengeSubmitRes
-from ..services.challenge_service import ChallengeService
+from ..services.challenge_service import ChallengeService, ChallengeError
 from ..api.deps import get_current_user
 
 router = APIRouter(prefix="/challenges", tags=["challenges"])
@@ -78,7 +78,13 @@ def submit_challenge(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Authoritative server-side verification of a challenge attempt."""
+    """Authoritative server-side verification of a challenge attempt.
+
+    An attempt may be submitted exactly once, only by its owner, and only before
+    its expiry. Errors map to explicit status codes (404/409/410/400) so clients
+    can react precisely. Explanations are only returned for correct answers, so
+    the response never leaks the expected answer for an incorrect one.
+    """
     try:
         attempt = ChallengeService.submit_attempt(
             db,
@@ -89,10 +95,9 @@ def submit_challenge(
             user_answers=request.user_answers,
             time_taken_seconds=request.time_taken_seconds,
         )
-    except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+    except ChallengeError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
-    attempt = db.query(ChallengeAttempt).filter(ChallengeAttempt.id == attempt.id).first()
     return ChallengeSubmitRes(
         challenge_id=request.challenge_id,
         challenge_attempt_id=attempt.id,
@@ -100,4 +105,10 @@ def submit_challenge(
         completed=attempt.completed,
         correct_answers=attempt.correct_answers,
         total_questions=attempt.total_questions,
+        results=ChallengeService.results_for(attempt),
+        message=(
+            "All questions correct."
+            if attempt.completed
+            else "Not all answers were correct. Generate a fresh challenge to try again."
+        ),
     )

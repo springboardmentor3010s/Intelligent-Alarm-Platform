@@ -14,8 +14,6 @@ from ..api.deps import get_current_user
 from datetime import datetime, timezone
 import hashlib
 import json
-from ..Models import Challenge
-
 router = APIRouter(prefix="/sync", tags=["sync"])
 
 
@@ -66,7 +64,9 @@ def _upsert_alarm(db: Session, user_id: int, payload: dict, client_timestamp: da
 
 
 def _upsert_challenge_attempt(db: Session, user_id: int, payload: dict, client_timestamp: datetime) -> tuple:
-    """Idempotent upsert for challenge attempt records."""
+    """Challenge attempts are server-authoritative: sync must never create one or
+    flip it to completed. Existing attempts are returned read-only so the client
+    can reconcile its offline cache; unknown attempts are rejected."""
     record_id = payload.get("server_id") or payload.get("id")
 
     if record_id:
@@ -74,41 +74,12 @@ def _upsert_challenge_attempt(db: Session, user_id: int, payload: dict, client_t
             ChallengeAttempt.id == record_id,
             ChallengeAttempt.user_id == user_id,
         ).first()
-    else:
-        existing = None
+        if existing:
+            return existing, False
 
-    if existing:
-        # Challenge attempts are append-only; update completion status only
-        if payload.get("completed") and not existing.completed:
-            existing.completed = True
-            existing.correct_answers = payload.get("correct_answers", existing.correct_answers)
-            existing.total_questions = payload.get("total_questions", existing.total_questions)
-            existing.end_time = datetime.now(timezone.utc)
-            existing.time_taken_seconds = payload.get("time_taken_seconds", existing.time_taken_seconds)
-            db.commit()
-            db.refresh(existing)
-        return existing, False
-    else:
-        ch_id = payload.get("challenge_id")
-        if not ch_id:
-            first_ch = db.query(Challenge).first()
-            ch_id = first_ch.id if first_ch else 1
-
-        new_attempt = ChallengeAttempt(
-            user_id=user_id,
-            challenge_id=ch_id,
-            attempt_number=payload.get("attempt_number", 1),
-            completed=payload.get("completed", False),
-            correct_answers=payload.get("correct_answers", 0),
-            total_questions=payload.get("total_questions", 1),
-            start_time=datetime.fromisoformat(payload["start_time"]) if payload.get("start_time") and isinstance(payload["start_time"], str) else payload.get("start_time", datetime.now(timezone.utc)),
-            end_time=datetime.fromisoformat(payload["end_time"]) if payload.get("end_time") and isinstance(payload["end_time"], str) else payload.get("end_time"),
-            time_taken_seconds=payload.get("time_taken_seconds", 0),
-        )
-        db.add(new_attempt)
-        db.commit()
-        db.refresh(new_attempt)
-        return new_attempt, True
+    raise ValueError(
+        "challenge attempts are server-authoritative; submit answers via /challenges/submit"
+    )
 
 
 def _upsert_habit_score(db: Session, user_id: int, payload: dict, client_timestamp: datetime) -> tuple:

@@ -19,6 +19,7 @@ from .api.analytics import router as analytics_router
 from .api.users import router as users_router
 from .api.notifications import router as notifications_router
 from .api.feedback import router as feedback_router
+from .api.productivity import router as productivity_router
 from .gateway import GatewayMiddleware, SecurityHeadersMiddleware, configure_logging
 from .services.bootstrap import bootstrap_local_db
 from .core.config import get_cors_origins
@@ -26,6 +27,13 @@ from .core.config import get_cors_origins
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Production guard (Phase 9): fail fast at boot — not at first request —
+    # when secrets/CORS are misconfigured. Development/test stay untouched.
+    from .core.config import environment, get_cors_origins, get_secret_key
+
+    if environment() == "production":
+        get_secret_key()  # raises RuntimeError on missing/placeholder value
+        get_cors_origins()  # raises RuntimeError on empty allowlist
     # Local mode only (SQLite, no DATABASE_URL): auto-create tables + seed so the
     # app runs fully self-contained with no database server. Postgres (Docker/cloud)
     # is left to `alembic upgrade head` and is never modified here.
@@ -34,6 +42,35 @@ async def lifespan(app: FastAPI):
 
 
 configure_logging()
+
+
+def _configure_error_tracking() -> None:
+    """Initialize Sentry only when SENTRY_DSN is set (Phase 9).
+
+    No-op in development and in any environment without a DSN, so error
+    tracking can never break startup. PII sending is disabled; only
+    exceptions with request context leave the process.
+    """
+    import logging
+    import os
+
+    dsn = os.getenv("SENTRY_DSN", "").strip()
+    if not dsn:
+        return
+    try:
+        import sentry_sdk
+
+        sentry_sdk.init(
+            dsn=dsn,
+            send_default_pii=False,
+            traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.05")),
+        )
+        logging.getLogger("gateway").info("error_tracking=sentry enabled")
+    except Exception as exc:  # never fail startup over observability
+        logging.getLogger("gateway").warning("error_tracking=sentry unavailable: %s", exc)
+
+
+_configure_error_tracking()
 
 app = FastAPI(
     title="Intelligent Cognitive Alarm Platform API",
@@ -74,6 +111,7 @@ app.include_router(analytics_router, prefix="/api/v1", tags=["analytics"])
 app.include_router(users_router, prefix="/api/v1", tags=["users"])
 app.include_router(notifications_router, prefix="/api/v1", tags=["notifications"])
 app.include_router(feedback_router, prefix="/api/v1", tags=["feedback"])
+app.include_router(productivity_router, prefix="/api/v1", tags=["productivity"])
 
 # ---------------------------------------------------------------------------
 # Structured error envelope (Level 8): {detail, error_code, timestamp}
@@ -114,4 +152,20 @@ async def root():
 
 @app.get("/health", include_in_schema=False)
 async def health_check():
-    return {"status": "healthy"}
+    """Liveness + measured health: process uptime and database round-trip.
+
+    `status` is kept for backward compatibility; the additional fields are the
+    real measurement source behind the admin uptime metric.
+    """
+    from sqlalchemy.orm import Session as _Session
+
+    from .database import SessionLocal
+    from .services.system_status import get_system_health
+
+    db: _Session | None = None
+    try:
+        db = SessionLocal()
+        return get_system_health(db)
+    finally:
+        if db is not None:
+            db.close()

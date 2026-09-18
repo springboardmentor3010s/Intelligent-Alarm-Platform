@@ -1,10 +1,16 @@
 """Train and save the difficulty-prediction model for CerebroKognit.
 
-Generates a deterministic synthetic dataset whose labels follow a hand-built
-skill rule (matches the production feature/label distribution), trains the
-DifficultyPredictor defined in app/services/ml_inference.py, and saves its
-state_dict to backend/ml_models/difficulty_model.pt (loadable with
-torch.load(..., weights_only=True)).
+SYNTHETIC TRAINING — READ FIRST: this script generates a deterministic
+synthetic dataset whose labels follow a hand-built skill rule (matches the
+production feature/label distribution). The saved weights have NEVER seen
+real user data. Do not describe this model as production learning,
+personalization, or trained-on-user-data in docs, UI copy, or reports.
+`AI_FEATURES.md` records this provenance as the model's documented status.
+
+Trains the DifficultyPredictor defined in app/ai_engine/difficulty.py and
+saves its state_dict to backend/ml_models/difficulty_model.pt (loadable with
+torch.load(..., weights_only=True)) plus a `difficulty_model.meta.json`
+training record consumed by `GET /analytics/ml-status`.
 
 Usage (from backend/):
     python scripts/train_difficulty_model.py
@@ -22,7 +28,13 @@ except ImportError:
     print("PyTorch not installed in this environment; cannot train.")
     sys.exit(1)
 
-from app.services.ml_inference import MODEL_PATH, DifficultyPredictor  # noqa: E402
+from app.ai_engine.difficulty import (  # noqa: E402
+    META_PATH,
+    MODEL_PATH,
+    MODEL_VERSION,
+    TRAINING_DATA,
+    DifficultyPredictor,
+)
 
 SEED = 42
 
@@ -103,6 +115,24 @@ def main() -> None:
 
     torch.save(model.state_dict(), MODEL_PATH)
     print(f"Model saved to {MODEL_PATH} ({MODEL_PATH.stat().st_size} bytes)")
+
+    # Training provenance record for `GET /analytics/ml-status`.
+    import datetime as _dt
+    import json as _json
+
+    meta = {
+        "model_version": MODEL_VERSION,
+        "training_data": TRAINING_DATA,
+        "status": "trained",
+        "trained_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+        "dataset": "synthetic-20000-seed42",
+        "seed": SEED,
+        "val_accuracy": round(val_acc, 4),
+        "features": ["success_rate", "avg_time_minutes", "snooze_rate", "streak_norm"],
+        "note": "Synthetic rule-generated labels; never trained on real user data.",
+    }
+    META_PATH.write_text(_json.dumps(meta, indent=2), encoding="utf-8")
+    print(f"Training record saved to {META_PATH}")
 
 
 if __name__ == "__main__":

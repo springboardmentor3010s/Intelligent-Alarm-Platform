@@ -4,14 +4,17 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { useChallenge } from '../hooks/useChallenge';
+import { useAlarmScheduler } from '../hooks/useAlarmScheduler';
 import { apiFetch, authHeaders, parseApiError } from '../utils/api';
 import { useTheme } from '../theme/ThemeContext';
 import { SysLabel } from '../components/ui';
 
-export default function AlarmScreen({ navigation }) {
+export default function AlarmScreen({ navigation, route }) {
   const { token } = useAuthContext();
   const { colors, ui, fonts } = useTheme();
   const { current, loading, fetchChallenge, submitChallenge, elapsedSeconds } = useChallenge(token);
+  const { syncAlarms } = useAlarmScheduler();
+  const requestedAlarmId = route?.params?.alarmId;
   const [activeAlarm, setActiveAlarm] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [answers, setAnswers] = useState([]);
@@ -28,7 +31,10 @@ export default function AlarmScreen({ navigation }) {
       const res = await apiFetch('/api/v1/alarms', { headers: authHeaders(token) });
       if (!res.ok) throw new Error(await parseApiError(res));
       const alarms = await res.json();
-      const enabled = alarms.find((a) => a.is_enabled);
+      const target = requestedAlarmId
+        ? alarms.find((a) => a.id === requestedAlarmId) || null
+        : null;
+      const enabled = target || alarms.find((a) => a.is_enabled);
       setActiveAlarm(enabled || null);
       if (enabled) {
         const challenge = await fetchChallenge({
@@ -44,7 +50,7 @@ export default function AlarmScreen({ navigation }) {
     } finally {
       setInitialLoading(false);
     }
-  }, [token]);
+  }, [token, requestedAlarmId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -85,6 +91,13 @@ export default function AlarmScreen({ navigation }) {
         });
         if (!res.ok) throw new Error(await parseApiError(res));
         setDismissed(true);
+        // Recurring alarms were rescheduled server-side; mirror that on-device.
+        try {
+          const fresh = await apiFetch('/api/v1/alarms', { headers: authHeaders(token) });
+          if (fresh.ok) await syncAlarms(await fresh.json());
+        } catch (e) {
+          // scheduling is best-effort; the next focus sync will retry
+        }
       } else {
         Alert.alert(
           'Try again',

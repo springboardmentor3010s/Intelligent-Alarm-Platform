@@ -1,8 +1,13 @@
 """Report service for the dashboard report endpoints.
 
-Builds the record sets for the habit/wake-up/challenge reports and returns
-either the JSON envelope or a streaming CSV/PDF/Excel file via the low-level
-`report_export` helpers.
+Single-source rule (Phase 5): record builders reuse the same services the
+dashboards read, so API, web, mobile, and exports always agree:
+
+- habit rows come from `habit_scoring_service.get_habit_score_history` (the
+  exact source behind `/habits/score/history`); gap days with no stored score
+  are omitted from exports while dashboards render them honestly as gaps.
+- wake-up rows come from the user's real `alarms` table ordered by trigger.
+- challenge rows come from the user's real `challenge_attempts` table.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -10,44 +15,76 @@ from typing import List, Dict, Any
 
 from sqlalchemy.orm import Session
 
-from ..Models import Alarm, Challenge, ChallengeAttempt, HabitScore
+from ..Models import Alarm, Challenge, ChallengeAttempt
+from .habit_scoring_service import get_habit_score_history
 from .report_export import export_report  # noqa: F401  (re-exported convenience)
 
 
+def productivity_report_records(db: Session, user_id: int, days: int) -> List[Dict[str, Any]]:
+    """User-entered productivity rows (same source as the tracking API).
+
+    Empty when the user never logged — exports stay honest for new accounts.
+    """
+    from .productivity_service import productivity_report_records as _builder
+
+    return _builder(db, user_id, days)
+
+MIN_REPORT_DAYS = 1
+MAX_REPORT_DAYS = 365
+
+
+def _clamp_days(days: int) -> int:
+    try:
+        value = int(days)
+    except (TypeError, ValueError):
+        value = 7
+    return max(MIN_REPORT_DAYS, min(MAX_REPORT_DAYS, value))
+
+
+def _aware_iso(value) -> str | None:
+    """Serialize a stored datetime as UTC-aware ISO (SQLite returns naive)."""
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.isoformat()
+
+
 def habits_report_records(db: Session, user_id: int, days: int) -> List[Dict[str, Any]]:
-    """Habit scores for the last N days, most recent first."""
-    today = datetime.now(timezone.utc).date()
-    scores = []
+    """Recorded habit scores for the last N days, most recent first.
 
-    for i in range(days):
-        target_date = (today - timedelta(days=i)).strftime("%Y-%m-%d")
-        habit_score = db.query(HabitScore).filter(
-            HabitScore.user_id == user_id,
-            HabitScore.date == target_date,
-        ).first()
-
-        if habit_score:
-            scores.append({
-                "date": habit_score.date,
-                "wake_up_consistency": habit_score.wake_up_consistency,
-                "challenge_completion": habit_score.challenge_completion,
-                "snooze_reduction": habit_score.snooze_reduction,
-                "sleep_schedule_adherence": habit_score.sleep_schedule_adherence,
-                "overall_score": habit_score.overall_score,
-            })
-
-    return scores
+    Built from the same history the dashboards plot, minus the honest gap
+    placeholders (exports contain only days with a real stored score).
+    """
+    history = get_habit_score_history(db, user_id, days=_clamp_days(days))
+    return [
+        {
+            "date": entry["date"],
+            "wake_up_consistency": entry["wake_up_consistency"],
+            "challenge_completion": entry["challenge_completion"],
+            "snooze_reduction": entry["snooze_reduction"],
+            "sleep_schedule_adherence": entry["sleep_schedule_adherence"],
+            "overall_score": entry["overall_score"],
+        }
+        for entry in history
+        if entry.get("overall_score") is not None
+    ]
 
 
 def wake_up_report_records(db: Session, user_id: int, days: int) -> List[Dict[str, Any]]:
-    """Alarm/wake-up records for the last N days."""
-    today = datetime.now(timezone.utc).date()
-    week_ago = today - timedelta(days=days)
+    """Alarm/wake-up records for the last N days, oldest trigger first.
+
+    Filtered on the timezone-aware `next_trigger` window (the same trigger the
+    dashboards and habit scoring read), not on row creation time.
+    """
+    days = _clamp_days(days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
     alarms = db.query(Alarm).filter(
         Alarm.user_id == user_id,
-        Alarm.created_at >= datetime.combine(week_ago, datetime.min.time()),
-    ).all()
+        Alarm.next_trigger.isnot(None),
+        Alarm.next_trigger >= cutoff,
+    ).order_by(Alarm.next_trigger.asc()).all()
 
     records = []
     for a in alarms:
@@ -55,7 +92,7 @@ def wake_up_report_records(db: Session, user_id: int, days: int) -> List[Dict[st
             "alarm_id": a.id,
             "title": a.title,
             "alarm_type": a.alarm_type,
-            "next_trigger": a.next_trigger.isoformat() if a.next_trigger else None,
+            "next_trigger": _aware_iso(a.next_trigger),
             "times_snoozed": a.times_snoozed,
             "was_enabled": a.is_enabled,
         })
@@ -64,14 +101,14 @@ def wake_up_report_records(db: Session, user_id: int, days: int) -> List[Dict[st
 
 
 def challenges_report_records(db: Session, user_id: int, days: int) -> List[Dict[str, Any]]:
-    """Challenge attempt records for the last N days."""
-    today = datetime.now(timezone.utc).date()
-    week_ago = today - timedelta(days=days)
+    """Challenge attempt records for the last N days, oldest attempt first."""
+    days = _clamp_days(days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
     attempts = db.query(ChallengeAttempt).filter(
         ChallengeAttempt.user_id == user_id,
-        ChallengeAttempt.created_at >= datetime.combine(week_ago, datetime.min.time()),
-    ).all()
+        ChallengeAttempt.created_at >= cutoff,
+    ).order_by(ChallengeAttempt.created_at.asc()).all()
 
     records = []
     for a in attempts:
@@ -85,7 +122,7 @@ def challenges_report_records(db: Session, user_id: int, days: int) -> List[Dict
             "total_questions": a.total_questions,
             "accuracy_pct": round((a.correct_answers / a.total_questions * 100) if a.total_questions > 0 else 0, 1),
             "time_taken_seconds": a.time_taken_seconds,
-            "created_at": a.created_at.isoformat() if a.created_at else None,
+            "created_at": _aware_iso(a.created_at),
         })
 
     return records

@@ -117,10 +117,17 @@ class ChallengeAttempt(Base):
     # Server-authoritative puzzle snapshot. `puzzle_payload` is what was sent to
     # the client (questions/options/timeout — never the answers). `expected_answers`
     # is kept server-side only for verification at /challenges/submit. `user_answers`
-    # stores what the client submitted.
+    # stores what the client submitted. `answer_meta` holds server-only per-question
+    # metadata (answer type + explanation) used for authoritative comparison and
+    # post-submission feedback; it is never serialized to clients.
     puzzle_payload = Column(JSON, nullable=True)
     expected_answers = Column(JSON, nullable=True)
     user_answers = Column(JSON, nullable=True)
+    answer_meta = Column(JSON, nullable=True)
+    # Expiry bounds how long a pending attempt may be submitted (anti-replay).
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    # Set once an attempt has been redeemed to dismiss an alarm; blocks reuse.
+    consumed_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     # Relationships
     user = relationship("User", back_populates="challenge_attempts")
@@ -128,6 +135,7 @@ class ChallengeAttempt(Base):
     __table_args__ = (
         Index("ix_attempts_user_challenge", "user_id", "challenge_id"),
         Index("ix_attempts_completed", "completed"),
+        Index("ix_attempts_expires_at", "expires_at"),
         # Unique constraint for idempotent sync: one attempt per user/challenge/date
         # Note: full unique constraint added in migration/ddl
     )
@@ -193,6 +201,26 @@ class AlarmRole(Base):
     role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
 
 
+class CoachAssignment(Base):
+    """Wellness-coach cohort scope: which users a coach may view and support.
+
+    A coach sees only users assigned to them (plus nothing else); admins manage
+    assignments and retain full visibility. One row per (coach, user) pair.
+    """
+    __tablename__ = "coach_assignments"
+    id = Column(Integer, primary_key=True, index=True)
+    coach_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    coach = relationship("User", foreign_keys=[coach_id])
+    user = relationship("User", foreign_keys=[user_id])
+    __table_args__ = (
+        Index("ix_coach_assignments_coach_id", "coach_id"),
+        Index("ix_coach_assignments_user_id", "user_id"),
+        UniqueConstraint("coach_id", "user_id", name="uq_coach_assignments_coach_user"),
+    )
+
+
 class AuthToken(Base):
     """Server-side store for refresh / password-reset / email-verification tokens.
 
@@ -216,6 +244,29 @@ class AuthToken(Base):
         Index("ix_auth_tokens_kind", "kind"),
         Index("ix_auth_tokens_token_hash", "token_hash"),
         UniqueConstraint("token_hash", name="uq_auth_tokens_token_hash"),
+    )
+
+
+class ProductivityLog(Base):
+    """Manual daily productivity log (Phase 7, FR-BA-003/FR-REP-004).
+
+    The application cannot measure productivity itself, so this table stores
+    only what the user explicitly enters: a 0-100 day score plus an optional
+    note. `source` is always "user-entered". One row per (user, date); later
+    submissions overwrite the same day (upsert), never duplicate.
+    """
+    __tablename__ = "productivity_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    date = Column(String(10), nullable=False)
+    score = Column(Integer, nullable=False)
+    note = Column(Text, nullable=True)
+    source = Column(String(20), nullable=False, default="user-entered")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user = relationship("User")
+    __table_args__ = (
+        Index("ix_productivity_logs_user_date", "user_id", "date"),
+        UniqueConstraint("user_id", "date", name="uq_productivity_logs_user_date"),
     )
 
 

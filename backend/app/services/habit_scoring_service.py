@@ -1,11 +1,30 @@
 """Habit scoring service for Intelligent Cognitive Alarm Platform.
 
-Computes the daily habit components (35% wake-up consistency, 25% challenge
-completion, 20% snooze reduction, 20% sleep schedule adherence) from real user
-data and assembles the weighted composite score.
+Single source of truth for every habit number in the product (Phase 5): the
+personal dashboards (web/mobile), the coach cohort view, and the report
+exports all read through `get_or_compute_habit_score` /
+`get_habit_score_history` / `compute_habit_composite` here, so the same metric
+always has the same value everywhere.
 
-This is the single home for the four component scorers, the streak helper, and
-the composite; `analytics_service` re-exports these for backward compatibility.
+Habit score formula (documented contract):
+
+    overall = 0.35 * wake_up_consistency
+            + 0.25 * challenge_completion
+            + 0.20 * snooze_reduction
+            + 0.20 * sleep_schedule_adherence
+
+- wake_up_consistency (35%): share of today's alarms dismissed with zero
+  snoozes, discounted up to 30% by the normalized snooze load.
+- challenge_completion (25%): 60% completion rate + 40% answer accuracy over
+  today's attempts, plus a streak bonus worth up to 10% of the component.
+- snooze_reduction (20%): today's snooze count vs the trailing 7-day daily
+  average (2x the average scores 0).
+- sleep_schedule_adherence (20%): 100 * (1 - stddev(trigger hours)/3h) over
+  the trailing 7-day window.
+
+All components are integers in 0..100; the composite is truncated to int.
+Day boundaries are UTC. Accounts with no alarms and no attempts honestly
+report all zeros without persisting a row.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -327,8 +346,15 @@ def get_habit_score_history(db: Session, user_id: int, days: int = 7) -> List[di
     """Return habit score history (most recent first) for the last N days.
 
     Days without a stored score are included with `None` component values so the
-    chart renders gaps honestly instead of fabricating data.
+    chart renders gaps honestly instead of fabricating data. `days` is clamped
+    to 1..365; all day boundaries are UTC (documented contract shared by the
+    dashboards, the coach cohort view, and the report exports).
     """
+    try:
+        days = int(days)
+    except (TypeError, ValueError):
+        days = 7
+    days = max(1, min(365, days))
     today = datetime.now(timezone.utc).date()
     scores = []
 

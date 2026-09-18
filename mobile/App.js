@@ -1,10 +1,14 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, Image, View } from 'react-native';
 import { AuthProvider, useAuthContext } from './src/context/AuthContext';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { useBrandFonts } from './src/theme/fonts';
+import * as notifier from './src/notifications/expoNotifier';
 import MainTabs from './src/components/MainTabs';
 import HeaderActions from './src/components/layout/HeaderActions';
 import AlarmScreen from './src/screens/AlarmScreen';
@@ -20,6 +24,7 @@ const LOGO_DARK = require('./assets/logos/WideDark.webp');
 const LOGO_LIGHT = require('./assets/logos/WideLight.webp');
 
 const Stack = createNativeStackNavigator();
+export const navigationRef = createNavigationContainerRef();
 
 function HomeHeaderLogo() {
   const { resolved } = useTheme();
@@ -37,6 +42,29 @@ function AppNavigator() {
   const { isLoggedIn, loading: authLoading } = useAuthContext();
   const { colors, fonts } = useTheme();
   const [fontsLoaded, fontError] = useBrandFonts();
+  const [pendingAlarmId, setPendingAlarmId] = useState(null);
+  const [navReady, setNavReady] = useState(false);
+
+  // Foreground presentation + tap handling. A tap on an alarm notification
+  // (cold start or background) routes straight to the challenge gate.
+  useEffect(() => {
+    notifier.configureNotificationHandler();
+    const unsubscribe = notifier.addNotificationResponseListener((data) => {
+      const alarmId = notifier.extractAlarmId(data);
+      if (alarmId) setPendingAlarmId(alarmId);
+    });
+    notifier.getInitialAlarmId().then((alarmId) => {
+      if (alarmId) setPendingAlarmId(alarmId);
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (pendingAlarmId && isLoggedIn && navReady) {
+      navigationRef.navigate('Alarm', { alarmId: pendingAlarmId });
+      setPendingAlarmId(null);
+    }
+  }, [pendingAlarmId, isLoggedIn, navReady]);
 
   if (!fontsLoaded && !fontError) {
     return (
@@ -55,7 +83,7 @@ function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef} onReady={() => setNavReady(true)}>
       <Stack.Navigator
         screenOptions={{
           headerStyle: { backgroundColor: colors.bg },

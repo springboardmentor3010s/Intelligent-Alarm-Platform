@@ -4,13 +4,35 @@ Platform-wide user listing and aggregation for the admin dashboard. Routers
 delegate here so `api/dashboard.py` stays thin beyond RBAC guards.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..Models import User, Alarm, Challenge, ChallengeAttempt, HabitScore, Role, UserRole
 from ..schemas import AdminUserRes, AdminAnalyticsRes
+
+
+def _measured_uptime(db: Session) -> float:
+    """Measured lifetime API success ratio (never a hard-coded constant)."""
+    from .system_status import system_uptime_percentage
+
+    return system_uptime_percentage(db)
+
+
+def _measured_uptime_seconds() -> float:
+    from .system_status import uptime_seconds
+
+    return uptime_seconds()
+
+
+def _measured_db_connected(db: Session) -> bool:
+    from .system_status import get_system_health
+
+    try:
+        return bool(get_system_health(db).get("db_connected", False))
+    except Exception:
+        return False
 
 
 def list_users(db: Session) -> list[AdminUserRes]:
@@ -43,13 +65,13 @@ def platform_analytics(db: Session) -> AdminAnalyticsRes:
     total_users = db.query(User).count() or 0
 
     # Active users today
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     active_users_today = db.query(User).filter(
         User.updated_at >= today_start,
     ).count() or 0
 
     # New users this week
-    week_ago = datetime.utcnow() - timedelta(days=7)
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
     new_users_this_week = db.query(User).filter(
         User.created_at >= week_ago,
     ).count() or 0
@@ -83,5 +105,7 @@ def platform_analytics(db: Session) -> AdminAnalyticsRes:
         alarm_dismissal_success_rate=round(alarm_dismissal_rate, 4),
         platform_habit_score_avg=round(float(avg_habit), 2),
         top_challenge_types=top_challenges,
-        system_uptime_percentage=99.9,  # Placeholder
+        system_uptime_percentage=_measured_uptime(db),
+        uptime_seconds=_measured_uptime_seconds(),
+        db_connected=_measured_db_connected(db),
     )

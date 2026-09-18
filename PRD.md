@@ -219,15 +219,15 @@ Sidebar navigation (collapsible 248/76px) with §21 groups · global Light/Dark 
 1. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; ✅ resolved — M3 analytics service returns real sleep/wake estimates + trends.
 2. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; ✅ resolved — M3 wired real data; 2026-09-07 pass removed remaining hardcoded series.
 3. **No trained ML model file (M3)** — ✅ resolved — `difficulty_model.pt` trained + loaded (`ml-status model_loaded=true`).
-4. **Zero tests and no CI/CD (M4)** — ✅ resolved — pytest 47 + Vitest 49 + jest 47 + GitHub Actions; coverage tooling added (2026-09-16).
+4. **Zero tests and no CI/CD (M4)** — ✅ resolved — pytest 107 + Vitest 49 + jest 69 + GitHub Actions; coverage tooling (2026-09-16) now at 75% / 69% / 31%.
 5. **Docker container up-test pending (M4)** — ✅ resolved — compose up-tested end-to-end (Postgres + migrations + lean image, PDF/Excel verified in container).
 6. **Offline sync & notifications (M4)** — ✅ resolved 2026-09-07 — mobile sync engine + push-token registration wired and jest-tested.
 10. **Notifications & offline sync not wired (M4)** — ✅ resolved — see #6.
 
-### Remaining gaps (post-M4)
+### Remaining gaps (post-Phase 3)
 1. **Cloud deployment** — Docker compose works locally; no real cloud host yet.
-2. **On-device E2E (native push)** — requires an Expo development build; Expo Go disables remote push and local alarm scheduling.
-3. **FCM/APNs delivery provider** — `integrations/messaging.py` ships a NoopProvider protocol; real provider adoption pending.
+2. **On-device E2E verification** — local alarm scheduling + notification-tap routing are implemented and unit-tested, but firing must be confirmed on a physical device via `mobile/REAL_DEVICE_CHECKLIST.md`; remote push requires an Expo dev build (Expo Go disables token acquisition).
+3. **Habit/bedtime alert triggers** — the delivery channel (Expo push) and `notify_alarm_due` exist; automatic bedtime/streak/milestone alert triggers remain planned.
 4. **Settings persistence** on web dashboard is implemented via `/users/settings` + `/users/{key}`; iPhone local alarm scheduling remains native work.
 
 > ⚠️ **Resolved in M1:** hardcoded JWT secret; admin auth bypass; CORS `*`; `load_dotenv` overriding Docker `DATABASE_URL`; wrong Dockerfile CMD — plus missing `PUT /users/profile` / `PUT /users/{key}` / settings endpoints now exist and are wired in the mobile app.

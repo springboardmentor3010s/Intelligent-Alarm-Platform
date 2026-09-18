@@ -1,3 +1,8 @@
+# CerebroKognit local stack (development defaults; Phase 9).
+# Every secret/flag reads from the environment with a dev default so
+# `docker compose up -d` works out of the box, while production uses
+# docker-compose.prod.yml, which *requires* real secrets and drops every
+# development default. Copy .env.docker.example to .env.docker to pin values.
 services:
 
   # PostgreSQL database
@@ -6,15 +11,15 @@ services:
     container_name: cerebrokognit-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: cerebro_kognit
-      POSTGRES_USER: cerebro_user
-      POSTGRES_PASSWORD: change_me
+      POSTGRES_DB: ${POSTGRES_DB:-cerebro_kognit}
+      POSTGRES_USER: ${POSTGRES_USER:-cerebro_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cerebro_user -d cerebro_kognit"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cerebro_user} -d ${POSTGRES_DB:-cerebro_kognit}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,16 +35,21 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://cerebro_user:change_me@db:5432/cerebro_kognit
-      SECRET_KEY: change_this_to_a_very_random_secret_key_min_32_bytes
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cerebro_user}:${POSTGRES_PASSWORD:-change_me}@db:5432/${POSTGRES_DB:-cerebro_kognit}
+      SECRET_KEY: ${SECRET_KEY:-change_this_to_a_very_random_secret_key_min_32_bytes}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-False}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 60
       REFRESH_TOKEN_EXPIRE_DAYS: 30
-      CORS_ORIGINS: http://localhost:5173,http://localhost:3000,http://localhost:8080
-      DEBUG: True
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8080}
+      PUSH_PROVIDER: ${PUSH_PROVIDER:-noop}
+      EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
       PORT: 8000
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
       interval: 10s
@@ -48,36 +58,11 @@ services:
       start_period: 30s
 
   # Web dashboard (development: run locally with npm run dev)
-  # Will be started manually since Dockerfile not included in repo
+  # Production serves the built bundle via web/Dockerfile (nginx);
+  # enable it in docker-compose.prod.yml, not here.
   #
-  # Uncomment and configure if you want Docker to build the web app
-  # web:
-  #   build: ./web
-  #   container_name: cerebrokognit-web
-  #   restart: unless-stopped
-  #   depends_on:
-  #     api:
-  #       condition: service_healthy
-  #   environment:
-  #     VITE_API_URL: http://localhost:8000
-  #     VITE_ENABLE_ANALYTICS: true
-  #   ports:
-  #     - "5173:5173"
-
   # Mobile development (Expo)
-  # Will be started locally with npx expo start
-  # Uncomment if you want Docker to build the mobile app
-  #
-  # mobile:
-  #   build: ./mobile
-  #   container_name: cerebrokognit-mobile
-  #   restart: unless-stopped
-  #   environment:
-  #     EXPO_PUBLIC_API_URL: http://10.0.2.2:8000
-  #   ports:
-  #     - "19000:19000"  # Expo Go
-  #     - "19001:19001"  # Metro
-  #     - "19002:19002"  # Debugger
+  # Run locally with npx expo start (needs LAN + QR, unsuitable for Docker).
 
 volumes:
   pg_data:
