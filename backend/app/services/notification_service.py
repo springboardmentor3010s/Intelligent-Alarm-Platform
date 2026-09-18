@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Notification service for the Intelligent Cognitive Alarm Platform.
 
 Owns the push-token lifecycle (registration, deregistration, listing — P5)

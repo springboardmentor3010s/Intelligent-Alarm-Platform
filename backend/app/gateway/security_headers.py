@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Security headers middleware (Phase 2).
 
 Sets standard security headers on every response.  HSTS is only emitted in

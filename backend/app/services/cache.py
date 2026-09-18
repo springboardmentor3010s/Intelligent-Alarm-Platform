@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Optional Redis cache adapter.
 
 Active ONLY when `REDIS_URL` is set (decision #2: Redis = thin optional

@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 /**
  * Shared theme state. Single source for reading/applying the Light/Dark theme,
  * so every control (sidebar switcher, auth toggle, Settings) stays in sync.

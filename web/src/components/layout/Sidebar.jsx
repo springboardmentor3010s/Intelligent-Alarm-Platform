@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { NAV_SECTIONS } from '../../navSections';

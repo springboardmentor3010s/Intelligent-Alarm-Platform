@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Admin service for Intelligent Cognitive Alarm Platform.
 
 Platform-wide user listing and aggregation for the admin dashboard. Routers

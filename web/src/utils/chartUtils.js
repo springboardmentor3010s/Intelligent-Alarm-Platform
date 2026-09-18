@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 /**
  * Chart.js utility data and configuration for CerebroKognit.
  * Charts are honest: they render exactly the data points the API returns —

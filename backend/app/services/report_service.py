@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Report service for the dashboard report endpoints.
 
 Single-source rule (Phase 5): record builders reuse the same services the

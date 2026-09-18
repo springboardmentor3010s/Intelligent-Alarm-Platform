@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Feedback service for Intelligent Cognitive Alarm Platform.
 
 Persists user-submitted feedback (mobile app) against the authenticated user.

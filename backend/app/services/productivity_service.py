@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Manual productivity tracking service (Phase 7, FR-BA-003/FR-REP-004).
 
 Provenance contract — every value this module returns is labeled:

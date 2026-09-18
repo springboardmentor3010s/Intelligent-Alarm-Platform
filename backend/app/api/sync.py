@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Sync routes for offline-first mobile operation.
 
 Implements idempotent upsert with conflict resolution using server timestamps.

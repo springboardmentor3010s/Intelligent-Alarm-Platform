@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """System health measurement for Intelligent Cognitive Alarm Platform.
 
 Single source of truth for service availability signals (Phase 5):

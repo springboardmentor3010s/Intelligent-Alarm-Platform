@@ -22,12 +22,12 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 | Backend Security | Good | ~95% | **Phase 2 (2026-09-16)**: secret fail-fast in production, CORS allowlist, refresh-token rotation + hashed single-use tokens, password-reset/email-verification, audit log, security headers, deactivation + admin role-change; env-driven JWT secret + RBAC, structured error envelope, rate limiting |
 | Web Dashboard | Good | ~95% | **Retro-futuristic redesign (2026-09-10)**: flat brand palette `#F4A442`/#3E7C17/#125C13/#E8E1D9 (no gradients, no glow), landing page, grouped nav IA, Home command-center dashboard, admin UI, brand login-bg; **responsive + overflow pass** (no page-level horizontal scroll at any width, fixed-clock clearance, 4→2→1 column chart/metric grids, mobile alarm/settings layouts) |
 | Mobile App | Good | ~85% | **Custom HOME/ALARMS/INSIGHTS/PROFILE bottom nav + redesigned screens (2026-09-10)**; alarm dismiss E2E functional; offline-first sync + Expo push registration wired; **Phase 3 (2026-09-17)**: on-device local alarm scheduling (`expo-notifications`, channel `cerebrokognit-alarms`), notification-tap → challenge gate routing, offline alarm cache; on-device E2E still requires the manual checklist |
-| Testing | Good | ~95% | **Backend pytest suite (107, verified 3.11 + 3.14, coverage 75%)**; **web Vitest (49) + mobile jest-expo (69)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
+| Testing | Good | ~95% | **Backend pytest suite (187, verified 3.11 + 3.14, coverage 75%)**; **web Vitest (56) + mobile jest-expo (75)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
 | Infrastructure/Docker | Good | ~90% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
 ### Known Critical Issues (remaining after Phase 3)
-1. Mobile on-device notification delivery is **not yet E2E-verified** — run `mobile/REAL_DEVICE_CHECKLIST.md`. Remote push needs an Expo **dev build** (Expo Go disables token acquisition); local scheduling works in Expo Go
-2. Test coverage now exists for backend (pytest **107**, coverage 75%), web (Vitest 49) and mobile (jest 69) with coverage tooling; remaining: broader flow-level alarm-dismiss component coverage
+1. Mobile on-device notification delivery is **not yet E2E-verified** — run `Markdown Files/REAL_DEVICE_CHECKLIST.md`. Remote push needs an Expo **dev build** (Expo Go disables token acquisition); local scheduling works in Expo Go
+2. Test coverage now exists for backend (pytest **187**, coverage 75%), web (Vitest 56) and mobile (jest 75) with coverage tooling; remaining: broader flow-level alarm-dismiss component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Web settings are saved to `/users/settings` + `/users/{key}` (theme, notifications, auto-dismiss, vibrate) — completed 2026-09-08
 5. `PUSH_PROVIDER=expo` requires `EXPO_ACCESS_TOKEN` to avoid relay throttling/401s; defaults to `noop` (strict) outside production
@@ -260,7 +260,7 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 | **M1: Foundation** | 1–2 | Project scaffolding, DB schema, Auth MVP, User profiles, Alarm scheduling | ✅ Complete — auth+RBAC, profiles/settings, tz-aware alarms, migrations, 22/22 smoke (`smoke_m1.py`) |
 | **M2: Cognitive Engine** | 3–4 | Challenge engine, puzzle generation, wake-up verification, analytics | ✅ Complete — server-authoritative engine, `POST /challenges/submit`, no-answer-leak `/next`, mobile E2E dismiss, 25/25 smoke (`smoke_m2.py`) |
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ✅ Complete — analytics service (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories), web wired to live data |
-| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration, web Vitest, sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; **Phase 2 (2026-09-16)**: pytest grew to 95 (security suite), coverage 74%; **Phase 3 (2026-09-17)**: Expo-push provider + `PUSH_PROVIDER`, `/notifications/status` + `/notifications/test`, `/alarms/{id}/notify`, on-device local scheduling + tap routing, pytest 107, mobile jest 69; remaining: real cloud deploy + on-device verification |
+| **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration, web Vitest, sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; **Phase 2 (2026-09-16)**: pytest grew to 95 (security suite), coverage 74%; **Phase 3 (2026-09-17)**: Expo-push provider + `PUSH_PROVIDER`, `/notifications/status` + `/notifications/test`, `/alarms/{id}/notify`, on-device local scheduling + tap routing, pytest 187, mobile jest 75; remaining: real cloud deploy + on-device verification |
 
 Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone).
 
@@ -276,7 +276,7 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
 | `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
 | `python scripts/smoke_m2.py` | In-process M2 smoke test (25 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
-| `python -m pytest tests/` | Backend unit test suite (107 tests: auth, security, alarms, challenges, analytics, feedback, notifications) — verified on Python 3.11 + 3.14; coverage 75% |
+| `python -m pytest tests/` | Backend unit test suite (187 tests: auth, security, alarms, challenges, analytics, feedback, notifications) — verified on Python 3.11 + 3.14; coverage 75% |
 | `ruff check app tests scripts` | Lint the backend (E/F/W pragmatic rule set, clean) |
 
 ### Web
@@ -284,17 +284,17 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 |---|---|
 | `npm run dev` | Start Vite dev server |
 | `npm run build` | Build for production |
-| `npm test` | Run Vitest frontend unit tests (49) |
+| `npm test` | Run Vitest frontend unit tests (56) |
 
 ### Mobile
 | Command | Description |
 |---|---|
 | `npx expo start` | Start Expo dev server |
 | `npx expo start --android` | Launch Android emulator |
-| `npx jest --ci` | Run jest-expo mobile tests (69) |
+| `npx jest --ci` | Run jest-expo mobile tests (75) |
 | `npx expo export --platform android` | Produce a release bundle (compile check) |
 
-> Before claiming Phase 3 delivery, walk `mobile/REAL_DEVICE_CHECKLIST.md` on a
+> Before claiming Phase 3 delivery, walk `Markdown Files/REAL_DEVICE_CHECKLIST.md` on a
 > physical device — automated tests cannot prove a reminder actually fires.
 
 ---
@@ -307,11 +307,11 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 | `SRS.md` | Software Requirements Specification (IEEE format, v1.8) |
 | `PRD.md` | Product Requirements Document — vision, personas, modules |
 | `context.md` | System Memory & State Anchor — session continuity, discrepancy matrix |
-| `mobile/REAL_DEVICE_CHECKLIST.md` | Manual on-device verification for the alarm/notification workflow |
+| `Markdown Files/REAL_DEVICE_CHECKLIST.md` | Manual on-device verification for the alarm/notification workflow |
 
-> Removed from the repo 2026-09-10 (recoverable via git history): `ARCHITECTURE.md`, `CHANGELOG.md`,
-> `Milestone.md`, `plan.md`, `HierarchicalRemediationPlan.md`, `UI_Wireframes.md`, `infrastructure/`,
-> `presentation/`, `Completed Milestones/`, and emulator-era scripts (`host_relay.py`, `dev_up_all.ps1`).
+> Removed from the repo (recoverable via git history): `ARCHITECTURE.md`, `CHANGELOG.md`, `Milestone.md`,
+> `plan.md`, `HierarchicalRemediationPlan.md`, `UI_Wireframes.md`, `infrastructure/`, `presentation/`,
+> `Completed Milestones/`, emulator-era scripts (`host_relay.py`, `dev_up_all.ps1`), and obsolete working docs.
 
 ---
 

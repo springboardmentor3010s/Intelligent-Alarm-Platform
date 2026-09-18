@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 # run_all.ps1 - launch the entire CerebroKognit stack in ONE terminal.
 #
 # Starts, in order: (1) PostgreSQL DB (docker), (2) backend API, (3) web dashboard,

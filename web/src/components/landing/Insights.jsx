@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import React from 'react';
 import { SAMPLE_WEEK, SAMPLE_INSIGHTS } from './demo';
 import { LandingSection, DemoPill } from './primitives';

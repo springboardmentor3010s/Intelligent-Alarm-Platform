@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Train and save the difficulty-prediction model for CerebroKognit.
 
 SYNTHETIC TRAINING — READ FIRST: this script generates a deterministic

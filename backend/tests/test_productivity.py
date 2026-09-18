@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Phase 7 Part B: manual productivity tracking is user-entered, gated, honest.
 
 Covers log upsert + validation, owner isolation, history/trend/correlation

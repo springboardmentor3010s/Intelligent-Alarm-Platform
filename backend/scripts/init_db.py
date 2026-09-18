@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Database initialization and seed script for CerebroKognit.
 
 Creates all tables and seeds default roles plus a demo user.

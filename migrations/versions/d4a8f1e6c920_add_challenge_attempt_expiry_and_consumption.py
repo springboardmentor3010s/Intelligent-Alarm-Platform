@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """add challenge attempt expiry, consumption, and answer metadata
 
 Revision ID: d4a8f1e6c920

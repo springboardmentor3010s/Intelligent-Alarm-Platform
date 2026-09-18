@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """End-to-end Milestone 1 smoke test for CerebroKognit.
 
 Run from backend/:  .venv\\Scripts\\python.exe scripts\\smoke_m1.py

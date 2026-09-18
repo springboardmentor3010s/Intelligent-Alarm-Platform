@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Difficulty prediction engine (AI/ML, Phase 6).
 
 Honesty contract (read before citing this module in docs):

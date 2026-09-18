@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Background worker interface for async report generation.
 
 Wraps a job function so it can run either synchronously (returning the file /

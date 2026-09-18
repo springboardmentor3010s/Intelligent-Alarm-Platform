@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator, Animated, ScrollView, Switch } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';

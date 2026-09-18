@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { apiFetch, authHeaders, parseApiError, describeFetchError } from '../utils/api';
 import { useHabitScore } from './useHabitScore';

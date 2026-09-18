@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Pytest fixtures: isolated in-memory DB + FastAPI TestClient.
 
 Run from backend/:  .venv\\Scripts\\python.exe -m pytest

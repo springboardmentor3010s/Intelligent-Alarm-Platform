@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Habit scoring service for Intelligent Cognitive Alarm Platform.
 
 Single source of truth for every habit number in the product (Phase 5): the

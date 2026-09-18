@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 # CerebroKognit PRODUCTION overlay (Phase 9) — local production-like validation.
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 # Secrets have NO defaults here: compose aborts unless POSTGRES_PASSWORD and

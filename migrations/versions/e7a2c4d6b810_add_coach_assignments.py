@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """add coach assignments for wellness-coach cohort scoping
 
 Revision ID: e7a2c4d6b810

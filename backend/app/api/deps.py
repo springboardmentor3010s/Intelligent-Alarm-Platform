@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Security and role-based access control dependencies for CerebroKognit.
 
 Centralizes JWT auth (`get_current_user`), the OAuth2 bearer scheme, and

@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Behavioral analytics service for Intelligent Cognitive Alarm Platform.
 
 Derived analytics over the user's real alarm/dismissal/attempt data: sleep

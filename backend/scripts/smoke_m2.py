@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """End-to-end Milestone 2 smoke test for CerebroKognit.
 
 Verifies (on a throwaway SQLite DB that is built via Alembic migrations):

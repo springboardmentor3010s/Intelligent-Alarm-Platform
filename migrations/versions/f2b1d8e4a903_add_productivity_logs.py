@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """add productivity logs for manual daily productivity tracking
 
 Revision ID: f2b1d8e4a903

@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 /**
  * Offline Puzzle Cache Schemas for React Native (Expo)
  * Mirrors critical PostgreSQL tables with synced flag for offline-first sync

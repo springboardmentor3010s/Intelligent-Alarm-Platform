@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Token storage service for refresh, password-reset, and email-verification tokens.
 
 Only SHA-256 hashes of raw tokens are persisted.  The raw plaintext is returned

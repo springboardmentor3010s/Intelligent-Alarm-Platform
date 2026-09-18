@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """User identity, profile, and settings service.
 
 Owns authentication (register/login/JWT), profile serialization + updates, and

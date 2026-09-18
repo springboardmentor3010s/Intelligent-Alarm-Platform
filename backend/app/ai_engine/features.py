@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Feature construction for the difficulty engine (AI/ML, Phase 6).
 
 Two documented feature contracts live here:

@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Challenge engine: no answer leak, server-authoritative submit, dismiss gates."""
 
 from app.Models import ChallengeAttempt

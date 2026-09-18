@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 /**
  * Thin adapter turning apiFetch responses into plain data for the sync engine.
  */

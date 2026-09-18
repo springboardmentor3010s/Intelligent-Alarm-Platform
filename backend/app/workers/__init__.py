@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Background task infrastructure for Intelligent Cognitive Alarm Platform.
 
 Exposes worker helpers used by the report endpoints and future async jobs.

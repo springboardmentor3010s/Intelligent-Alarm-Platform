@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Phase 8: executable end-to-end workflow evidence (W01-W20).
 
 Each test below is one row of `E2E_TEST_REPORT.md`, executed against the real

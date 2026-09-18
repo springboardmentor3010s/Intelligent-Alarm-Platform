@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 export { default as LandingNav } from './LandingNav';
 export { default as Hero } from './Hero';
 export { default as Features } from './Features';

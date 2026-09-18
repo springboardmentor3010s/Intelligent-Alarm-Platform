@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 # dev.ps1 - one-shot local launcher for backend + web (+ optional mobile Metro).
 #
 # WHY A SCRIPT: launching uvicorn via `activate` + bare `uvicorn` can resolve to a

@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """AI/ML engine package for Intelligent Cognitive Alarm Platform.
 
 Isolates all artificial-intelligence concerns behind module boundaries and

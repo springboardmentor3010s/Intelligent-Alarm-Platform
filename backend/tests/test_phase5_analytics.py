@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Phase 5: analytics single-source, habit formula, coach scoping, reports, uptime.
 
 Verifies that dashboards, coach views, and exports all read the same real

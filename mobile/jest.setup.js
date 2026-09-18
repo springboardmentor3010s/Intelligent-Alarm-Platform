@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 /* eslint-disable import/no-extraneous-dependencies */
 // Official AsyncStorage mock provided by @react-native-async-storage/async-storage.
 jest.mock('@react-native-async-storage/async-storage', () =>

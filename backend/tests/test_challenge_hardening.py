@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Phase 4: cognitive challenge & verification hardening.
 
 Covers every challenge type/difficulty, answer secrecy (client responses never

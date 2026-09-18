@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Email sender abstraction (Phase 2).
 
 Follows the same pattern as ``integrations/messaging.py`` (NoopProvider until a

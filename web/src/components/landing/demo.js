@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 /**
  * CerebroKognit landing — demo data & challenge generators.
  * Everything here is strictly illustrative: demo challenges, mock analytics,

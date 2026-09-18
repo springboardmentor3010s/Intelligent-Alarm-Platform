@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """add auth_tokens and audit_logs
 
 Revision ID: c7e4a9b2d1f0

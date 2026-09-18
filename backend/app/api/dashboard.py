@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Dashboard routes for Intelligent Cognitive Alarm Platform.
 
 Thin RBAC-guarded entry points; all aggregation lives in the admin and report

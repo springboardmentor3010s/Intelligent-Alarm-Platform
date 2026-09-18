@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { offlineStore } from './offlineStore';
 

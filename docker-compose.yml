@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 # CerebroKognit local stack (development defaults; Phase 9).
 # Every secret/flag reads from the environment with a dev default so
 # `docker compose up -d` works out of the box, while production uses

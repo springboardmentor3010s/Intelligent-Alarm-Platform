@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import { useState, useEffect, useCallback } from 'react';
 import Constants from 'expo-constants';
 import * as Expo from 'expo';

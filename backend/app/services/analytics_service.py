@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Behavioral analytics aggregate facade.
 
 Re-exports the habit-scoring and behavior-analytics domain modules so the

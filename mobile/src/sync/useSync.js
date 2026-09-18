@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import { useState, useCallback } from 'react';
 import { offlineStore } from './offlineStore';
 import { runSync, pushPending } from './syncEngine';

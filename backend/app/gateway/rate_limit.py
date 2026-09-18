@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """In-memory sliding-window rate limiter (API Gateway responsibility).
 
 Production can swap this for a Redis-backed limiter via `app.services.cache`

@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Challenge service for adaptive difficulty and server-authoritative puzzle generation.
 
 Design (Milestone 2 / Phase 4):

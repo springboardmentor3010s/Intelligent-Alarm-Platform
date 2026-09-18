@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import React, { useState, useEffect } from 'react';
 import { Card } from '../../styles';
 import { SparklesIcon, CheckCircleIcon, BrainIcon, RotateIcon, ClockIcon } from './Icons';

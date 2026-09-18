@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Independent end-to-end verification of the six Phase 6 AI engines.
 
 Boots the real app on a temp SQLite DB and exercises every engine through

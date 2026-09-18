@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Personalized recommendation engine (Milestone 3, FR-RE-001..004).
 
 Rule-based recommendations generated from real analytics data:

@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Challenge verification service.
 
 Server-authoritative checks that gate dismissals on completed, all-correct

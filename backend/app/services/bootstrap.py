@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Local (SQLite-only) bootstrap: zero-setup, fully-local operation.
 
 On startup the app creates tables and seeds roles/challenges/demo user ONLY when

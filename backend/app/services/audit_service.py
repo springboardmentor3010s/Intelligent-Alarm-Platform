@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Audit logging service for security-relevant events.
 
 Every event is written to the ``audit_logs`` table so post-incident forensics

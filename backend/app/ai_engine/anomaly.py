@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Anomaly detection engine — BASELINE statistical method (Phase 6).
 
 Honesty contract: this is NOT a trained model. It applies fixed statistical

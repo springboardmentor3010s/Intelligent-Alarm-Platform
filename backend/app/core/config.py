@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Centralized environment configuration (Phase 2 hardening).
 
 Every security-sensitive value lives here so startup can fail fast instead of

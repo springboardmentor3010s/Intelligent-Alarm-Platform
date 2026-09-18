@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Authentication routes for Intelligent Cognitive Alarm Platform.
 
 Handles registration, login, token refresh, password reset, and email

@@ -1,3 +1,4 @@
+// CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 /* eslint-env jest */
 import { describe, it, expect } from 'vitest';
 import { buildHabitCharts, chartOptions } from './chartUtils';

@@ -1,3 +1,4 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Phase 6: AI feature contracts — normalization, inference, fallback, gates.
 
 Every assertion ties to `AI_FEATURES.md`: feature vectors are clamped/scaled,
