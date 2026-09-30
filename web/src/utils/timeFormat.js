@@ -28,19 +28,6 @@ export function setTimeFormat(fmt) {
   return next;
 }
 
-export function subscribeTimeFormat(listener) {
-  const onChange = event => {
-    const next = event.detail?.timeFormat ?? (event.type === 'storage' ? event.newValue : null);
-    if (next === '12' || next === '24') listener(next);
-  };
-  window.addEventListener(TIME_FORMAT_EVENT, onChange);
-  window.addEventListener('storage', onChange);
-  return () => {
-    window.removeEventListener(TIME_FORMAT_EVENT, onChange);
-    window.removeEventListener('storage', onChange);
-  };
-}
-
 export function hour12() {
   return getTimeFormat() === '12';
 }

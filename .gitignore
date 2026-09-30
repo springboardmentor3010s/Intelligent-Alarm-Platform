@@ -35,7 +35,6 @@ web/dist/
 coverage/
 web/coverage/
 mobile/coverage/
-frontend/coverage/
 
 # Expo / Mobile
 .expo/
@@ -98,7 +97,7 @@ recent_files.csv
 *.pickle
 backend/ml_models/
 !backend/ml_models/
-# M3 deliverable: trained difficulty model ships with the repo (regenerate via scripts/train_difficulty_model.py)
+# M3 deliverable: trained difficulty model ships with the repo (regenerate via backend/scripts/train_difficulty_model.py)
 !backend/ml_models/difficulty_model.pt
 
 # Coverage

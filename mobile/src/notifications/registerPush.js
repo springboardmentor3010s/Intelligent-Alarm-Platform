@@ -14,10 +14,6 @@ import { Platform } from 'react-native';
 
 export const EXPO_PUSH_TAG = 'ExpoPushToken';
 
-export function nowIso() {
-  return new Date().toISOString();
-}
-
 /**
  * Register the given push token against /api/v1/notifications/register.
  * apiFetch and platform are injectable for tests.
@@ -74,21 +70,4 @@ export async function getExpoPushToken() {
   }
 }
 
-/**
- * High-level flow: acquire a token (if possible) and register it.
- * Returns { registered, token, reason }.
- */
-export async function acquireAndRegister({ apiFetch, token: authToken, platform }) {
-  const pushToken = await getExpoPushToken();
-  if (!pushToken) {
-    return { registered: false, reason: 'expo-go-or-denied', token: null };
-  }
-  return registerPushToken({
-    token: pushToken,
-    apiFetch,
-    platform,
-    headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
-  });
-}
-
-export default { getExpoPushToken, registerPushToken, acquireAndRegister };
+export default { getExpoPushToken, registerPushToken };

@@ -101,12 +101,6 @@ export const THEMES = { light, dark };
 export function makeUi(t) {
   return StyleSheet.create({
     center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.bg, padding: 24 },
-    container: { flex: 1, backgroundColor: t.bg, padding: spacing.xl },
-    screen: { flex: 1, backgroundColor: t.bg },
-    title: { fontSize: 26, fontWeight: '700', color: t.text, letterSpacing: -0.3 },
-    subtitle: { fontSize: 14, color: t.textMuted, marginTop: 6, lineHeight: 20 },
-    sysLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 2, color: t.textFaint, textTransform: 'uppercase' },
-    label: { fontSize: 13, fontWeight: '600', color: t.textMuted, marginBottom: 6 },
     card: {
       backgroundColor: t.surface,
       borderRadius: radii.lg,
@@ -142,36 +136,7 @@ export function makeUi(t) {
       backgroundColor: 'transparent',
     },
     btnGhostText: { color: t.text, fontWeight: '600', fontSize: 15 },
-    pill: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: radii.full, overflow: 'hidden' },
-    divider: { height: 1, backgroundColor: t.border, marginVertical: 16 },
-    row: { flexDirection: 'row', alignItems: 'center' },
   });
 }
 
-export function makeShadows(t, mode) {
-  const isLight = mode === 'light';
-  return {
-    card: {
-      elevation: 3,
-      shadowColor: isLight ? '#0F172A' : '#000000',
-      shadowOpacity: isLight ? 0.08 : 0.35,
-      shadowRadius: isLight ? 8 : 14,
-      shadowOffset: { width: 0, height: isLight ? 2 : 6 },
-    },
-    lifted: {
-      elevation: 5,
-      shadowColor: isLight ? '#0F172A' : '#000000',
-      shadowOpacity: isLight ? 0.12 : 0.4,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 4 },
-    },
-  };
-}
-
-/* Backwards-compatible default (dark) exports. Real components use useTheme(). */
-export const BRAND = THEMES.dark;
-export const ui = makeUi(THEMES.dark);
-export const SHADOWS = makeShadows(THEMES.dark, 'dark');
-export const fontsRoles = fonts;
-
-export default { THEMES, makeUi, BRAND, ui };
+export default { THEMES, makeUi };

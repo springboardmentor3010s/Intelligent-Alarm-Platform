@@ -2,7 +2,7 @@ REM CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | 
 @echo off
 setlocal
 REM ============================================================
-REM  run_all.bat - Launch the ENTIRE CerebroKognit stack in ONE
+REM  CerebroKognit.bat - Launch the ENTIRE CerebroKognit stack in ONE
 REM  terminal: database -> backend -> web -> mobile (mobile LAST).
 REM
 REM  By default it runs inside this terminal, streaming labelled,
@@ -10,8 +10,8 @@ REM  colour-coded output from every service so you only need one
 REM  window. Press Ctrl+C to stop everything.
 REM
 REM  Options:
-REM    run_all.bat -NoDb             skip Postgres (use local SQLite)
-REM    run_all.bat -TimeLimitSec 60   auto-stop after 60s (for scripts/CI)
+REM    CerebroKognit.bat -NoDb             skip Postgres (use local SQLite)
+REM    CerebroKognit.bat -TimeLimitSec 60   auto-stop after 60s (for scripts/CI)
 REM ============================================================
 cd /d "%~dp0"
 
@@ -30,7 +30,7 @@ echo  All output stays in THIS terminal. Ctrl+C to stop.
 echo.
 
 if /i "%~1"=="/?" (
-    echo  run_all.bat [-NoDb] [-TimeLimitSec N]
+    echo  CerebroKognit.bat [-NoDb] [-TimeLimitSec N]
 ) else (
     "%PS%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0run_all.ps1" %*
 )

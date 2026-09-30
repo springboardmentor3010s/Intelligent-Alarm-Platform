@@ -2,7 +2,7 @@
 /**
  * Offline sync engine (pure logic, storage-agnostic so it can be unit-tested).
  *
- * Tables mirrored from offline-cache-schemas.ts:
+ * Tables mirrored from the server schema:
  *   - alarms
  *   - habit_scores
  *   - challenge_attempts (cached challenge payloads / local attempts)
@@ -18,23 +18,6 @@
  *   listAll(tableName)               -> Promise<Array>
  *   clear(tableName)                 -> Promise<void>
  */
-
-export function groupByTable(records) {
-  return (records || []).reduce((acc, r) => {
-    const key = r.table_name || 'unknown';
-    (acc[key] = acc[key] || []).push(r);
-    return acc;
-  }, {});
-}
-
-export function toSyncRecords(unsyncedRows) {
-  return (unsyncedRows || []).map((row) => ({
-    table_name: row.table_name,
-    record_id: row.record_id,
-    local_timestamp: row.local_timestamp || null,
-    payload: row.payload || {},
-  }));
-}
 
 /**
  * Push any unsynced local records to the server via the idempotent

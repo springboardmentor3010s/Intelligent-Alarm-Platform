@@ -6,8 +6,8 @@
  * of records. Records carry a `synced` flag + `local_timestamp` (ISO string)
  * matching the sync-engine contract.
  *
- * Using AsyncStorage (rather than expo-sqlite) keeps the offline cache usable
- * in Expo Go, survives app restarts, and is fully exercisable in jest.
+ * Using AsyncStorage (rather than a native SQLite binding) keeps the offline cache
+ * usable in Expo Go, survives app restarts, and is fully exercisable in jest.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

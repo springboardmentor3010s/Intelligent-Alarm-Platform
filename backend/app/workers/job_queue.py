@@ -7,45 +7,16 @@ submitted job reference). This keeps the report endpoints capable of both
 `?async=0` (default, immediate) and `?async=1` (deferred) modes.
 """
 
-from dataclasses import dataclass, field
 from typing import Any, Callable, Dict
-from uuid import uuid4
 
 # In-process job registry. A real queue (Celery/RQ) would replace this; the
 # registry keeps the async path testable without external infrastructure.
 _JOBS: Dict[str, dict] = {}
 
 
-@dataclass
-class JobHandle:
-    """A handle for a submitted background job."""
-
-    job_id: str = field(default_factory=lambda: uuid4().hex)
-    status: str = "queued"
-    result: Any = None
-
-
 def register_job(job_id: str) -> None:
     """Register a job in the in-process registry."""
     _JOBS[job_id] = {"status": "queued", "result": None}
-
-
-def submit_job(func: Callable, *args: Any, **kwargs: Any) -> JobHandle:
-    """Run a job synchronously and record the result under a fresh job id.
-
-    Composing a FastAPI BackgroundTasks call is the caller's responsibility;
-    this helper centralizes the job-record semantics for the `async=1` path.
-    """
-    handle = JobHandle()
-    register_job(handle.job_id)
-    try:
-        handle.result = func(*args, **kwargs)
-        handle.status = "completed"
-    except Exception as exc:  # noqa: BLE001
-        handle.status = "failed"
-        handle.result = {"error": str(exc)}
-    _JOBS[handle.job_id] = {"status": handle.status, "result": handle.result}
-    return handle
 
 
 def submit_to_background(

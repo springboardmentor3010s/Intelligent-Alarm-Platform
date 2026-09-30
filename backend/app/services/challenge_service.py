@@ -530,9 +530,6 @@ class ChallengeService:
         ]
         return questions, answers, metas
 
-    # Backwards-compatible alias used by earlier callers/tests.
-    _generate_question_set = generate_question_set
-
     @classmethod
     def is_expired(cls, attempt: ChallengeAttempt, at: Optional[datetime] = None) -> bool:
         expires = _as_aware(attempt.expires_at)

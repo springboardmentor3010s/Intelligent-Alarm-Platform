@@ -5,7 +5,6 @@ import {
   TIME_FORMAT_KEY,
   getTimeFormat,
   setTimeFormat,
-  subscribeTimeFormat,
   hour12,
   getUserTimeZone,
   formatTimeOfDay,
@@ -21,19 +20,6 @@ describe('time format store', () => {
   it('defaults to 12-hour when unset', () => {
     expect(getTimeFormat()).toBe(DEFAULT_TIME_FORMAT);
     expect(hour12()).toBe(true);
-  });
-
-  it('persists changes and broadcasts to subscribers', () => {
-    const seen = [];
-    const unsub = subscribeTimeFormat(f => seen.push(f));
-    setTimeFormat('24');
-    expect(getTimeFormat()).toBe('24');
-    expect(hour12()).toBe(false);
-    expect(localStorage.getItem(TIME_FORMAT_KEY)).toBe('24');
-    setTimeFormat('12');
-    expect(getTimeFormat()).toBe('12');
-    expect(seen).toEqual(['24', '12']);
-    unsub();
   });
 
   it('falls back to UTC when no user is stored', () => {

@@ -412,7 +412,7 @@ Never use neon glow shadows or gradient drop-shadows.
 Before marking UI work done, run:
 
 ```
-npm test        # Vitest suite (currently 56 passing)
+npm test        # Vitest suite (currently 55 passing)
 npm run build   # must be clean (CSS + JS emitted)
 ```
 
@@ -423,7 +423,7 @@ desktop (>=1280px) widths, and check the live dev server refresh
 For mobile work, also run `./mobile` gates:
 
 ```
-npm test                     # jest-expo suite (currently 47 passing)
+npm test                     # jest-expo suite (currently 72 passing)
 npx expo export --platform android   # must bundle cleanly
 npx expo export --platform ios
 ```
@@ -454,7 +454,7 @@ The mobile app renders the same system with React Native. Tokens live in
 | `--text` / `--text-muted` / `--text-faint` | `colors.text` / `colors.textMuted` / `colors.textFaint` |
 | `--font-display` / `--font-body` | `fonts.display*` / `fonts.body*` (Plus Jakarta Sans) |
 | `--font-mono` | `fonts.mono*` (JetBrains Mono) |
-| shadows `--shadow-*` | `useTheme()` → `shadows` |
+| ~~shadows `--shadow-*`~~ | ~~`useTheme()` → `shadows`~~ — **removed (2026-09-19)**: no shadow tokens in `tokens.js` / `ThemeContext.jsx` (flat design) |
 | radii `--radius-*` (6/8/12/16/20/full) | `radii.md` / `radii.lg` / `radii.xl` in tokens |
 | `prefers-reduced-motion` query | `useTheme()` → `reduceMotion` (via `AccessibilityInfo`) |
 
@@ -463,7 +463,7 @@ The mobile app renders the same system with React Native. Tokens live in
 - `ThemeProvider` (wraps the app in `mobile/App.js`) resolves `dark`, `light`,
   or `system`; `dark` is the default. Selection persists to AsyncStorage under
   `ck-theme` (mirrors web `localStorage["ck-theme"]`).
-- `useTheme()` returns `{ mode, resolved, isDark, colors, ui, shadows,
+- `useTheme()` returns `{ mode, resolved, isDark, colors, ui,
   reduceMotion, setMode }`. `ui` is a prebuilt StyleSheet of shared patterns
   (`card`, `btnPrimary`, `input`, `center`, `inputPlaceholder`, etc.).
 - Fonts load once via `useBrandFonts()` in `App.js` and are safe to mock in
@@ -471,7 +471,7 @@ The mobile app renders the same system with React Native. Tokens live in
 
 ### 12.3 Shared Components
 
-Build on `mobile/src/components/ui/`: `BrandMark`/`BrandLockup`, `SysLabel`
+Build on `mobile/src/components/ui/`: `SysLabel`
 (mono micro-label chips), `StatusPill` (LED pulse; respects `reduceMotion`),
 `ChipRow` (pill selectors, `accessibilityState.selected`), `ScoreRing`,
 `ConnectRow` (link rows opening via `Linking`), `SectionHeader`. Prefer these

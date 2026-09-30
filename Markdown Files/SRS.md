@@ -45,11 +45,11 @@ This document covers:
 | API | Application Programming Interface |
 
 ### 1.3 References
-- PRD.md: Product Requirements Document (project root)
-- SRS.md: This document (project root)
-- context.md: System Memory & State Anchor (project root)
-- API Contract Registry: Section 7 of SRS.md and context.md
-- Technology Stack: context.md → Technology Stack Version Matrix
+- PRD.md: Product Requirements Document (`Markdown Files/PRD.md`)
+- SRS.md: This document (`Markdown Files/SRS.md`)
+- CONTEXT.md: System Memory & State Anchor (`Markdown Files/CONTEXT.md`)
+- API Contract Registry: Section 7 of `SRS.md` and `CONTEXT.md`
+- Technology Stack: `CONTEXT.md` → Technology Stack Version Matrix
 - Design Documents: AI_Intelligent Cognitive Alarm Platform.pdf (removed from repo 2026-09-10; recoverable via git history)
 
 ### 1.4 Overview
@@ -242,7 +242,7 @@ This document covers:
 
 ### 4.1 API Specifications
 
-All API endpoints follow the contract registry in `context.md` Section 7 and PRD.md. Request/response schemas are defined using Pydantic v2 `BaseModel`.
+All API endpoints follow the contract registry in `CONTEXT.md` Section 7 and `PRD.md`. Request/response schemas are defined using Pydantic v2 `BaseModel`.
 
 #### 4.1.1 Base Response Structure
 
@@ -814,7 +814,7 @@ flowchart TD
 | **M1 (Weeks 1–2)** | ✅ Project repository initialized with `backend/`, `mobile/`, `web/`, `docker-compose.yml`<br>✅ PostgreSQL schema created and `alembic upgrade head` runs without errors<br>✅ Auth endpoints `/register`, `/login`, `/me` functional with JWT tokens<br>✅ User profile CRUD operational<br>✅ Basic alarm creation (Daily type) working<br>✅ `.env.example` present in `backend/` with all required variables |
 | **M2 (Weeks 3–4)** | ✅ Challenge engine operational: all 7 challenge types generatable<br>✅ Adaptive difficulty engine adjusts difficulty based on correct/incorrect responses<br>✅ Wake-up verification: alarm dismisses only after challenge completion<br>✅ `challenge_attempts` table populated with `correct_answers`, `total_questions`, `completed`<br>✅ `times_snoozed` incremented on snooze action<br>✅ Mobile app can fetch and display challenges via `/api/v1/challenges` |
 | **M3 (Weeks 5–6)** | ✅ Adaptive difficulty engine functional: level changes (Beginner→Easy→Medium→Hard→Expert) based on performance<br>✅ Habit scoring engine computes `overall_score` = weighted composite (35/25/20/20)<br>✅ Recommendation engine generates at least 3 types of personalized recommendations (sleep, wake-up, habit)<br>✅ Habit dashboards (User + Wellness Coach) display scores and trends<br>✅ ML model inference wrapper operational (PyTorch only; scikit-learn/XGBoost are unused dependencies)<br>✅ Background sync idempotent: upsert on retry produces no duplicates |
-| **M4 (Weeks 7–8)** | ✅ Executive dashboards (User, Wellness Coach, Admin) operational with responsive design<br>✅ Report export: PDF and Excel for habit, wake-up, challenge, and sleep analytics<br>✅ End-to-end workflow: alarm trigger → challenge → dismissal → habit score update demonstrable<br>✅ Docker compose up -d starts all services (DB, API, Web, Mobile)<br>✅ Security testing: JWT validation, Pydantic input validation, CORS configuration<br>✅ Performance benchmarking: API p95 < 200ms, challenge inference < 100ms<br>✅ Final documentation: PRD.md, SRS.md, context.md all updated and versioned |
+| **M4 (Weeks 7–8)** | ✅ Executive dashboards (User, Wellness Coach, Admin) operational with responsive design<br>✅ Report export: PDF and Excel for habit, wake-up, challenge, and sleep analytics<br>✅ End-to-end workflow: alarm trigger → challenge → dismissal → habit score update demonstrable<br>✅ Docker compose up -d starts all services (DB, API, Web, Mobile)<br>✅ Security testing: JWT validation, Pydantic input validation, CORS configuration<br>✅ Performance benchmarking: API p95 < 200ms, challenge inference < 100ms<br>✅ Final documentation: PRD.md, SRS.md, CONTEXT.md all updated and versioned |
 
 ### 6.2 Test Case Summary
 
@@ -943,7 +943,7 @@ FUNCTION sync_pending_records(records):
 | 10 | 🟠 | `migrations/env.py` imports `app.models` (lowercase) | `migrations/env.py:28` | Import fixed to `app.Models`; `DATABASE_URL` override honored |
 | 11 | 🟠 | No DB table initialization on fresh deploy | `scripts/init_db.py` | `create_all` + seed roles/demo user added (manual bootstrap; Docker entrypoint still TODO) |
 | 15 | 🟡 | Mobile calls nonexistent endpoints: `PUT /users/profile`, `PUT /users/{key}`, `PUT /habits/score` | `backend/app/api/users.py` | `users` router added (profile + settings GET/PUT, per-key PUT); habit score PUT is M3 |
-| 17 | 🟢 | `schemas/all.py` dead file with broken import | `backend/app/schemas/all.py` | No production import path uses it; removal deferred to Level 2 consolidation |
+| ~~17~~ | 🟢 | ~~`schemas/all.py` dead file with broken import~~ | `backend/app/schemas/all.py` | **REMOVED (Level 2, 2026-09-19)** — no production import path used it; auth models stay in `schemas/auth.py`, the rest are re-exported via `schemas/__init__.py` |
 
 ### 9.2 Open Issues (target the milestone shown)
 
@@ -956,8 +956,8 @@ FUNCTION sync_pending_records(records):
 | 16 | 🟡 | Mobile `overist_score` typo (should be `overall_score`) | `mobile/src/screens/HomeScreen.jsx` | **RESOLVED (M2)** — rendered as `overall_score`; was always 0 | — |
 | ~~13~~ | 🟡 | ~~Web dashboard renders hardcoded mock chart data~~ | `web/src/utils/chartUtils.js` | **RESOLVED (M3):** Home/Dashboard/Reports wired to live `/habits/score/history` | — |
 | ~~14~~ | 🟡 | ~~Web silently substitutes fake scores (70) on API failure~~ | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | **RESOLVED (M3):** `'—'` fallback removed; real API data only | — |
-| 18 | 🟢 | Triplicated divergent schema definitions | `schemas/__init__.py`, `schemas/all.py`, `schemas/auth.py` | Drift risk; consolidation required | Level 2 |
-| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + phases):** pytest (186), Vitest (56), jest-expo (75), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
+| ~~18~~ | 🟢 | ~~Triplicated divergent schema definitions~~ | `schemas/__init__.py`, `schemas/auth.py` | **RESOLVED (Level 2, 2026-09-19)** — `schemas/all.py` deleted; drift risk eliminated | — |
+| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + phases):** pytest (187), Vitest (55), jest-expo (72), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
 
 ---
 
@@ -982,12 +982,12 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Offline Sync (server) | ✅ Complete (M4-backlog) | Idempotent upsert works and **mobile calls it** via `syncEngine.js` (offlineStore cache, sync-on-focus, offline banner) | 95% |
 | Dashboard + Reports | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `format` param; RBAC enforced; admin UI added | 95% |
 | ML Inference | ✅ Complete (M3) | Trained `difficulty_model.pt` served; rule-based fallback in container (no torch) | 85% |
-| Database Models + Migrations | ✅ Complete | **11 ORM tables** (9 core + `auth_tokens` + `audit_logs`); migration current (`c7e4a9b2d1f0`); 0→head verified fresh | 95% |
+| Database Models + Migrations | ✅ Complete | **11+ ORM tables** (9 core + `auth_tokens` + `audit_logs` + `coach_assignments` + `productivity_logs`); migration at head (`f2b1d8e4a903`); 0→head verified fresh | 95% |
 | Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
 | Security Hardening | ✅ Complete (Phase 2, 2026-09-16) | Secret fail-fast (`ENVIRONMENT=production`), CORS allowlist, refresh-token rotation + hashed single-use tokens, password reset/email verification, audit log, security headers, deactivate + role-change | 90% |
 | Notification Delivery | ✅ Complete (Phase 3, 2026-09-17) | `ExpoPushProvider` behind `PUSH_PROVIDER`, dead-token pruning, dedupe, `/notifications/status` + `/notifications/test` + `/alarms/{id}/notify`; delivery config strict-raise by default | 85% |
-| Testing (pytest) | ✅ Complete (M4 + Phase 2/3/5/6/7/8/9) | **187 tests** (auth, alarms, challenges, analytics, coach cohort, productivity, feedback, notifications, security incl. boot guard, uptime, AI engine, E2E journeys); coverage **75%**; verified Python 3.11 + 3.14 | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 56) + mobile jest (75) | 90% |
+| Testing (pytest) | ✅ Complete (M4 + Phase 2/3/5/6/7/8/9) | **187 tests** (auth, alarms, challenges, analytics, coach cohort, productivity, feedback, notifications, security incl. boot guard, uptime, AI engine, E2E journeys); coverage **88%**; verified Python 3.11 + 3.14 | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 55) + mobile jest (72) | 90% |
 
 ### Web Dashboard
 
@@ -1022,8 +1022,8 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
 | Docker | ✅ Complete (M4 + Phase 9) | Pinned lean image (non-root), env-driven compose + prod overlay (secret guards), web nginx image, Postgres migrations entrypoint; prod-container validated (migrate/E2E/restart/backup-restore/logs) — see FINAL_VALIDATION_REPORT.md | 95% |
-| Database Migrations | ✅ Complete | Migration current (`e7a2c4d6b810` adds `coach_assignments`); `upgrade head` verified on fresh DB | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (187) + smoke_m1 (22) + smoke_m2 (25) + web test (56)/build + mobile jest (75) | 90% |
-| Testing | ✅ Complete (M4-backlog + Phase 2/3/5/6/7/8/9) | pytest **187** + Vitest 56 + jest 75; smoke_m1 (22) + smoke_m2 (25) regression gates; `E2E_TEST_REPORT.md` (W01–W20); `FINAL_VALIDATION_REPORT.md` (prod-container evidence); coverage 75%/69%/31% (2026-09-17) | 95% |
+| Database Migrations | ✅ Complete | Migration at head (`f2b1d8e4a903` adds `productivity_logs`; `e7a2c4d6b810` added `coach_assignments`); `upgrade head` verified on fresh DB | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (187) + smoke_m1 (22) + smoke_m2 (25) + web test (55)/build + mobile jest (72) | 90% |
+| Testing | ✅ Complete (M4-backlog + Phase 2/3/5/6/7/8/9) | pytest **187** + Vitest 55 + jest 72; smoke_m1 (22) + smoke_m2 (25) regression gates; `E2E_TEST_REPORT.md` (W01–W20); `FINAL_VALIDATION_REPORT.md` (prod-container evidence); coverage 88%/74.67%/31.2% (2026-09-19) | 95% |
 | On-Device Verification | 🟡 Manual | `Markdown Files/REAL_DEVICE_CHECKLIST.md` written; firing must be confirmed on a physical device | 40% |
 | Environment Config | ✅ Complete (Phase 2) | Secrets/CORS from env with prod fail-fast; `AUTO_INIT` SQLite auto-init | 95% |

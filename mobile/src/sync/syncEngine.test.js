@@ -1,7 +1,5 @@
 // CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import {
-  groupByTable,
-  toSyncRecords,
   pushPending,
   pullServer,
   runSync,
@@ -37,30 +35,6 @@ function createMemoryStorage(initial = {}) {
 }
 
 const okResponse = (body) => ({ ok: true, status: 200, ...body });
-
-describe('syncEngine helpers', () => {
-  it('groups records by table name', () => {
-    const out = groupByTable([
-      { table_name: 'alarms' },
-      { table_name: 'alarms' },
-      { table_name: 'habit_scores' },
-    ]);
-    expect(out.alarms).toHaveLength(2);
-    expect(out.habit_scores).toHaveLength(1);
-  });
-
-  it('maps unsynced rows to the sync wire format', () => {
-    const rows = [
-      { record_id: 1, local_timestamp: '2026-09-07T00:00:00Z', payload: { title: 'x' } },
-    ];
-    expect(toSyncRecords(rows)[0]).toEqual({
-      table_name: undefined,
-      record_id: 1,
-      local_timestamp: '2026-09-07T00:00:00Z',
-      payload: { title: 'x' },
-    });
-  });
-});
 
 describe('pushPending', () => {
   it('returns early when there is nothing unsynced', async () => {

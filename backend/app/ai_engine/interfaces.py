@@ -74,9 +74,9 @@ DEFAULT_DIFFICULTY = "Medium"
 # Map of logical engine -> (status, module). Modules are imported lazily.
 ENGINE_REGISTRY: Dict[str, Dict[str, str]] = {
     "difficulty": {"status": "implemented", "module": "app.ai_engine.difficulty"},
-    "recommendations": {"status": "implemented", "module": "app.ai_engine.recommendations"},
-    "challenge_generation": {"status": "implemented", "module": "app.ai_engine.challenge_generation"},
-    "behavior_analysis": {"status": "implemented", "module": "app.ai_engine.behavior_analysis"},
+    "recommendations": {"status": "implemented", "module": "app.services.recommendation_service"},
+    "challenge_generation": {"status": "implemented", "module": "app.services.challenge_service"},
+    "behavior_analysis": {"status": "implemented", "module": "app.services.behavior_analytics_service"},
     "anomaly_detection": {"status": "implemented (baseline)", "module": "app.ai_engine.anomaly"},
     "performance_prediction": {"status": "implemented (baseline)", "module": "app.ai_engine.performance_prediction"},
 }

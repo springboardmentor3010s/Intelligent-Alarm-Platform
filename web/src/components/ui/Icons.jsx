@@ -133,16 +133,6 @@ export function TrashIcon({ size = 16 }) {
   );
 }
 
-export function MoreIcon({ size = 18 }) {
-  return (
-    <Icon size={size}>
-      <circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="18.5" r="1.2" fill="currentColor" stroke="none" />
-    </Icon>
-  );
-}
-
 export function ClockIcon({ size = 16 }) {
   return (
     <Icon size={size}>
@@ -335,14 +325,6 @@ export function XIcon({ size = 16 }) {
   );
 }
 
-export function SignalIcon({ size = 16 }) {
-  return (
-    <Icon size={size}>
-      <path d="M4 18v-3M9 18V9M14 18V5M19 18V2" />
-    </Icon>
-  );
-}
-
 export function WifiIcon({ size = 16 }) {
   return (
     <Icon size={size}>
@@ -461,15 +443,6 @@ export function RotateIcon({ size = 16 }) {
     <Icon size={size}>
       <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
       <path d="M3 3v5h5" />
-    </Icon>
-  );
-}
-
-export function QuoteIcon({ size = 16 }) {
-  return (
-    <Icon size={size}>
-      <path d="M8 6a3 3 0 0 0-3 3v4a2 2 0 0 0 2 2h1.5v1.5A1.5 1.5 0 0 1 7 18" />
-      <path d="M18 6a3 3 0 0 0-3 3v4a2 2 0 0 0 2 2h1.5v1.5a1.5 1.5 0 0 1-1.5 1.5" />
     </Icon>
   );
 }

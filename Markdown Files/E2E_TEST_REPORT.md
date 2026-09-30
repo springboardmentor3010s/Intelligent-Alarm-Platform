@@ -18,13 +18,13 @@ test and its observed result.
 | Backend pytest (incl. 9 new E2E workflow tests) | `cd backend; .venv\Scripts\python.exe -m pytest -q` | **187/187 PASS** |
 | Ruff | `ruff check app tests scripts` | clean |
 | smoke_m1 / smoke_m2 | `scripts/smoke_m1.py`, `scripts/smoke_m2.py` | 22/22, 25/25 PASS |
-| Web Vitest | `cd web; npm run test -- --run` | 56/56 PASS |
+| Web Vitest | `cd web; npm run test -- --run` | 55/55 PASS |
 | Web build | `cd web; npm run build` | clean |
-| Mobile jest | `cd mobile; npx jest` | 75/75 PASS |
-| **Total** | | **339/339 PASS** |
+| Mobile jest | `cd mobile; npx jest` | 72/72 PASS |
+| **Total** | | **314/314 PASS** |
 
 Browser-driven E2E (Playwright/Cypress) is intentionally not introduced: no
-browser harness exists in the repo or CI, and web behavior is covered by 56
+browser harness exists in the repo or CI, and web behavior is covered by 55
 component/integration tests plus API-contract tests below. Real-device mobile
 alarm/notification firing cannot execute in this environment — see W17.
 
@@ -155,6 +155,6 @@ alarm/notification firing cannot execute in this environment — see W17.
 None — all 20 workflows passed (W17 device leg explicitly manual). Two test-authoring mistakes were fixed during execution (wrong-fixture users in new tests); no product defects.
 
 ## Coverage notes
-- Web flows (dashboard values, coach cohort UI, reports/productivity forms, empty states): 56 Vitest tests, incl. `Admin.test.jsx` and `Reports.test.jsx` added in Phase 7.
-- Mobile flows (challenge submit incl. 409/410, habit score, sync, alarm scheduling units): 75 jest tests; on-device firing manual per checklist.
+- Web flows (dashboard values, coach cohort UI, reports/productivity forms, empty states): 55 Vitest tests, incl. `Admin.test.jsx` and `Reports.test.jsx` added in Phase 7.
+- Mobile flows (challenge submit incl. 409/410, habit score, sync, alarm scheduling units): 72 jest tests; on-device firing manual per checklist.
 - API contracts: every workflow above asserts status codes + response shapes; `schemas/` enforced via `response_model`.

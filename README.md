@@ -13,8 +13,8 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 
 ## Project Status
 
-> **Current Stage**: Functional Prototype — **Milestones 1–4 delivered** + **M4 backlog (offline sync, mobile push registration, web/mobile tests, UI app-shell pass, presentation) landed** (2026-09-07/08) + **product-wide retro-futuristic redesign (web + mobile) landed** (2026-09-10) + **Phase 2 auth/security + Phase 3 alarm/notification workflow landed** (2026-09-16/17)
-> Status updated: 2026-09-17.
+> **Current Stage**: Functional Prototype — **Milestones 1–4 delivered** + **M4 backlog (offline sync, mobile push registration, web/mobile tests, UI app-shell pass, presentation) landed** (2026-09-07/08) + **product-wide retro-futuristic redesign (web + mobile) landed** (2026-09-10) + **Phase 2 auth/security + Phase 3 alarm/notification workflow landed** (2026-09-16/17) + **dead-code cleanup + docs refresh landed** (2026-09-19)
+> Status updated: 2026-09-19.
 
 | Module | Status | Completion | Key Notes |
 |---|---|---|---|
@@ -22,22 +22,22 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 | Backend Security | Good | ~95% | **Phase 2 (2026-09-16)**: secret fail-fast in production, CORS allowlist, refresh-token rotation + hashed single-use tokens, password-reset/email-verification, audit log, security headers, deactivation + admin role-change; env-driven JWT secret + RBAC, structured error envelope, rate limiting |
 | Web Dashboard | Good | ~95% | **Retro-futuristic redesign (2026-09-10)**: flat brand palette `#F4A442`/#3E7C17/#125C13/#E8E1D9 (no gradients, no glow), landing page, grouped nav IA, Home command-center dashboard, admin UI, brand login-bg; **responsive + overflow pass** (no page-level horizontal scroll at any width, fixed-clock clearance, 4→2→1 column chart/metric grids, mobile alarm/settings layouts) |
 | Mobile App | Good | ~85% | **Custom HOME/ALARMS/INSIGHTS/PROFILE bottom nav + redesigned screens (2026-09-10)**; alarm dismiss E2E functional; offline-first sync + Expo push registration wired; **Phase 3 (2026-09-17)**: on-device local alarm scheduling (`expo-notifications`, channel `cerebrokognit-alarms`), notification-tap → challenge gate routing, offline alarm cache; on-device E2E still requires the manual checklist |
-| Testing | Good | ~95% | **Backend pytest suite (187, verified 3.11 + 3.14, coverage 75%)**; **web Vitest (56) + mobile jest-expo (75)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
+| Testing | Good | ~95% | **Backend pytest suite (187, verified 3.11 + 3.14, coverage 88%)**; **web Vitest (55) + mobile jest-expo (72)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
 | Infrastructure/Docker | Good | ~90% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
 ### Known Critical Issues (remaining after Phase 3)
 1. Mobile on-device notification delivery is **not yet E2E-verified** — run `Markdown Files/REAL_DEVICE_CHECKLIST.md`. Remote push needs an Expo **dev build** (Expo Go disables token acquisition); local scheduling works in Expo Go
-2. Test coverage now exists for backend (pytest **187**, coverage 75%), web (Vitest 56) and mobile (jest 75) with coverage tooling; remaining: broader flow-level alarm-dismiss component coverage
+2. Test coverage now exists for backend (pytest **187**, coverage 88%), web (Vitest 55) and mobile (jest 72) with coverage tooling; remaining: broader flow-level alarm-dismiss component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Web settings are saved to `/users/settings` + `/users/{key}` (theme, notifications, auto-dismiss, vibrate) — completed 2026-09-08
 5. `PUSH_PROVIDER=expo` requires `EXPO_ACCESS_TOKEN` to avoid relay throttling/401s; defaults to `noop` (strict) outside production
 
 > M1-resolved issues: hardcoded JWT secret, admin auth bypass, CORS `*`, stale migration, wrong Dockerfile CMD, `load_dotenv` override — all fixed in M1.
-> M2-resolved issues: challenge answer leak, template random-mismatch bugs, missing `/challenges/submit`, broken mobile dismiss flow, challenge analytics placeholders — all fixed in M2 (see `context.md` continuity log).
+> M2-resolved issues: challenge answer leak, template random-mismatch bugs, missing `/challenges/submit`, broken mobile dismiss flow, challenge analytics placeholders — all fixed in M2 (see `Markdown Files/CONTEXT.md` continuity log).
 > M3-resolved issues: placeholder analytics values, missing trained ML model, web mock chart data — all fixed in M3 (real analytics, `difficulty_model.pt`, real-data charts).
-> M4-resolved issues: zero tests/CI, Docker untested, missing error envelope, no admin UI, no PDF/Excel reports — all fixed in M4 (see `context.md` continuity log).
+> M4-resolved issues: zero tests/CI, Docker untested, missing error envelope, no admin UI, no PDF/Excel reports — all fixed in M4 (see `Markdown Files/CONTEXT.md` continuity log).
 
-Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
+Full issue inventory: see **Section 9 (Known Issues)** in `Markdown Files/SRS.md`.
 
 ---
 
@@ -83,7 +83,6 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 - **VS Code** with extensions:
   - Python (Microsoft)
   - FastAPI (Mica)
-  - Tailwind CSS IntelliSense
   - React Native/Expo (Expo)
   - PostgreSQL (Atomiks)
 
@@ -96,7 +95,7 @@ Full issue inventory: see **Section 9 (Known Issues)** in `SRS.md`.
 > `-Mobile` (also starts Metro `:8081`). The script waits for each service to bind a port and reports
 > status. Run `npm install` / `pip install -r backend\requirements.txt` once first (see below).
 >
-> 🚀 **Whole stack, one terminal:** `.\run_all.bat` starts **database → backend → web → mobile**
+> 🚀 **Whole stack, one terminal:** `.\CerebroKognit.bat` starts **database → backend → web → mobile**
 > (mobile **last**) in a single window, streaming colour-labelled output from every service. The
 > mobile part runs in the **foreground** so the Expo Go **QR code** + keyboard shortcuts
 > (`a`/`w`/`r`/`q`) appear exactly as with a manual `npx expo start`. Press Ctrl+C or `q` to stop
@@ -133,7 +132,7 @@ docker-compose up -d db
 ```bash
 # From project root (or with DATABASE_URL set for a non-default target):
 alembic upgrade head
-# Migration is current with `app/Models.py` (revision c7e4a9b2d1f0).
+# Migration is current with `app/Models.py` (revision f2b1d8e4a903).
 # `migrations/env.py` honors the `DATABASE_URL` env var; SQLite is the local-dev default.
 ```
 
@@ -262,7 +261,7 @@ Vite dev server proxies `/api` → `http://localhost:8000` (defined in `web/vite
 | **M3: Adaptive Intelligence** | 5–6 | Adaptive difficulty, habit scoring, recommendation engine, ML inference | ✅ Complete — analytics service (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories), web wired to live data |
 | **M4: Polish & Deploy** | 7–8 | Dashboards, reports, end-to-end testing, Docker deployment | ✅ Complete — error envelope, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest), Docker up-tested, admin UI, PDF/Excel reports; **backlog delivered**: mobile offline sync + push registration, web Vitest, sidebar/theme UI pass, Profile page, `run_all` launcher, final presentation; **Phase 2 (2026-09-16)**: pytest grew to 95 (security suite), coverage 74%; **Phase 3 (2026-09-17)**: Expo-push provider + `PUSH_PROVIDER`, `/notifications/status` + `/notifications/test`, `/alarms/{id}/notify`, on-device local scheduling + tap routing, pytest 187, mobile jest 75; remaining: real cloud deploy + on-device verification |
 
-Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone).
+Full milestone detail: see `Markdown Files/SRS.md` Section 6 (Acceptance Criteria per Milestone).
 
 ---
 
@@ -276,7 +275,7 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 | `python scripts/init_db.py --reset` | Recreate schema + seed roles/demo user |
 | `python scripts/smoke_m1.py` | In-process M1 regression smoke test (22 checks) via FastAPI TestClient — no server needed |
 | `python scripts/smoke_m2.py` | In-process M2 smoke test (25 checks; incl. alembic-on-fresh-DB and no-answer-leak) via TestClient — no server needed |
-| `python -m pytest tests/` | Backend unit test suite (187 tests: auth, security, alarms, challenges, analytics, feedback, notifications) — verified on Python 3.11 + 3.14; coverage 75% |
+| `python -m pytest tests/` | Backend unit test suite (187 tests: auth, security, alarms, challenges, analytics, feedback, notifications) — verified on Python 3.11 + 3.14; coverage 88% |
 | `ruff check app tests scripts` | Lint the backend (E/F/W pragmatic rule set, clean) |
 
 ### Web
@@ -284,14 +283,14 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 |---|---|
 | `npm run dev` | Start Vite dev server |
 | `npm run build` | Build for production |
-| `npm test` | Run Vitest frontend unit tests (56) |
+| `npm test` | Run Vitest frontend unit tests (55) |
 
 ### Mobile
 | Command | Description |
 |---|---|
 | `npx expo start` | Start Expo dev server |
 | `npx expo start --android` | Launch Android emulator |
-| `npx jest --ci` | Run jest-expo mobile tests (75) |
+| `npx jest --ci` | Run jest-expo mobile tests (72) |
 | `npx expo export --platform android` | Produce a release bundle (compile check) |
 
 > Before claiming Phase 3 delivery, walk `Markdown Files/REAL_DEVICE_CHECKLIST.md` on a
@@ -304,9 +303,9 @@ Full milestone detail: see `SRS.md` Section 6 (Acceptance Criteria per Milestone
 | Document | Purpose |
 |---|---|
 | `README.md` | This file — quick start, status, architecture |
-| `SRS.md` | Software Requirements Specification (IEEE format, v1.8) |
-| `PRD.md` | Product Requirements Document — vision, personas, modules |
-| `context.md` | System Memory & State Anchor — session continuity, discrepancy matrix |
+| `Markdown Files/SRS.md` | Software Requirements Specification (IEEE format, v1.8) |
+| `Markdown Files/PRD.md` | Product Requirements Document — vision, personas, modules |
+| `Markdown Files/CONTEXT.md` | System Memory & State Anchor — session continuity, discrepancy matrix |
 | `Markdown Files/REAL_DEVICE_CHECKLIST.md` | Manual on-device verification for the alarm/notification workflow |
 
 > Removed from the repo (recoverable via git history): `ARCHITECTURE.md`, `CHANGELOG.md`, `Milestone.md`,
@@ -336,8 +335,8 @@ Infosys Virtual Internship 7.0
 ## Contributing
 
 Before making changes, review:
-1. `SRS.md` — understand the specification and known-discrepancy tracking
-2. `context.md` — understand known gaps vs spec
+1. `Markdown Files/SRS.md` — understand the specification and known-discrepancy tracking
+2. `Markdown Files/CONTEXT.md` — understand known gaps vs spec
 
 ## License
 Proprietary – All rights reserved.

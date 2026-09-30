@@ -8,7 +8,7 @@
 ## Vision
 To build an AI-powered Intelligent Cognitive Alarm Platform that helps users develop consistent wake-up habits by requiring them to solve personalized puzzles, riddles, memory challenges, logic problems, or math exercises before dismissing alarms. The platform adapts challenge difficulty based on user behavior, wake-up performance, snooze patterns, sleep schedules, and cognitive engagement levels to improve productivity, reduce oversleeping, and encourage healthy sleep routines.
 
-> **Document Status (2026-09-10, post-M4 + retro-futuristic redesign)**: Sections below describe the intended product. The **Current Implementation Status** and **Known Gaps** sections at the end reflect actual codebase state from a deep analysis. See `context.md` → Implementation Priority Order for the prioritized fix roadmap.
+> **Document Status (2026-09-10, post-M4 + retro-futuristic redesign)**: Sections below describe the intended product. The **Current Implementation Status** and **Known Gaps** sections at the end reflect actual codebase state from a deep analysis. See `CONTEXT.md` → Implementation Priority Order for the prioritized fix roadmap.
 
 ### Success Metrics
 - **Wake-up Improvement**: Reduce snooze frequency and improve successful wake-up rates.
@@ -73,10 +73,10 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 - **5 Difficulty Levels**: Beginner → Easy → Medium → Hard → Expert
 
 ### 3. Offline Puzzle Solver
-- **Challenge Cache**: Downloaded challenges stored locally via AsyncStorage/Expo SQLite.
+- **Challenge Cache**: Downloaded challenges stored locally via AsyncStorage.
 - **Offline-First**: App functions fully offline; challenges cached with expiration.
 - **Sync on Reconnect**: Pending challenge results uploaded when connectivity restored; idempotent upsert to PostgreSQL.
-- **Cache Schema**: See `mobile/src/schemas/offline-cache-schemas.ts`.
+- **Cache Schema**: AsyncStorage tables in `mobile/src/sync/offlineStore.js` (old `mobile/src/schemas/offline-cache-schemas.ts` removed 2026-09-19).
 
 ### 4. Sleep/Wake Telemetry
 - **Tracked Metrics**:
@@ -170,7 +170,7 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 ---
 
 ## Offline-First Strategy
-- **Local Caching**: All cognitive challenges cached on mobile device via Expo SQLite/AsyncStorage. ✅ **Implemented (2026-09-07)** — `mobile/src/sync/offlineStore.js` (AsyncStorage table store) + `mobile/src/sync/syncEngine.js`; Home caches alarms + habit score, Challenge caches challenge payload + completed attempt.
+- **Local Caching**: All cognitive challenges cached on mobile device via AsyncStorage. ✅ **Implemented (2026-09-07)** — `mobile/src/sync/offlineStore.js` (AsyncStorage table store) + `mobile/src/sync/syncEngine.js`; Home caches alarms + habit score, Challenge caches challenge payload + completed attempt.
 - **Idempotent Sync**: Background telemetry sync uses PostgreSQL `ON CONFLICT (upsert)` to handle duplicate records. ✅ **Implemented** — `POST /sync/pending` (idempotent upsert) + `GET /sync/pull`; mobile calls them via `syncEngine.js` on screen focus / reconnect.
 - **Offline Functionality**: App usable offline; challenges downloaded on demand; results uploaded on reconnect. ✅ **Implemented** — offline cache fallback with an offline banner on Home; pending records queued with `synced` flag.
 - **Conflict Resolution**: Server-first policy for versioned data; local changes merged only if server has no newer version. ✅ **Implemented** — server-side upsert resolves duplicates by timestamp; sync marks accepted rows synced.
@@ -206,11 +206,11 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | Mobile integration | 🟡 M2-wired + M4-backlog | Alarm-dismiss E2E matches backend contract (`/next` → `/submit` → `/dismiss`); profile/settings wired; **offline cache + sync + push registration wired (2026-09-07)**; shared-auth `AuthProvider` fixes login-stuck (2026-09-08); on-device E2E pending |
 | Error handling | ✅ Complete (M4) | Global envelope `{detail, error_code, timestamp, status_code}` |
 | Database | ✅ Good | 9 ORM tables (incl. `push_tokens` + `alarm_roles`); migration chain 0→head verified on fresh DB; SQLite local dev, PostgreSQL via Docker |
-| Testing | ✅ M4-backed | pytest (187) + smoke_m1 (22) + smoke_m2 (25) + **web Vitest (56) + mobile jest (75)** gates |
+| Testing | ✅ M4-backed | pytest (187) + smoke_m1 (22) + smoke_m2 (25) + **web Vitest (55) + mobile jest (72)** gates |
 | CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web test (Vitest) + web build + mobile jest; pushed to `origin/main` |
 
 ### Architecture alignment (P1–P7, approved `plan.md`, landed 2026-09-07)
-Gateway hardening · 12 domain service modules · `ai_engine/` package · optional Redis/worker scaffolds · push-token notification API · §21 grouped web nav · docs audit. Implemented/scaffold/planned mapping is recorded in the session continuity log in `context.md`.
+Gateway hardening · 12 domain service modules · `ai_engine/` package · optional Redis/worker scaffolds · push-token notification API · §21 grouped web nav · docs audit. Implemented/scaffold/planned mapping is recorded in the session continuity log in `CONTEXT.md`.
 
 ### UI & app-shell pass (web, 2026-09-07/08)
 Sidebar navigation (collapsible 248/76px) with §21 groups · global Light/Dark theme (`theme.js` → `data-theme` + `ck-theme`, cross-tab sync) · auth design system (`components/auth/*`) · `login-bg.svg` hero · new **Profile** page (`PUT /users/profile`) · honest/theme-aware charts (`makeChartOptions`).
@@ -224,7 +224,7 @@ Sidebar navigation (collapsible 248/76px) with §21 groups · global Light/Dark 
 1. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; ✅ resolved — M3 analytics service returns real sleep/wake estimates + trends.
 2. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; ✅ resolved — M3 wired real data; 2026-09-07 pass removed remaining hardcoded series.
 3. **No trained ML model file (M3)** — ✅ resolved — `difficulty_model.pt` trained + loaded (`ml-status model_loaded=true`).
-4. **Zero tests and no CI/CD (M4)** — ✅ resolved — pytest 187 + Vitest 56 + jest 75 + GitHub Actions; coverage tooling (2026-09-16) now at 75% / 69% / 31%.
+4. **Zero tests and no CI/CD (M4)** — ✅ resolved — pytest 187 + Vitest 55 + jest 72 + GitHub Actions; coverage (2026-09-19) now at 88% / 74.67% / 31.2%.
 5. **Docker container up-test pending (M4)** — ✅ resolved — compose up-tested end-to-end (Postgres + migrations + lean image, PDF/Excel verified in container).
 6. **Offline sync & notifications (M4)** — ✅ resolved 2026-09-07 — mobile sync engine + push-token registration wired and jest-tested.
 10. **Notifications & offline sync not wired (M4)** — ✅ resolved — see #6.

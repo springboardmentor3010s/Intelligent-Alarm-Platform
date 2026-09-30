@@ -16,7 +16,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from ..Models import User
-from ..schemas.auth import AuthRegisterReq, AuthLoginReq, AuthRes, UserProfileRes
+from ..schemas.auth import UserProfileRes
 from ..schemas import UserProfileUpdateReq, SettingsUpdateReq
 from ..core.config import get_secret_key
 
@@ -75,78 +75,6 @@ class AuthService:
             return None
         except jwt.InvalidTokenError:
             return None
-
-    @classmethod
-    async def register(
-        cls, payload: AuthRegisterReq, db: Session
-    ) -> AuthRes:
-        """Register a new user."""
-        existing = db.query(User).filter(User.email == payload.email).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="Email already registered")
-
-        hashed_pw = cls._hash_password(payload.password)
-        user = User(
-            email=payload.email,
-            hashed_password=hashed_pw,
-            is_active=True,
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-
-        access_token = cls._create_access_token(subject=str(user.id))
-        refresh_token = cls._create_refresh_token(str(user.id))
-
-        user_profile = UserProfileRes(
-            id=user.id,
-            email=user.email,
-            timezone=payload.timezone,
-            is_active=user.is_active,
-            is_verified=user.is_verified,
-            created_at=user.created_at.isoformat() if user.created_at else "",
-        )
-
-        return AuthRes(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            expires_in=cls.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            user=user_profile,
-        )
-
-    @classmethod
-    async def login(
-        cls, payload: AuthLoginReq, db: Session
-    ) -> AuthRes:
-        """Login user and issue JWT tokens."""
-        user = db.query(User).filter(User.email == payload.email).first()
-        if not user or not cls._verify_password(payload.password, user.hashed_password):
-            raise HTTPException(
-                status_code=401,
-                detail="Incorrect email or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        access_token = cls._create_access_token(subject=str(user.id))
-        refresh_token = cls._create_refresh_token(str(user.id))
-
-        user_profile = UserProfileRes(
-            id=user.id,
-            email=user.email,
-            timezone=user.timezone or "UTC",
-            is_active=user.is_active,
-            is_verified=user.is_verified,
-            created_at=user.created_at.isoformat() if user.created_at else "",
-        )
-
-        return AuthRes(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            expires_in=cls.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            user=user_profile,
-        )
 
 
 _SETTING_KEYS = {"notifications", "auto_dismiss", "vibrate", "time_format"}

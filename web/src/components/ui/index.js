@@ -1,7 +1,7 @@
 // CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import React from 'react';
 
-export { default as Badge, difficultyTone, DifficultyBadge } from './Badge';
+export { default as Badge } from './Badge';
 export { default as EmptyState } from './EmptyState';
 export { default as ErrorState } from './ErrorState';
 export { Skeleton, CardSkeleton, GridSkeleton } from './Skeleton';

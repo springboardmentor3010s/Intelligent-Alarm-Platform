@@ -1,4 +1,4 @@
-# context.md - System Memory & State Anchor
+# CONTEXT.md - System Memory & State Anchor
 
 **Project**: CerebroKognit — Intelligent Cognitive Alarm Platform  
 **Developer**: Pawan Simha R  
@@ -6,7 +6,7 @@
 **Project Guide & Mentor**: Shanmukha Priya  
 
 ## Purpose
-Persistent session memory. If LLM session context resets or runs out of tokens, reading `context.md` must restore exact project state, active tasks, directory layout, database schema specifications, and next immediate implementation steps without losing information.
+Persistent session memory. If LLM session context resets or runs out of tokens, reading `CONTEXT.md` must restore exact project state, active tasks, directory layout, database schema specifications, and next immediate implementation steps without losing information.
 
 ---
 
@@ -24,7 +24,7 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | Alembic | 1.19.2 | >=1.13.0 (added M1) | Migrations regenerated & verified |
 | | reportlab | 5.0.1 | >=4.0.0 (added M4) | PDF report export |
 | | openpyxl | 3.1.5 | >=3.1.0 (added M4) | Excel report export |
-| | pytest | 9.1.1 | >=8.0.0 (added M4) | Test suite (`backend/tests/`, 187 tests; coverage 75%) |
+| | pytest | 9.1.1 | >=8.0.0 (added M4) | Test suite (`backend/tests/`, 187 tests; coverage 88%) |
 | | ruff | 0.16.6 | >=0.8.0 (added M4) | Linter (`backend/pyproject.toml`, E/F/W) |
 | | PyTorch | present | >=2.3.x | ML / adaptive difficulty; **trained `backend/ml_models/difficulty_model.pt` (M3)** |
 | | scikit-learn | present | >=1.4.x | Unused in code |
@@ -36,14 +36,14 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | React (mobile) | 19.2.3 | — | Expo SDK 57 bundles React 19 |
 | | React Native | 0.86.3 | 0.76.x | Mobile (Expo) — ⚠️ drift |
 | | Vite | 5.4.10 | — | Web build tool |
-| | Tailwind CSS | 3.4.17 | 3.4.17 | ⚠️ **Installed but unused** — all CSS is custom |
+| | Tailwind CSS | — | — | **Removed (2026-09-19)** — never wired; all CSS is custom (see `STYLE.md`) |
 | | Chart.js / react-chartjs-2 | 4.4.7 / 5.3.1 | 4.x / 5.x | Analytics viz |
 | **Database** | PostgreSQL | 15.x (Docker `postgres:15-alpine`) | 15.x | Primary source of truth |
 | | SQLite | (local dev) | — | Used via `backend/.env` override |
 | | MongoDB | — | 7.x | ⚠️ **Not implemented** — referenced in architecture only |
 | **DevOps** | Docker | Compose v2 | latest | Containerization |
-| | Git & GitHub | — | Latest | Version control; `main` synced with `origin` (HEAD `7d736eb`, 2026-09-10) |
-| | GitHub Actions | — | Latest | ✅ **Implemented (M4)** — `.github/workflows/ci.yml`: ruff + pytest + smokes + web test (Vitest 56) + web build + mobile jest (75) |
+| | Git & GitHub | — | Latest | Version control; `main` synced with `origin` (HEAD `24cce95`, 2026-09-19) |
+| | GitHub Actions | — | Latest | ✅ **Implemented (M4)** — `.github/workflows/ci.yml`: ruff + pytest + smokes + web test (Vitest 55) + web build + mobile jest (72) |
 | **Mobile** | Expo | SDK ~57.0.15 | Latest | React Native framework |
 | | Firebase Cloud Messaging | — | Latest | ✅ **Delivery wired (Phase 3, 2026-09-17)** — Expo Push Service provider (`ExpoPushProvider`, covers FCM+APNs) behind `PUSH_PROVIDER=noop\|expo`; dead-token pruning + dedupe; on-device **expo-notifications** local scheduling (channel `cerebrokognit-alarms`) is the time-critical path |
 | | Android Alarm Manager | — | Native | ⚠️ **Backlog** — on-device local alarm scheduling (Levels 12/16) |
@@ -236,7 +236,7 @@ erDiagram
 
 ## API Contract Registry
 
-All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydantic v2 models. Registry maintained in `context.md` for traceability.
+All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydantic v2 models. Registry maintained in `CONTEXT.md` for traceability.
 
 ### Backend Endpoints (grouped by feature module)
 
@@ -330,7 +330,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | **Milestone 1** | 1–2 | `complete` | — | Done 2026-09-05: auth+RBAC enforced, env-based secrets/CORS, profile/settings APIs, timezone-aware alarm scheduling; see WP-A→F in continuity log below |
 | **Milestone 2** | 3–4 | `complete` | — | Done 2026-09-06: server-authoritative challenge engine (no answer leak), `/challenges/submit`, wake-up verify dismiss gate, real challenge analytics, mobile E2E dismiss flow, `smoke_m2.py` 25/25 + `smoke_m1.py` 22/22. Next → Milestone 3 |
 | **Milestone 3** | 5–6 | `complete` | — | Done 2026-09-06: analytics service refactor (real sleep/wake values), trained `difficulty_model.pt` (`ml-status model_loaded=true`), recommendation engine (4 categories, priority-sorted), streak-factored habit scoring, web dashboard wired to live data. Next → Milestone 4 |
-| **Milestone 4** | 7–8 | `complete` | — | ✅ Core delivered 2026-09-07: pytest suite (34 tests, verified on 3.11+3.14), error envelope, GitHub Actions CI, Docker deployment fixed+up-tested (Postgres, migrations entrypoint, lean runtime image), Admin UI page, PDF/Excel reports, Ruff clean. **Architecture alignment P1–P7 landed 2026-09-07** (gateway hardening, service modularization, `ai_engine`, infra scaffolds, push-token notification API, §21 web nav, docs audit). **Frontend/mobile test coverage added 2026-09-07** (web Vitest 42→49, mobile jest-expo 33→47, wired into CI). **M4 backlog delivered 2026-09-07/08** (offline sync + push registration, web sidebar/theme UI pass + Profile, mobile AuthContext fix, `run_all` launcher, presentation, Milestone 3/4 notes). **M4 backlog (remaining)**: FCM/APNs delivery provider + on-device local alarm scheduling (Levels 12/16), broader flow-level alarm-dismiss coverage, real cloud deployment. Final presentation ✅ delivered (2026-09-07). **Phase 3 (2026-09-17)**: Expo Push Service provider + `PUSH_PROVIDER`, `/notifications/status` + `/notifications/test`, `/alarms/{id}/notify`, on-device local scheduling + tap routing, offline alarm cache, `REAL_DEVICE_CHECKLIST.md`; pytest 187, mobile jest 75. |
+| **Milestone 4** | 7–8 | `complete` | — | ✅ Core delivered 2026-09-07: pytest suite (34 tests, verified on 3.11+3.14), error envelope, GitHub Actions CI, Docker deployment fixed+up-tested (Postgres, migrations entrypoint, lean runtime image), Admin UI page, PDF/Excel reports, Ruff clean. **Architecture alignment P1–P7 landed 2026-09-07** (gateway hardening, service modularization, `ai_engine`, infra scaffolds, push-token notification API, §21 web nav, docs audit). **Frontend/mobile test coverage added 2026-09-07** (web Vitest 42→49, mobile jest-expo 33→47, wired into CI). **M4 backlog delivered 2026-09-07/08** (offline sync + push registration, web sidebar/theme UI pass + Profile, mobile AuthContext fix, `run_all` launcher, presentation, Milestone 3/4 notes). **M4 backlog (remaining)**: FCM/APNs delivery provider + on-device local alarm scheduling (Levels 12/16), broader flow-level alarm-dismiss coverage, real cloud deployment. Final presentation ✅ delivered (2026-09-07). **Phase 3 (2026-09-17)**: Expo Push Service provider + `PUSH_PROVIDER`, `/notifications/status` + `/notifications/test`, `/alarms/{id}/notify`, on-device local scheduling + tap routing, offline alarm cache, `REAL_DEVICE_CHECKLIST.md`; pytest 187, mobile jest 72. |
 ### Session Continuity Log
 | Date (UTC) | Actor | Action | Outcome | References |
 |---|---|---|---|---|
@@ -350,14 +350,14 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 ---
 
 ## How to Restore Project State
-1. Read this `context.md` file in full.
+1. Read this `CONTEXT.md` file in full.
 2. Verify directory layout matches: `backend/, mobile/, web/, docker-compose.yml`
-3. Check `context.md` → `Technology Stack Version Matrix` for exact package versions.
-4. Check `context.md` → `Active Tasks List` for current milestone and next steps.
-5. Check `context.md` → `API Contract Registry` for endpoint contracts.
+3. Check `CONTEXT.md` → `Technology Stack Version Matrix` for exact package versions.
+4. Check `CONTEXT.md` → `Active Tasks List` for current milestone and next steps.
+5. Check `CONTEXT.md` → `API Contract Registry` for endpoint contracts.
 6. Review the **Discrepancy Matrix** below to understand specification gaps.
 7. Removed docs are recoverable from git history (`ARCHITECTURE.md`, `CHANGELOG.md`, `Milestone.md`, `plan.md`, `HierarchicalRemediationPlan.md`, `UI_Wireframes.md`, `infrastructure/`, `presentation/`, `Completed Milestones/`, `.opencode/skills/`).
-8. Run `docker-compose up -d` to start infrastructure (DB, API), or `run_all.bat` for the full stack (DB→backend→web→mobile).
+8. Run `docker-compose up -d` to start infrastructure (DB, API), or `CerebroKognit.bat` for the full stack (DB→backend→web→mobile).
 9. Execute the next immediate step from the Active Tasks List.
 
 ---
@@ -439,7 +439,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 ### Offline-First Sync Protocol
 | Requirement | Status | Notes |
 |---|---|---|
-| FR-OFF-001: Cache challenges locally | ⚠️ Schema defined | `offline-cache-schemas.ts` defined |
+| FR-OFF-001: Cache challenges locally | ⚠️ Partial | AsyncStorage cache via `offlineStore.js` (old `offline-cache-schemas.ts` removed 2026-09-19); on-device E2E pending (NF-OFF-001) |
 | FR-OFF-003: Idempotent background sync | ✅ Complete | `/sync/pending` with idempotent upsert for alarms, attempts, habits |
 | FR-OFF-007: No data loss on retry | ✅ Complete | Upsert handles duplicates; conflict resolution via timestamp |
 | NF-OFF-001: App functions fully offline | ⚠️ Partial | Server sync operational; mobile caching needs wiring |
@@ -460,7 +460,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | **Milestone 1** | 1–2 | `complete` | — | ✅ Delivered 2026-09-05 (WP-A→F): env JWT/CORS, RBAC enforced, profile/settings endpoints, tz-aware alarms, migration regen, seed+smoke scripts, web+mobile M1 wiring, initial git commit `bc31e9f` |
 | **Milestone 2** | 3–4 | `complete` | — | ✅ Delivered 2026-09-06: server-authoritative challenge verification, `/challenges/submit`, no-answer-leak `/next`, E2E mobile dismiss, real challenge analytics; `smoke_m2.py` 25/25, M1 regression 22/22 |
 | **Milestone 3** | 5–6 | `complete` | — | ✅ Delivered 2026-09-06: analytics service refactor, trained ML model + ml-status verification, recommendation engine (4 categories), streak-factored habit scoring, web real-data wiring (Home/Dashboard/Reports); smokes 22/22 + 25/25 green |
-| **Milestone 4** | 7–8 | `complete` | — | ✅ Core delivered 2026-09-07: pytest suite (34 tests), error envelope, GitHub Actions CI, Docker up-test (Postgres + migrations + lean runtime image), Admin UI page, PDF/Excel reports, Ruff clean. **Architecture alignment P1–P7 landed 2026-09-07** (gateway hardening, service modularization, `ai_engine`, infra scaffolds, push-token notification API, §21 web nav, docs audit). **Frontend/mobile test coverage added 2026-09-07** (web Vitest 42→49, mobile jest-expo 33→47, wired into CI). **Backlog delivered 2026-09-07/08**: offline sync + push registration, web sidebar/theme UI pass + Profile, mobile AuthContext fix, `run_all` launcher, Milestone 3/4 notes. Final presentation ✅ delivered (2026-09-07). **Remaining**: FCM/APNs delivery provider + on-device local alarm scheduling (Levels 12/16), broader flow-level alarm-dismiss coverage, real cloud deployment. **Phase 1 stabilization 2026-09-16**: test counts corrected (pytest 47, Vitest 49, jest 47), coverage tooling added (pytest-cov 71% / @vitest/coverage-v8 69.21% / jest 27.93%), `TEST_STATUS.md` created, commit `011967a`. **Phase 2 (2026-09-16)**: auth/security completion (secret fail-fast, CORS allowlist, refresh rotation, password reset, email verify, audit log, security headers, deactivate, role change), pytest 95. **Phase 3 (2026-09-17)**: alarm/notification workflow — Expo-push delivery provider, `/notifications/status` + `/notifications/test` + `/alarms/{id}/notify`, on-device local scheduling + notification-tap routing, offline alarm cache, `Markdown Files/REAL_DEVICE_CHECKLIST.md`; pytest 187, mobile jest 75. **Phase 5 (2026-09-17)**: analytics/habit/dashboard completion — measured uptime (`system_status`, `/health`), coach cohort (`coach_assignments` + scoped endpoints, migration `e7a2c4d6b810`), single-source reports, habit formula docs, `days` validation, Reports timeline, empty-state fixes; pytest 151, mobile jest 75. **Phase 6 (2026-09-17)**: AI intelligence — `features.py` contract, 6-signal explained rules, extended `ml-status`, DB-backed `recommend_difficulty`, gated anomaly/forecast baselines + endpoints, rec `reason`/`source_metric`, `AI_FEATURES.md`, `test_ai_engine.py` (17); pytest 168. |
+| **Milestone 4** | 7–8 | `complete` | — | ✅ Core delivered 2026-09-07: pytest suite (34 tests), error envelope, GitHub Actions CI, Docker up-test (Postgres + migrations + lean runtime image), Admin UI page, PDF/Excel reports, Ruff clean. **Architecture alignment P1–P7 landed 2026-09-07** (gateway hardening, service modularization, `ai_engine`, infra scaffolds, push-token notification API, §21 web nav, docs audit). **Frontend/mobile test coverage added 2026-09-07** (web Vitest 42→49, mobile jest-expo 33→47, wired into CI). **Backlog delivered 2026-09-07/08**: offline sync + push registration, web sidebar/theme UI pass + Profile, mobile AuthContext fix, `run_all` launcher, Milestone 3/4 notes. Final presentation ✅ delivered (2026-09-07). **Remaining**: FCM/APNs delivery provider + on-device local alarm scheduling (Levels 12/16), broader flow-level alarm-dismiss coverage, real cloud deployment. **Phase 1 stabilization 2026-09-16**: test counts corrected (pytest 47, Vitest 49, jest 47), coverage tooling added (pytest-cov 71% / @vitest/coverage-v8 69.21% / jest 27.93%), `TEST_STATUS.md` created, commit `011967a`. **Phase 2 (2026-09-16)**: auth/security completion (secret fail-fast, CORS allowlist, refresh rotation, password reset, email verify, audit log, security headers, deactivate, role change), pytest 95. **Phase 3 (2026-09-17)**: alarm/notification workflow — Expo-push delivery provider, `/notifications/status` + `/notifications/test` + `/alarms/{id}/notify`, on-device local scheduling + notification-tap routing, offline alarm cache, `Markdown Files/REAL_DEVICE_CHECKLIST.md`; pytest 187, mobile jest 72. **Phase 5 (2026-09-17)**: analytics/habit/dashboard completion — measured uptime (`system_status`, `/health`), coach cohort (`coach_assignments` + scoped endpoints, migration `e7a2c4d6b810`), single-source reports, habit formula docs, `days` validation, Reports timeline, empty-state fixes; pytest 151, mobile jest 72. **Phase 6 (2026-09-17)**: AI intelligence — `features.py` contract, 6-signal explained rules, extended `ml-status`, DB-backed `recommend_difficulty`, gated anomaly/forecast baselines + endpoints, rec `reason`/`source_metric`, `AI_FEATURES.md`, `test_ai_engine.py` (17); pytest 168. |
 
 ### Session Continuity Log (2026-09-05 update)
 | Date (UTC) | Actor | Action | Outcome | References |
@@ -527,7 +527,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 ### Implementation Priority Order
 1. **Level 0 — Repository Foundation** — `.gitignore`, `.gitattributes`, cleanup, initial commit
 2. **Level 1 — Backend Security** — env-driven JWT secret, CORS config, EmailStr validation
-3. **Level 2 — Schema Consolidation** — delete `schemas/all.py`, merge `schemas/auth.py` into `__init__.py`
+3. **Level 2 — Schema Consolidation** — delete `schemas/all.py`, merge `schemas/auth.py` into `__init__.py` ✅ **DONE (2026-09-19)** — `schemas/all.py` deleted; auth models in `schemas/auth.py`, rest re-exported via `schemas/__init__.py`
 4. **Level 3 — Database & Migrations** — fix `migrations/env.py` import, regenerate migration, add `create_all` fallback, seed script
 5. **Level 4 — RBAC** — real `_require_admin()`, role assignment on registration
 6. **Level 5 — Challenge Engine** — remove answer leak, fix template bugs, add `/challenges/submit` ✅ **DONE (M2)**
@@ -539,8 +539,8 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 12. **Level 11 — Mobile Core Flow** — fix dismiss flow, challenge wiring, add registration/alarm-creation screens ✅ (M2) — screens exist; polish pending
 13. **Level 12 — Notifications** — server push-token API + mobile Expo-token registration ✅ DONE (P5 + 2026-09-07); **Phase 3 (2026-09-17): Expo Push Service delivery provider + on-device local scheduling + tap routing ✅ IMPLEMENTED** — on-device firing still needs the manual `REAL_DEVICE_CHECKLIST.md` pass
 14. **Level 13 — Offline Sync** — SQLite/AsyncStorage cache + sync engine + screen wiring ✅ DONE (2026-09-07, but on-device E2E pending; Alarms tab cache added Phase 3)
-15. **Level 14 — Testing** — pytest + httpx ✅ backend (**187** tests incl. boot-guard test; 3.11+3.14 verified); **web Vitest (56) + mobile jest-expo (75) ✅ added 2026-09-07, grown through Phase 9**; coverage: pytest-cov 75% / @vitest/coverage-v8 69% / jest 31%; Phase 8: `E2E_TEST_REPORT.md` (W01–W20, device leg manual); reminders: broader flow-level component coverage
-16. **Level 15 — Linting & CI/CD** — Ruff ✅ (pyproject pragmatic E/F/W config, `ruff check app tests scripts` clean); ESLint/mypy ⚠️; **GitHub Actions ✅ DONE (M4)** (`ci.yml`: ruff + pytest (187) + smokes + web test (56)/build + mobile jest (75))
+15. **Level 14 — Testing** — pytest + httpx ✅ backend (**187** tests incl. boot-guard test; 3.11+3.14 verified); **web Vitest (55) + mobile jest-expo (72) ✅ added 2026-09-07, grown through Phase 9**; coverage: pytest-cov 88% / @vitest/coverage-v8 74.67% / jest 31.2%; Phase 8: `E2E_TEST_REPORT.md` (W01–W20, device leg manual); reminders: broader flow-level component coverage
+16. **Level 15 — Linting & CI/CD** — Ruff ✅ (pyproject pragmatic E/F/W config, `ruff check app tests scripts` clean); ESLint/mypy ⚠️; **GitHub Actions ✅ DONE (M4)** (`ci.yml`: ruff + pytest (187) + smokes + web test (55)/build + mobile jest (72))
 17. **Level 16 — Production Hardening** — monitoring, rate limiting, Sentry, performance fixes
 
 > Full detail for every level: see **`HierarchicalRemediationPlan.md`**.

@@ -1,5 +1,5 @@
 // CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
-import { registerPushToken, acquireAndRegister } from './registerPush';
+import { registerPushToken } from './registerPush';
 
 describe('registerPushToken', () => {
   it('returns not-registered when the token is empty', async () => {
@@ -39,13 +39,5 @@ describe('registerPushToken', () => {
     const apiFetch = jest.fn().mockResolvedValue({ ok: false, status: 400 });
     const res = await registerPushToken({ token: 'tok', apiFetch });
     expect(res).toEqual({ registered: false, reason: 'not-ok', status: 400 });
-  });
-});
-
-describe('acquireAndRegister', () => {
-  it('returns expo-go-or-denied when no push token can be acquired', async () => {
-    const res = await acquireAndRegister({ apiFetch: jest.fn(), authToken: 't' });
-    expect(res.registered).toBe(false);
-    expect(res.reason).toBe('expo-go-or-denied');
   });
 });

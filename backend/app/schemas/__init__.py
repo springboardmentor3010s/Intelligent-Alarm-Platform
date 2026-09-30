@@ -7,46 +7,6 @@ from datetime import datetime
 
 
 # ============================================================
-# AUTHENTICATION SCHEMAS
-# ============================================================
-
-class AuthRegisterReq(BaseModel):
-    """Request schema for user registration."""
-    email: str = Field(..., description="User email (unique)")
-    password: str = Field(..., min_length=8, description="Plaintext password (will be hashed)")
-    full_name: Optional[str] = Field(None, description="Optional full name")
-    timezone: str = Field("UTC", description="IANA time zone name, e.g. America/Los_Angeles")
-
-
-class AuthLoginReq(BaseModel):
-    """Request schema for user login."""
-    email: str = Field(..., description="User email")
-    password: str = Field(..., description="Plaintext password for verification")
-
-
-class UserProfileRes(BaseModel):
-    """Response schema for user profile."""
-    id: int
-    email: str
-    full_name: Optional[str] = None
-    timezone: str
-    is_active: bool
-    is_verified: bool
-    created_at: str  # datetime ISO format
-
-    model_config = {"from_attributes": True}
-
-
-class AuthRes(BaseModel):
-    """Response schema for auth endpoints."""
-    access_token: str = Field(description="JWT access token")
-    refresh_token: str = Field(description="JWT refresh token")
-    token_type: str = Field(default="bearer", description="Token type")
-    expires_in: int = Field(description="Seconds until access token expiry")
-    user: UserProfileRes
-
-
-# ============================================================
 # USER PROFILE / SETTINGS SCHEMAS
 # ============================================================
 
@@ -243,22 +203,6 @@ class ProductivityLogRes(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class AnalyticsRes(BaseModel):
-    """Response schema for user analytics."""
-    user_id: int
-    total_alarms: int = 0
-    total_dismissals: int = 0
-    average_snooze_count: float = 0.0
-    wake_up_consistency_trend: str = "stable"  # improving/stable/declining
-    challenge_accuracy: float = 0.0  # overall correct/total ratio
-    sleep_duration_avg: float = 0.0  # average hours/night
-    recent_activity: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Real per-type challenge breakdown: days_with_alarm, successful_dismissals, "
-                    "challenge_accuracy_by_type, avg_solve_time_seconds",
-    )
-
-
 class RecommendationRes(BaseModel):
     """Response schema for a personalized recommendation (M3, Phase 6).
 
@@ -359,43 +303,6 @@ class CoachAssignmentRes(BaseModel):
     created_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
-
-
-# ============================================================
-# NOTIFICATION SCHEMAS
-# ============================================================
-
-class NotificationReq(BaseModel):
-    """Request schema for sending notifications."""
-    user_id: int
-    title: str
-    body: str
-    type: str  # "bedtime", "wake_up", "habit_alert", "challenge_reminder"
-    data: Optional[Dict[str, Any]] = None
-
-
-class NotificationRes(BaseModel):
-    """Response schema for notification send."""
-    message_id: str
-    status: str  # "sent", "failed", "pending"
-
-
-# ============================================================
-# REPORT SCHEMAS
-# ============================================================
-
-class ReportExportReq(BaseModel):
-    """Request schema for report export."""
-    report_type: str  # "habit", "wake_up", "challenge", "productivity", "sleep"
-    format: str  # "pdf", "excel"
-    date_range: Optional[str] = None  # "7d", "30d", "all"
-
-
-class ReportExportRes(BaseModel):
-    """Response schema for report export."""
-    download_url: str
-    filename: str
-    generated_at: datetime
 
 
 # ============================================================

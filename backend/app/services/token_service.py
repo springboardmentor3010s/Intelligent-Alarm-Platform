@@ -106,12 +106,4 @@ def revoke_all_tokens(db: Session, user_id: int, kind: str | None = None) -> Non
     db.flush()
 
 
-def cleanup_expired(db: Session, kind: str | None = None) -> int:
-    """Delete expired token rows to keep the table small (best-effort)."""
-    now = datetime.now(timezone.utc)
-    q = db.query(AuthToken).filter(AuthToken.expires_at < now)
-    if kind is not None:
-        q = q.filter(AuthToken.kind == kind)
-    count = q.delete(synchronize_session=False)
-    db.flush()
-    return count
+

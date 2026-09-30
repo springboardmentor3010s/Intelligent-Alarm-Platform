@@ -43,7 +43,7 @@ Section 1-5 numbers below reflect the **current (Phase 9)** state.
 | **Passed** | 187 |
 | **Failed** | 0 |
 | **Skipped** | 0 |
-| **Coverage** | **75%** total (2564 stmts, 630 miss) |
+| **Coverage** | **88%** total (3149 stmts, 390 miss) |
 | **Failures** | None |
 
 ### 1b. Linting
@@ -85,14 +85,14 @@ Section 1-5 numbers below reflect the **current (Phase 9)** state.
 |---|---|
 | **Command** | `cd web; npm test` (`vitest run --coverage`) |
 | **Expected** | All tests pass, coverage report shown |
-| **Actual** | `16 passed (16), 56 passed (56)` |
-| **Test files** | 14 |
-| **Test functions** | 56 |
-| **Collected** | 56 |
-| **Passed** | 56 |
+| **Actual** | `13 passed (13), 55 passed (55)` |
+| **Test files** | 13 |
+| **Test functions** | 55 |
+| **Collected** | 55 |
+| **Passed** | 55 |
 | **Failed** | 0 |
 | **Skipped** | 0 |
-| **Coverage** | **69.21%** statements, **74.15%** branches, **72.76%** functions, **69.21%** lines |
+| **Coverage** | **74.67%** statements, **70.19%** branches, **75.76%** functions, **74.67%** lines |
 | **Failures** | None |
 | **Warnings** | React Router v7 future-flag deprecation warnings (non-breaking, expected with RR v6) |
 
@@ -116,14 +116,14 @@ Section 1-5 numbers below reflect the **current (Phase 9)** state.
 |---|---|
 | **Command** | `cd mobile; npm test -- --ci` |
 | **Expected** | All tests pass, coverage report shown |
-| **Actual** | `12 passed (12), 75 passed (75)` |
-| **Test files** | 12 |
-| **Test functions** | 75 |
-| **Collected** | 75 |
-| **Passed** | 75 |
+| **Actual** | `13 passed (13), 72 passed (72)` |
+| **Test files** | 13 |
+| **Test functions** | 72 |
+| **Collected** | 72 |
+| **Passed** | 72 |
 | **Failed** | 0 |
 | **Skipped** | 0 |
-| **Coverage** | **30.61%** lines, **29.74%** statements, **22.71%** branches, **27.95%** functions |
+| **Coverage** | **31.2%** lines, **30.31%** statements, **21.32%** branches, **27.05%** functions |
 | **Failures** | None |
 | **Warnings** | `console.error` in `useHabitScore.test.jsx` is expected test behavior (error-path coverage) |
 
@@ -139,11 +139,11 @@ All commands are from `.github/workflows/ci.yml`, run locally:
 | `pytest tests/ -q` | `cd backend; .venv\Scripts\python.exe -m pytest tests/ -q` | PASS (187/187, incl. boot-time secret-guard test) |
 | `smoke_m1.py` | `cd backend; .venv\Scripts\python.exe scripts/smoke_m1.py` | PASS (22/22) |
 | `smoke_m2.py` | `cd backend; .venv\Scripts\python.exe scripts/smoke_m2.py` | PASS (25/25) |
-| `npm test` (web) | `cd web; npm test` | PASS (56/56) |
+| `npm test` (web) | `cd web; npm test` | PASS (55/55) |
 | `npm run build` (web) | `cd web; npm run build` | PASS |
-| `npm test -- --ci` (mobile) | `cd mobile; npm test -- --ci` | PASS (75/75) |
+| `npm test -- --ci` (mobile) | `cd mobile; npm test -- --ci` | PASS (72/72) |
 
-**Total across all layers:** 340 tests, 340 passed, 0 failed, 0 skipped (187 pytest + 56 Vitest + 75 jest + 22 smoke_m1/smoke_m2 counted separately as gates).
+**Total across all layers:** 314 tests, 314 passed, 0 failed, 0 skipped (187 pytest + 55 Vitest + 72 jest + 22 smoke_m1/smoke_m2 counted separately as gates).
 
 ---
 
@@ -153,30 +153,30 @@ All commands are from `.github/workflows/ci.yml`, run locally:
 
 | Metric | Value |
 |---|---|
-| Statements | 2564 total, 630 miss |
-| **Coverage** | **75%** |
+| Statements | 3149 total, 390 miss |
+| **Coverage** | **88%** |
 
 Key well-covered modules (>=90%): Models, schemas, API routers (alarms, auth, challenges, analytics, feedback, habits, notifications, users), gateway middleware, integrations messaging, ML inference, verification, admin.
 
-Key low-coverage modules (<30%): `ai_engine/behavior_analysis.py` (0% - thin adapter over tested services), `ai_engine/challenge_generation.py` (0% - thin adapter over tested services), `ai_engine/recommendations.py` (0% - thin adapter; service tested), `services/cache.py` (0%), `schemas/all.py` (0% - dead code), `services/admin_service.py` (21%). Phase 6 added coverage: `ai_engine/anomaly.py` (~70%), `ai_engine/performance_prediction.py` (~80%), `ai_engine/difficulty.py` (~89%), `ai_engine/features.py` (100%).
+Key low-coverage modules (<30%): `ai_engine/behavior_analysis.py` (0% - thin adapter over tested services), `ai_engine/challenge_generation.py` (0% - thin adapter over tested services), `ai_engine/recommendations.py` (0% - thin adapter; service tested), `services/cache.py` (0%), `services/admin_service.py` (~25%). Phase 6 added coverage: `ai_engine/anomaly.py` (~70%), `ai_engine/performance_prediction.py` (~80%), `ai_engine/difficulty.py` (~89%), `ai_engine/features.py` (100%). (`schemas/all.py`, previously 0% dead code, was **removed** 2026-09-19.)
 
 ### Web (vitest, `@vitest/coverage-v8`)
 
 | Metric | Value |
 |---|---|
-| **Statements** | **69.17%** (4328/6257) |
-| **Branches** | **74.25%** (571/769) |
-| **Functions** | **72.76%** (187/257) |
-| **Lines** | **69.17%** (4328/6257) |
+| **Statements** | **74.67%** (4997/6692) |
+| **Branches** | **70.19%** (650/926) |
+| **Functions** | **75.76%** (197/260) |
+| **Lines** | **74.67%** (4997/6692) |
 
 ### Mobile (jest, built-in coverage)
 
 | Metric | Value |
 |---|---|
-| **Statements** | **29.74%** (362/1217) |
-| **Branches** | **22.71%** (216/951) |
-| **Functions** | **27.95%** (78/279) |
-| **Lines** | **30.61%** (338/1104) |
+| **Statements** | **30.31%** (385/1270) |
+| **Branches** | **21.32%** (212/994) |
+| **Functions** | **27.05%** (79/292) |
+| **Lines** | **31.2%** (357/1144) |
 
 ---
 
@@ -227,10 +227,10 @@ The count grew from 34 to 47 (8 + 9 = 17, minus 4 previously existing overlap = 
 
 | # | Severity | Issue | Phase |
 |---|---|---|---|
-| U1 | Medium | Backend coverage 75% - several `ai_engine/*` and `services/cache.py` modules at 0% | Phase 4+ (feature work) |
-| U2 | Medium | Mobile coverage 30.61% - most screens and tabs untested (the Phase 3 scheduler/notifier logic is covered) | Phase 4+ (component tests) |
-| U3 | Low | Web coverage 69.21% - pages at low coverage: Admin 1%, Challenge 12%, Reports 19%, Settings 14% | Phase 2+ (page tests) |
-| U4 | Low | `schemas/all.py` at 0% coverage (dead code, never imported) | Cleanup task |
+| U1 | Medium | Backend coverage 88% - a few `ai_engine/*` thin adapters + `services/cache.py` remain low | Phase 4+ (feature work) |
+| U2 | Medium | Mobile coverage 31.2% - most screens and tabs untested (the Phase 3 scheduler/notifier logic is covered) | Phase 4+ (component tests) |
+| U3 | Low | Web coverage 74.67% - pages at low coverage: Admin 1%, Challenge 12%, Reports 19%, Settings 14% | Phase 2+ (page tests) |
+| ~~U4~~ | ~~Low~~ | ~~`schemas/all.py` at 0% coverage (dead code, never imported)~~ | **Resolved 2026-09-19 — file deleted** |
 | U5 | Info | React Router v7 future-flag deprecation warnings in web tests | Non-blocking |
 | U6 | Info | `console.error` in mobile `useHabitScore.test.jsx` is expected (error-path test) | Non-blocking |
 

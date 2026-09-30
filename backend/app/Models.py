@@ -195,13 +195,6 @@ class Feedback(Base):
     )
 
 
-class AlarmRole(Base):
-    __tablename__ = "alarm_roles"
-    id = Column(Integer, primary_key=True, index=True)
-    alarm_id = Column(Integer, ForeignKey("alarms.id", ondelete="CASCADE"), nullable=False)
-    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
-
-
 class CoachAssignment(Base):
     """Wellness-coach cohort scope: which users a coach may view and support.
 
