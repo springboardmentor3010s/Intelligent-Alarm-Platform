@@ -35,12 +35,18 @@ function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.access_token);
-        localStorage.setItem("email", email);
-        localStorage.setItem("role", data.role);
+  localStorage.setItem("token", data.access_token);
+  localStorage.setItem("email", email);
+  localStorage.setItem("role", data.role);
 
-        navigate("/dashboard");
-      } else {
+  if (data.role === "Wellness Coach") {
+    navigate("/coach");
+  } else if (data.role === "Administrator") {
+    navigate("/admin");
+  } else {
+    navigate("/dashboard");
+  }
+} else {
         setMessage(data.detail || "Invalid email or password");
       }
     } catch (error) {

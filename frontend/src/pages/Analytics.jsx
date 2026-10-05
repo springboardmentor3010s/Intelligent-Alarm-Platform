@@ -14,7 +14,11 @@ import {
   Legend,
 } from "chart.js";
 
-import { Bar, Line, Doughnut } from "react-chartjs-2";
+import {
+  Bar,
+  Line,
+  Doughnut,
+} from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
@@ -29,6 +33,7 @@ ChartJS.register(
 );
 
 function Analytics() {
+
   const API_URL = "http://localhost:8000";
 
   const email =
@@ -60,111 +65,259 @@ function Analytics() {
   }, []);
 
   const loadAnalytics = async () => {
+
     setLoading(true);
     setError("");
 
     try {
-      const encodedEmail = encodeURIComponent(email);
+
+      const encodedEmail =
+        encodeURIComponent(email);
+
+      /*
+       * IMPORTANT:
+       * Milestone 4 dashboard is the MAIN source.
+       */
 
       const endpoints = [
-        ["analytics", `${API_URL}/analytics/${encodedEmail}`],
-        ["habit", `${API_URL}/habit-score/${encodedEmail}`],
-        ["adaptive", `${API_URL}/adaptive-difficulty/${encodedEmail}`],
-        ["recommendations", `${API_URL}/recommendations/${encodedEmail}`],
-        ["wake", `${API_URL}/wake-up/history/${encodedEmail}`],
-        ["challenge", `${API_URL}/challenges/history/${encodedEmail}`],
-        ["sleepHistory", `${API_URL}/sleep/history/${encodedEmail}`],
-        ["sleepAnalytics", `${API_URL}/sleep/analytics/${encodedEmail}`],
-        ["dashboard", `${API_URL}/dashboard/${encodedEmail}`],
+
+        [
+          "dashboard",
+          `${API_URL}/analytics/dashboard/${encodedEmail}`,
+        ],
+
+        [
+          "analytics",
+          `${API_URL}/analytics/${encodedEmail}`,
+        ],
+
+        [
+          "habit",
+          `${API_URL}/habit-score/${encodedEmail}`,
+        ],
+
+        [
+          "adaptive",
+          `${API_URL}/adaptive-difficulty/${encodedEmail}`,
+        ],
+
+        [
+          "recommendations",
+          `${API_URL}/recommendations/${encodedEmail}`,
+        ],
+
+        [
+          "wake",
+          `${API_URL}/wake-up/history/${encodedEmail}`,
+        ],
+
+        [
+          "challenge",
+          `${API_URL}/challenges/history/${encodedEmail}`,
+        ],
+
+        [
+          "sleepHistory",
+          `${API_URL}/sleep/history/${encodedEmail}`,
+        ],
+
+        [
+          "sleepAnalytics",
+          `${API_URL}/sleep/analytics/${encodedEmail}`,
+        ],
       ];
 
-      const results = await Promise.all(
-        endpoints.map(async ([name, url]) => {
-          try {
-            const response = await fetch(url);
-            const data = await response.json();
+      const results =
+        await Promise.all(
 
-            return {
-              name,
-              ok: response.ok,
-              data,
-            };
-          } catch (err) {
-            console.error(`${name} request failed`, err);
+          endpoints.map(
+            async ([name, url]) => {
 
-            return {
-              name,
-              ok: false,
-              data: {},
-            };
-          }
-        })
-      );
+              try {
 
-      const getResult = (name) =>
-        results.find((item) => item.name === name);
+                const response =
+                  await fetch(url);
 
-      const analyticsResult = getResult("analytics");
-      const habitResult = getResult("habit");
-      const adaptiveResult = getResult("adaptive");
-      const recommendationResult = getResult("recommendations");
-      const wakeResult = getResult("wake");
-      const challengeResult = getResult("challenge");
-      const sleepHistoryResult = getResult("sleepHistory");
-      const sleepAnalyticsResult = getResult("sleepAnalytics");
-      const dashboardResult = getResult("dashboard");
+                let data = {};
 
-      if (!analyticsResult?.ok) {
-        throw new Error(
-          analyticsResult?.data?.detail ||
-            "Could not load analytics"
+                try {
+
+                  data =
+                    await response.json();
+
+                } catch {
+
+                  data = {};
+
+                }
+
+                return {
+                  name,
+                  ok: response.ok,
+                  data,
+                };
+
+              } catch (err) {
+
+                console.error(
+                  `${name} request failed`,
+                  err
+                );
+
+                return {
+                  name,
+                  ok: false,
+                  data: {},
+                };
+              }
+            }
+          )
         );
+
+      const getResult =
+        (name) =>
+          results.find(
+            (item) =>
+              item.name === name
+          );
+
+      // =================================================
+      // DASHBOARD
+      // =================================================
+
+      const dashboardResult =
+        getResult("dashboard");
+
+      if (dashboardResult?.ok) {
+
+        setDashboard(
+          dashboardResult.data
+        );
+
       }
 
-      setAnalytics(analyticsResult.data);
+      // =================================================
+      // BASIC ANALYTICS
+      // =================================================
+
+      const analyticsResult =
+        getResult("analytics");
+
+      if (analyticsResult?.ok) {
+
+        setAnalytics(
+          analyticsResult.data
+        );
+
+      }
+
+      // =================================================
+      // HABIT
+      // =================================================
+
+      const habitResult =
+        getResult("habit");
 
       if (habitResult?.ok) {
-        setHabitScore(habitResult.data);
+
+        setHabitScore(
+          habitResult.data
+        );
+
       }
+
+      // =================================================
+      // ADAPTIVE
+      // =================================================
+
+      const adaptiveResult =
+        getResult("adaptive");
 
       if (adaptiveResult?.ok) {
-        setAdaptive(adaptiveResult.data);
+
+        setAdaptive(
+          adaptiveResult.data
+        );
+
       }
 
+      // =================================================
+      // RECOMMENDATIONS
+      // =================================================
+
+      const recommendationResult =
+        getResult("recommendations");
+
       if (recommendationResult?.ok) {
+
         setRecommendations(
           recommendationResult.data
         );
+
       }
 
+      // =================================================
+      // WAKE HISTORY
+      // =================================================
+
+      const wakeResult =
+        getResult("wake");
+
       if (wakeResult?.ok) {
+
         setWakeHistory(
           wakeResult.data?.history || []
         );
+
       }
 
+      // =================================================
+      // CHALLENGE HISTORY
+      // =================================================
+
+      const challengeResult =
+        getResult("challenge");
+
       if (challengeResult?.ok) {
+
         setChallengeHistory(
           challengeResult.data?.history || []
         );
+
       }
 
+      // =================================================
+      // SLEEP HISTORY
+      // =================================================
+
+      const sleepHistoryResult =
+        getResult("sleepHistory");
+
       if (sleepHistoryResult?.ok) {
+
         setSleepHistory(
           sleepHistoryResult.data?.history || []
         );
+
       }
 
+      // =================================================
+      // SLEEP ANALYTICS
+      // =================================================
+
+      const sleepAnalyticsResult =
+        getResult("sleepAnalytics");
+
       if (sleepAnalyticsResult?.ok) {
+
         setSleepAnalytics(
           sleepAnalyticsResult.data
         );
+
       }
 
-      if (dashboardResult?.ok) {
-        setDashboard(dashboardResult.data);
-      }
     } catch (err) {
+
       console.error(
         "Analytics loading error:",
         err
@@ -173,8 +326,11 @@ function Analytics() {
       setError(
         "Could not load analytics. Make sure FastAPI is running on port 8000."
       );
+
     } finally {
+
       setLoading(false);
+
     }
   };
 
@@ -183,31 +339,41 @@ function Analytics() {
   // =====================================================
 
   const downloadReport = async () => {
+
     try {
+
       const encodedEmail =
         encodeURIComponent(email);
 
-      const response = await fetch(
-        `${API_URL}/analytics/report/${encodedEmail}`
-      );
+      const response =
+        await fetch(
+          `${API_URL}/analytics/report/${encodedEmail}`
+        );
 
       if (!response.ok) {
+
         throw new Error(
           "Could not generate report"
         );
+
       }
 
-      const report = await response.text();
+      const report =
+        await response.text();
 
-      const blob = new Blob(
-        [report],
-        {
-          type: "text/plain;charset=utf-8",
-        }
-      );
+      const blob =
+        new Blob(
+          [report],
+          {
+            type:
+              "text/plain;charset=utf-8",
+          }
+        );
 
       const url =
-        window.URL.createObjectURL(blob);
+        window.URL.createObjectURL(
+          blob
+        );
 
       const link =
         document.createElement("a");
@@ -224,7 +390,9 @@ function Analytics() {
       document.body.removeChild(link);
 
       window.URL.revokeObjectURL(url);
+
     } catch (err) {
+
       console.error(
         "Report download error:",
         err
@@ -233,6 +401,7 @@ function Analytics() {
       alert(
         "Could not download analytics report."
       );
+
     }
   };
 
@@ -241,10 +410,15 @@ function Analytics() {
   // =====================================================
 
   if (loading) {
+
     return (
+
       <div style={pageStyle}>
+
         <div style={heroStyle}>
+
           <div>
+
             <p style={eyebrowStyle}>
               COGNIA INTELLIGENCE
             </p>
@@ -256,8 +430,11 @@ function Analytics() {
             <p style={secondaryTextStyle}>
               Loading your behavioral intelligence...
             </p>
+
           </div>
+
         </div>
+
       </div>
     );
   }
@@ -267,371 +444,258 @@ function Analytics() {
   // =====================================================
 
   if (error) {
+
     return (
+
       <div style={pageStyle}>
-        <div style={heroStyle}>
-          <div>
-            <p style={eyebrowStyle}>
-              COGNIA INTELLIGENCE
-            </p>
 
-            <h1 style={mainTitleStyle}>
-              Smart Analytics
-            </h1>
-          </div>
-        </div>
+        <div style={cardStyle}>
 
-        <div
-          style={{
-            ...cardStyle,
-            maxWidth: "700px",
-            margin: "0 auto",
-          }}
-        >
           <h2>
-            Unable to load analytics
+            Analytics Error
           </h2>
 
           <p style={secondaryTextStyle}>
             {error}
           </p>
 
-          <div style={heroButtonGroupStyle}>
-            <button
-              onClick={loadAnalytics}
-              style={refreshButtonStyle}
-            >
-              🔄 Refresh
-            </button>
+          <button
+            style={refreshButtonStyle}
+            onClick={loadAnalytics}
+          >
+            🔄 Try Again
+          </button>
 
-            <button
-              onClick={downloadReport}
-              style={downloadButtonStyle}
-            >
-              📄 Download Report
-            </button>
-          </div>
         </div>
+
       </div>
     );
   }
 
   // =====================================================
-  // SAFE NUMBER HELPER
+  // MILESTONE 4 DATA
   // =====================================================
 
-  const numberValue = (
-    value,
-    fallback = 0
-  ) => {
-    const n = Number(value);
+  const summary =
+    dashboard?.summary || {};
 
-    return Number.isFinite(n)
-      ? n
-      : fallback;
-  };
+  const components =
+    dashboard?.habit_components || {};
 
   // =====================================================
-  // ANALYTICS VALUES
+  // MAIN VALUES
   // =====================================================
 
-  const totalChallenges =
-    numberValue(
-      analytics?.total_challenges,
-      numberValue(
-        dashboard?.summary?.total_challenges,
-        challengeHistory.length
-      )
-    );
-
-  const correctAnswers =
-    numberValue(
-      analytics?.correct,
-      challengeHistory.filter(
-        (item) => item.correct === true
-      ).length
-    );
-
-  const incorrectAnswers =
-    numberValue(
-      analytics?.incorrect,
-      Math.max(
-        totalChallenges - correctAnswers,
-        0
-      )
-    );
-
-  const accuracy =
-    numberValue(
-      analytics?.accuracy,
-      totalChallenges > 0
-        ? (correctAnswers /
-            totalChallenges) *
-            100
-        : 0
+  const overallScore =
+    Number(
+      summary.overall_score ?? 0
     );
 
   const habit =
-    numberValue(
-      habitScore?.habit_score,
-      numberValue(
-        dashboard?.summary?.habit_score,
+    Number(
+      summary.habit_score ??
+      habitScore?.habit_score ??
+      0
+    );
+
+  const challengeAccuracy =
+    Number(
+      summary.challenge_accuracy ??
+      analytics?.accuracy ??
+      0
+    );
+
+  const wakeSuccess =
+    Number(
+      summary.wake_up_success_rate ??
+      0
+    );
+
+  const totalWakeups =
+    Number(
+      summary.total_wakeups ??
+      wakeHistory.length ??
+      0
+    );
+
+  const snoozeCount =
+    Number(
+      summary.snooze_count ??
+      0
+    );
+
+  const totalAlarms =
+    Number(
+      summary.total_alarms ??
+      0
+    );
+
+  const activeAlarms =
+    Number(
+      summary.active_alarms ??
+      0
+    );
+
+  const totalChallenges =
+    Number(
+      summary.total_challenges ??
+      analytics?.total_challenges ??
+      challengeHistory.length ??
+      0
+    );
+
+  const correctChallenges =
+    Number(
+      summary.correct_challenges ??
+      analytics?.correct ??
+      challengeHistory.filter(
+        (item) =>
+          item.correct === true
+      ).length
+    );
+
+  const incorrectChallenges =
+    Number(
+      summary.incorrect_challenges ??
+      analytics?.incorrect ??
+      Math.max(
+        totalChallenges -
+          correctChallenges,
         0
       )
     );
 
+  // =====================================================
+  // HABIT COMPONENTS
+  // =====================================================
+
   const wakeConsistency =
-    numberValue(
-      habitScore?.components
-        ?.wake_up_consistency,
+    Number(
+      components.wake_up_consistency ??
       0
     );
 
   const challengeCompletion =
-    numberValue(
-      habitScore?.components
-        ?.challenge_completion,
-      0
+    Number(
+      components.challenge_completion ??
+      challengeAccuracy
     );
 
   const snoozeReduction =
-    numberValue(
-      habitScore?.components
-        ?.snooze_reduction,
+    Number(
+      components.snooze_reduction ??
       0
     );
 
   const sleepAdherence =
-    numberValue(
-      habitScore?.components
-        ?.sleep_schedule_adherence,
-      numberValue(
-        dashboard?.summary
-          ?.sleep_adherence,
-        0
-      )
-    );
-
-  // =====================================================
-  // IMPORTANT:
-  // GET VALUES FROM DASHBOARD OR CALCULATE THEM
-  // =====================================================
-
-  const dashboardSummary =
-    dashboard?.summary || {};
-
-  const totalAlarms =
-    numberValue(
-      dashboardSummary.total_alarms,
-      numberValue(
-        dashboard?.total_alarms,
-        0
-      )
-    );
-
-  const activeAlarms =
-    numberValue(
-      dashboardSummary.active_alarms,
-      numberValue(
-        dashboard?.active_alarms,
-        0
-      )
-    );
-
-  const snoozeCount =
-    numberValue(
-      dashboardSummary.snooze_count,
-      numberValue(
-        dashboard?.snooze_count,
-        0
-      )
-    );
-
-  const totalWakeups =
-    numberValue(
-      dashboardSummary.total_wakeups,
-      wakeHistory.length
-    );
-
-  // Wake success:
-  // If backend gives it, use it.
-  // Otherwise calculate from wake history.
-
-  const successfulWakeups =
-    wakeHistory.filter(
-      (item) => item.verified === true
-    ).length;
-
-  const calculatedWakeSuccess =
-    totalWakeups > 0
-      ? (successfulWakeups /
-          totalWakeups) *
-        100
-      : 0;
-
-  const wakeSuccess =
-    numberValue(
-      dashboardSummary.wake_up_success_rate,
-      calculatedWakeSuccess
-    );
-
-  // =====================================================
-  // OVERALL SCORE
-  // =====================================================
-
-  const calculatedOverall =
-    (
-      Number(habit) +
-      Number(accuracy) +
-      Number(wakeSuccess) +
-      Number(sleepAdherence)
-    ) / 4;
-
-  const overallScore =
-    numberValue(
-      dashboardSummary.overall_score,
-      calculatedOverall
-    );
-
-  // =====================================================
-  // ADAPTIVE INTELLIGENCE
-  // =====================================================
-
-  const nextDifficulty =
-    adaptive?.next_difficulty ||
-    adaptive?.new_difficulty ||
-    "Easy";
-
-  const model =
-    adaptive?.model ||
-    "Decision Tree Classifier";
-
-  const confidence =
-    numberValue(
-      adaptive?.confidence,
+    Number(
+      components.sleep_schedule_adherence ??
+      sleepAnalytics?.sleep_adherence ??
       0
     );
 
-  const attemptsAnalyzed =
-    numberValue(
-      adaptive?.attempts_analyzed,
-      numberValue(
-        adaptive?.total_challenges,
-        totalChallenges
-      )
-    );
-
-  const adaptiveAccuracy =
-    numberValue(
-      adaptive?.accuracy,
-      accuracy
-    );
-
   // =====================================================
-  // SLEEP VALUES
+  // SLEEP
   // =====================================================
 
   const totalSleepRecords =
-    sleepHistory.length;
-
-  const latestSleep =
-    sleepHistory.length > 0
-      ? sleepHistory[0]
-      : null;
-
-  const averageSleepHours =
-    numberValue(
-      sleepAnalytics?.average_sleep_hours,
-      numberValue(
-        sleepAnalytics?.average_sleep_duration,
-        numberValue(
-          latestSleep?.actual_sleep_hours,
-          0
-        )
-      )
+    Number(
+      sleepAnalytics?.records_analyzed ??
+      sleepHistory.length ??
+      0
     );
 
-  const averageSleepAdherence =
-    numberValue(
-      sleepAnalytics?.average_sleep_adherence,
-      numberValue(
-        sleepAnalytics?.sleep_adherence,
-        numberValue(
-          latestSleep?.sleep_adherence,
-          sleepAdherence
-        )
-      )
+  const averageSleepHours =
+    Number(
+      sleepAnalytics?.average_sleep_hours ??
+      0
     );
 
   const targetSleepHours =
-    numberValue(
-      sleepAnalytics?.target_sleep_hours,
-      numberValue(
-        latestSleep?.target_sleep_hours,
-        8
-      )
+    Number(
+      sleepAnalytics?.target_sleep_hours ??
+      8
+    );
+
+  const averageSleepAdherence =
+    Number(
+      sleepAnalytics?.sleep_adherence ??
+      0
     );
 
   const sleepQuality =
-    numberValue(
-      sleepAnalytics?.average_quality,
-      numberValue(
-        sleepAnalytics?.quality,
-        0
-      )
-    );
+    sleepAnalytics?.average_sleep_quality ??
+    sleepAnalytics?.sleep_quality ??
+    "N/A";
 
   // =====================================================
-  // CHART DATA
+  // ADAPTIVE
+  // =====================================================
+
+  const recommendedDifficulty =
+    adaptive?.next_difficulty ||
+    dashboard?.recommended_difficulty ||
+    "Easy";
+
+  const mlConfidence =
+    adaptive?.confidence ??
+    dashboard?.ml_confidence ??
+    0;
+
+  // =====================================================
+  // PERFORMANCE CHART
   // =====================================================
 
   const performanceChartData = {
+
     labels: [
       "Overall",
-      "Challenge",
+      "Challenges",
       "Wake-up",
       "Habit",
     ],
 
     datasets: [
       {
-        label: "Performance %",
+        label:
+          "COGNIA Performance %",
+
         data: [
           overallScore,
-          accuracy,
+          challengeAccuracy,
           wakeSuccess,
           habit,
         ],
-
-        borderRadius: 10,
       },
     ],
   };
 
   const performanceChartOptions = {
+
     responsive: true,
+
     maintainAspectRatio: false,
 
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-
     scales: {
+
       y: {
+
         beginAtZero: true,
+
         max: 100,
 
-        ticks: {
-          callback: (value) =>
-            `${value}%`,
-        },
       },
+
     },
+
   };
 
+  // =====================================================
+  // CHALLENGE CHART
+  // =====================================================
+
   const challengeChartData = {
+
     labels: [
       "Correct",
       "Incorrect",
@@ -639,30 +703,28 @@ function Analytics() {
 
     datasets: [
       {
-        label: "Challenge Attempts",
-
         data: [
-          correctAnswers,
-          incorrectAnswers,
+          correctChallenges,
+          incorrectChallenges,
         ],
-
-        borderWidth: 0,
       },
     ],
   };
 
   const challengeChartOptions = {
+
     responsive: true,
+
     maintainAspectRatio: false,
 
-    plugins: {
-      legend: {
-        position: "bottom",
-      },
-    },
   };
 
+  // =====================================================
+  // HABIT CHART
+  // =====================================================
+
   const habitChartData = {
+
     labels: [
       "Wake-up Consistency",
       "Challenge Completion",
@@ -672,7 +734,8 @@ function Analytics() {
 
     datasets: [
       {
-        label: "Habit Components",
+        label:
+          "Habit Components %",
 
         data: [
           wakeConsistency,
@@ -680,84 +743,28 @@ function Analytics() {
           snoozeReduction,
           sleepAdherence,
         ],
-
-        borderRadius: 8,
       },
     ],
   };
 
   const habitChartOptions = {
-    indexAxis: "y",
 
     responsive: true,
-    maintainAspectRatio: false,
 
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-
-    scales: {
-      x: {
-        beginAtZero: true,
-        max: 100,
-
-        ticks: {
-          callback: (value) =>
-            `${value}%`,
-        },
-      },
-    },
-  };
-
-  // =====================================================
-  // CHALLENGE TREND
-  // =====================================================
-
-  const recentChallengeHistory =
-    [...challengeHistory]
-      .reverse()
-      .slice(-10);
-
-  const challengeTrendData = {
-    labels:
-      recentChallengeHistory.map(
-        (_, index) =>
-          `Attempt ${index + 1}`
-      ),
-
-    datasets: [
-      {
-        label: "Accuracy",
-
-        data:
-          recentChallengeHistory.map(
-            (item) =>
-              item.correct ? 100 : 0
-          ),
-
-        tension: 0.35,
-        fill: false,
-      },
-    ],
-  };
-
-  const challengeTrendOptions = {
-    responsive: true,
     maintainAspectRatio: false,
 
     scales: {
+
       y: {
+
         beginAtZero: true,
+
         max: 100,
 
-        ticks: {
-          callback: (value) =>
-            `${value}%`,
-        },
       },
+
     },
+
   };
 
   // =====================================================
@@ -765,12 +772,10 @@ function Analytics() {
   // =====================================================
 
   const recentWakeHistory =
-    wakeHistory
-      .slice()
-      .reverse()
-      .slice(-10);
+    [...wakeHistory].slice(-10);
 
   const wakeTrendData = {
+
     labels:
       recentWakeHistory.map(
         (_, index) =>
@@ -779,49 +784,87 @@ function Analytics() {
 
     datasets: [
       {
-        label: "Successful",
+        label:
+          "Successful Wake-up %",
 
         data:
           recentWakeHistory.map(
             (item) =>
-              item.verified ? 100 : 0
+              item.verified
+                ? 100
+                : 0
           ),
-
-        tension: 0.35,
-        fill: false,
       },
     ],
   };
 
   const wakeTrendOptions = {
+
     responsive: true,
+
     maintainAspectRatio: false,
 
     scales: {
+
       y: {
+
         beginAtZero: true,
+
         max: 100,
 
-        ticks: {
-          callback: (value) =>
-            `${value}%`,
-        },
       },
+
     },
+
   };
 
   // =====================================================
-  // PAGE
+  // CHALLENGE TREND
+  // =====================================================
+
+  const recentChallengeHistory =
+    challengeHistory.slice(-10);
+
+  const challengeTrendData = {
+
+    labels:
+      recentChallengeHistory.map(
+        (_, index) =>
+          `Attempt ${index + 1}`
+      ),
+
+    datasets: [
+      {
+        label:
+          "Challenge Accuracy %",
+
+        data:
+          recentChallengeHistory.map(
+            (item) =>
+              item.correct
+                ? 100
+                : 0
+          ),
+      },
+    ],
+  };
+
+  // =====================================================
+  // RENDER
   // =====================================================
 
   return (
+
     <div style={pageStyle}>
 
-      {/* HERO */}
+      {/* =================================================
+          HERO
+      ================================================= */}
 
       <div style={heroStyle}>
 
         <div>
+
           <p style={eyebrowStyle}>
             COGNIA INTELLIGENCE
           </p>
@@ -831,27 +874,29 @@ function Analytics() {
           </h1>
 
           <p style={secondaryTextStyle}>
-            Your complete wake-up, cognitive,
-            sleep and habit intelligence dashboard.
+            Your complete wake-up,
+            cognitive, sleep and habit
+            intelligence dashboard.
           </p>
 
           <p style={userTextStyle}>
             User: {email}
           </p>
+
         </div>
 
         <div style={heroButtonGroupStyle}>
 
           <button
-            onClick={loadAnalytics}
             style={refreshButtonStyle}
+            onClick={loadAnalytics}
           >
             🔄 Refresh
           </button>
 
           <button
-            onClick={downloadReport}
             style={downloadButtonStyle}
+            onClick={downloadReport}
           >
             📄 Download Report
           </button>
@@ -860,7 +905,9 @@ function Analytics() {
 
       </div>
 
-      {/* EXECUTIVE KPI */}
+      {/* =================================================
+          EXECUTIVE SUMMARY
+      ================================================= */}
 
       <section style={sectionStyle}>
 
@@ -869,21 +916,21 @@ function Analytics() {
           <KpiCard
             icon="📊"
             title="Overall Score"
-            value={`${overallScore.toFixed(2)}%`}
+            value={`${overallScore}%`}
             subtitle="COGNIA performance"
           />
 
           <KpiCard
             icon="⏰"
             title="Wake-up Success"
-            value={`${wakeSuccess.toFixed(0)}%`}
+            value={`${wakeSuccess}%`}
             subtitle="Successful wake-ups"
           />
 
           <KpiCard
             icon="🧠"
             title="Challenge Accuracy"
-            value={`${accuracy.toFixed(0)}%`}
+            value={`${challengeAccuracy}%`}
             subtitle={`${totalChallenges} challenges`}
           />
 
@@ -912,7 +959,9 @@ function Analytics() {
 
       </section>
 
-      {/* PERFORMANCE */}
+      {/* =================================================
+          PERFORMANCE
+      ================================================= */}
 
       <section style={sectionStyle}>
 
@@ -927,8 +976,8 @@ function Analytics() {
           </h3>
 
           <p style={secondaryTextStyle}>
-            Comparison of your main intelligence
-            and habit metrics.
+            Comparison of your main
+            intelligence and habit metrics.
           </p>
 
           <div style={chartContainerStyle}>
@@ -944,7 +993,9 @@ function Analytics() {
 
       </section>
 
-      {/* CHALLENGES */}
+      {/* =================================================
+          CHALLENGES
+      ================================================= */}
 
       <section style={sectionStyle}>
 
@@ -972,37 +1023,39 @@ function Analytics() {
             <div style={miniStatsGrid}>
 
               <div>
+
                 <p style={labelStyle}>
                   CORRECT
                 </p>
 
-                <strong
-                  style={greenValueStyle}
-                >
-                  {correctAnswers}
+                <strong style={greenValueStyle}>
+                  {correctChallenges}
                 </strong>
+
               </div>
 
               <div>
+
                 <p style={labelStyle}>
                   INCORRECT
                 </p>
 
-                <strong
-                  style={redValueStyle}
-                >
-                  {incorrectAnswers}
+                <strong style={redValueStyle}>
+                  {incorrectChallenges}
                 </strong>
+
               </div>
 
               <div>
+
                 <p style={labelStyle}>
                   ACCURACY
                 </p>
 
                 <strong>
-                  {accuracy.toFixed(0)}%
+                  {challengeAccuracy}%
                 </strong>
+
               </div>
 
             </div>
@@ -1016,27 +1069,28 @@ function Analytics() {
             </h3>
 
             <p style={secondaryTextStyle}>
-              Recent cognitive challenge performance.
+              Recent cognitive challenge
+              performance.
             </p>
 
-            <div style={chartContainerStyle}>
+            {recentChallengeHistory.length > 0 ? (
 
-              {recentChallengeHistory.length > 0 ? (
+              <div style={chartContainerStyle}>
 
                 <Line
                   data={challengeTrendData}
-                  options={challengeTrendOptions}
+                  options={performanceChartOptions}
                 />
 
-              ) : (
+              </div>
 
-                <EmptyChartMessage
-                  text="Complete challenges to generate your performance trend."
-                />
+            ) : (
 
-              )}
+              <EmptyChartMessage
+                text="Complete cognitive challenges to generate a trend."
+              />
 
-            </div>
+            )}
 
           </div>
 
@@ -1044,7 +1098,9 @@ function Analytics() {
 
       </section>
 
-      {/* HABIT */}
+      {/* =================================================
+          HABITS
+      ================================================= */}
 
       <section style={sectionStyle}>
 
@@ -1073,11 +1129,11 @@ function Analytics() {
               <div
                 style={{
                   ...progressInnerStyle,
-
-                  width: `${Math.min(
-                    habit,
-                    100
-                  )}%`,
+                  width:
+                    `${Math.min(
+                      Math.max(habit, 0),
+                      100
+                    )}%`,
                 }}
               />
 
@@ -1110,7 +1166,9 @@ function Analytics() {
 
       </section>
 
-      {/* WAKE-UP */}
+      {/* =================================================
+          WAKE-UP
+      ================================================= */}
 
       <section style={sectionStyle}>
 
@@ -1179,7 +1237,9 @@ function Analytics() {
 
       </section>
 
-      {/* SLEEP */}
+      {/* =================================================
+          SLEEP
+      ================================================= */}
 
       <section style={sectionStyle}>
 
@@ -1213,152 +1273,62 @@ function Analytics() {
           <KpiCard
             icon="⭐"
             title="Sleep Quality"
-            value={
-              sleepQuality > 0
-                ? `${sleepQuality}%`
-                : "N/A"
-            }
+            value={sleepQuality}
             subtitle="Recorded quality"
           />
 
         </div>
 
-        <div
-          style={{
-            ...cardStyle,
-            marginTop: "20px",
-          }}
-        >
+        <div style={{ marginTop: "20px" }}>
 
-          <h3>
-            🌙 Latest Sleep Session
-          </h3>
+          <div style={cardStyle}>
 
-          {latestSleep ? (
+            <h3>
+              🌙 Latest Sleep Session
+            </h3>
 
-            <div style={sleepDetailGrid}>
+            {sleepHistory.length === 0 ? (
 
-              <DetailItem
-                label="Sleep Time"
-                value={
-                  latestSleep.sleep_time ||
-                  "N/A"
-                }
-              />
+              <p style={secondaryTextStyle}>
+                No sleep record available yet.
+              </p>
 
-              <DetailItem
-                label="Wake-up Time"
-                value={
-                  latestSleep.wake_up_time ||
-                  "N/A"
-                }
-              />
+            ) : (
 
-              <DetailItem
-                label="Actual Sleep"
-                value={`${latestSleep.actual_sleep_hours ?? 0} hours`}
-              />
+              <div style={sleepDetailGrid}>
 
-              <DetailItem
-                label="Target Sleep"
-                value={`${latestSleep.target_sleep_hours ?? 0} hours`}
-              />
+                <DetailItem
+                  label="Sleep Time"
+                  value={
+                    sleepHistory[
+                      sleepHistory.length - 1
+                    ]?.sleep_time ||
+                    "N/A"
+                  }
+                />
 
-              <DetailItem
-                label="Adherence"
-                value={`${latestSleep.sleep_adherence ?? 0}%`}
-              />
+                <DetailItem
+                  label="Wake Time"
+                  value={
+                    sleepHistory[
+                      sleepHistory.length - 1
+                    ]?.wake_time ||
+                    "N/A"
+                  }
+                />
 
-              <DetailItem
-                label="Recorded At"
-                value={
-                  latestSleep.recorded_at ||
-                  "N/A"
-                }
-              />
+                <DetailItem
+                  label="Duration"
+                  value={
+                    sleepHistory[
+                      sleepHistory.length - 1
+                    ]?.duration_hours != null
+                      ? `${sleepHistory[sleepHistory.length - 1].duration_hours} hrs`
+                      : "N/A"
+                  }
+                />
 
-            </div>
-
-          ) : (
-
-            <p style={secondaryTextStyle}>
-              No sleep record available yet.
-            </p>
-
-          )}
-
-        </div>
-
-      </section>
-
-      {/* ADAPTIVE AI */}
-
-      <section style={sectionStyle}>
-
-        <h2 style={sectionTitleStyle}>
-          🤖 Adaptive Intelligence
-        </h2>
-
-        <div style={adaptiveCardStyle}>
-
-          <div>
-
-            <p style={labelStyle}>
-              NEXT COGNITIVE DIFFICULTY
-            </p>
-
-            <h1 style={difficultyStyle}>
-              {nextDifficulty}
-            </h1>
-
-            <p style={secondaryTextStyle}>
-              {adaptive?.reason ||
-                "COGNIA adjusts challenge difficulty using behavioral performance."}
-            </p>
-
-          </div>
-
-          <div style={aiStatsGrid}>
-
-            <DetailItem
-              label="ML Model"
-              value={model}
-            />
-
-            <DetailItem
-              label="Confidence"
-              value={`${confidence}%`}
-            />
-
-            <DetailItem
-              label="Model Accuracy"
-              value={`${adaptiveAccuracy}%`}
-            />
-
-            <DetailItem
-              label="Attempts Analyzed"
-              value={attemptsAnalyzed}
-            />
-
-            {adaptive?.completion_rate !==
-              undefined && (
-
-              <DetailItem
-                label="Completion Rate"
-                value={`${adaptive.completion_rate}%`}
-              />
-
-            )}
-
-            {adaptive?.snooze_count !==
-              undefined && (
-
-              <DetailItem
-                label="Snooze Count"
-                value={
-                  adaptive.snooze_count
-                }
-              />
+              </div>
 
             )}
 
@@ -1368,7 +1338,9 @@ function Analytics() {
 
       </section>
 
-      {/* SLEEP HISTORY */}
+      {/* =================================================
+          SLEEP HISTORY
+      ================================================= */}
 
       <section style={sectionStyle}>
 
@@ -1400,15 +1372,10 @@ function Analytics() {
               >
 
                 <h3>
-                  🌙 Sleep Session #
-                  {index + 1}
+                  🌙 Sleep Session #{index + 1}
                 </h3>
 
-                <div
-                  style={
-                    sleepHistoryGrid
-                  }
-                >
+                <div style={historyGrid}>
 
                   <DetailItem
                     label="Sleep Time"
@@ -1419,30 +1386,24 @@ function Analytics() {
                   />
 
                   <DetailItem
-                    label="Wake-up Time"
+                    label="Wake Time"
                     value={
-                      item.wake_up_time ||
+                      item.wake_time ||
                       "N/A"
                     }
                   />
 
                   <DetailItem
-                    label="Actual Sleep"
-                    value={`${item.actual_sleep_hours ?? 0} hours`}
+                    label="Duration"
+                    value={
+                      item.duration_hours != null
+                        ? `${item.duration_hours} hrs`
+                        : "N/A"
+                    }
                   />
 
                   <DetailItem
-                    label="Target Sleep"
-                    value={`${item.target_sleep_hours ?? 0} hours`}
-                  />
-
-                  <DetailItem
-                    label="Adherence"
-                    value={`${item.sleep_adherence ?? 0}%`}
-                  />
-
-                  <DetailItem
-                    label="Recorded At"
+                    label="Recorded"
                     value={
                       item.recorded_at ||
                       "N/A"
@@ -1460,7 +1421,9 @@ function Analytics() {
 
       </section>
 
-      {/* WAKE HISTORY */}
+      {/* =================================================
+          WAKE HISTORY
+      ================================================= */}
 
       <section style={sectionStyle}>
 
@@ -1518,8 +1481,7 @@ function Analytics() {
                   <DetailItem
                     label="Snooze Count"
                     value={
-                      item.snooze_count ??
-                      0
+                      item.snooze_count ?? 0
                     }
                   />
 
@@ -1558,7 +1520,9 @@ function Analytics() {
 
       </section>
 
-      {/* CHALLENGE HISTORY */}
+      {/* =================================================
+          CHALLENGE HISTORY
+      ================================================= */}
 
       <section style={sectionStyle}>
 
@@ -1644,7 +1608,84 @@ function Analytics() {
 
       </section>
 
-      {/* RECOMMENDATIONS */}
+      {/* =================================================
+          ADAPTIVE INTELLIGENCE
+      ================================================= */}
+
+      <section style={sectionStyle}>
+
+        <h2 style={sectionTitleStyle}>
+          🤖 Adaptive Intelligence
+        </h2>
+
+        <div style={adaptiveCardStyle}>
+
+          <div>
+
+            <p style={labelStyle}>
+              NEXT COGNITIVE DIFFICULTY
+            </p>
+
+            <h1 style={difficultyStyle}>
+              {recommendedDifficulty}
+            </h1>
+
+            <p style={secondaryTextStyle}>
+              ML model recommends{" "}
+              {recommendedDifficulty}{" "}
+              difficulty for your next
+              challenge.
+            </p>
+
+          </div>
+
+          <div style={aiStatsGrid}>
+
+            <DetailItem
+              label="ML Model"
+              value={
+                adaptive?.model ||
+                "Decision Tree Classifier"
+              }
+            />
+
+            <DetailItem
+              label="Confidence"
+              value={`${mlConfidence}%`}
+            />
+
+            <DetailItem
+              label="Model Accuracy"
+              value={`${adaptive?.accuracy ?? 0}%`}
+            />
+
+            <DetailItem
+              label="Attempts Analyzed"
+              value={
+                adaptive?.attempts_analyzed ??
+                totalChallenges
+              }
+            />
+
+            <DetailItem
+              label="Completion Rate"
+              value={`${challengeCompletion}%`}
+            />
+
+            <DetailItem
+              label="Snooze Count"
+              value={snoozeCount}
+            />
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =================================================
+          RECOMMENDATIONS
+      ================================================= */}
 
       <section
         style={{
@@ -1659,8 +1700,7 @@ function Analytics() {
 
         <div style={cardStyle}>
 
-          {recommendations?.recommendations
-            ?.length > 0 ? (
+          {recommendations?.recommendations?.length > 0 ? (
 
             recommendations.recommendations.map(
               (recommendation, index) => (
@@ -1674,8 +1714,7 @@ function Analytics() {
                       index !==
                       recommendations
                         .recommendations
-                        .length -
-                        1
+                        .length - 1
                         ? "1px solid #e5e7eb"
                         : "none",
                   }}
@@ -1708,7 +1747,9 @@ function Analytics() {
 
       </section>
 
-      {/* MILESTONE 4 */}
+      {/* =================================================
+          MILESTONE 4
+      ================================================= */}
 
       <section
         style={{
@@ -1790,7 +1831,9 @@ function KpiCard({
   value,
   subtitle,
 }) {
+
   return (
+
     <div style={cardStyle}>
 
       <div style={iconStyle}>
@@ -1817,7 +1860,9 @@ function DetailItem({
   label,
   value,
 }) {
+
   return (
+
     <div>
 
       <p style={labelStyle}>
@@ -1841,7 +1886,9 @@ function StatRow({
   label,
   value,
 }) {
+
   return (
+
     <div style={statRowStyle}>
 
       <span>
@@ -1859,7 +1906,9 @@ function StatRow({
 function EmptyChartMessage({
   text,
 }) {
+
   return (
+
     <div style={emptyChartStyle}>
 
       <div style={{ fontSize: "35px" }}>
@@ -1879,11 +1928,15 @@ function StatusItem({
   status,
   pending = false,
 }) {
+
   return (
+
     <div style={statusItemStyle}>
 
       <span>
-        {pending ? "⏳" : "✅"}
+        {pending
+          ? "⏳"
+          : "✅"}
       </span>
 
       <div>
@@ -1896,9 +1949,10 @@ function StatusItem({
           style={{
             margin: "4px 0 0",
 
-            color: pending
-              ? "#b45309"
-              : "#15803d",
+            color:
+              pending
+                ? "#b45309"
+                : "#15803d",
 
             fontSize: "13px",
           }}
@@ -1917,6 +1971,7 @@ function StatusItem({
 // =====================================================
 
 const pageStyle = {
+
   minHeight: "100vh",
 
   background:
@@ -1928,9 +1983,11 @@ const pageStyle = {
     "Inter, Arial, sans-serif",
 
   color: "#111827",
+
 };
 
 const heroStyle = {
+
   maxWidth: "1150px",
 
   margin: "0 auto 35px",
@@ -1946,9 +2003,11 @@ const heroStyle = {
   gap: "20px",
 
   flexWrap: "wrap",
+
 };
 
 const eyebrowStyle = {
+
   color: "#2563eb",
 
   fontSize: "12px",
@@ -1958,40 +2017,50 @@ const eyebrowStyle = {
   letterSpacing: "2px",
 
   marginBottom: "8px",
+
 };
 
 const mainTitleStyle = {
+
   fontSize: "38px",
 
   margin:
     "5px 0 10px",
 
   color: "#0f172a",
+
 };
 
 const userTextStyle = {
+
   color: "#64748b",
 
   fontSize: "13px",
 
   marginTop: "15px",
+
 };
 
 const sectionStyle = {
+
   maxWidth: "1150px",
 
   margin: "0 auto 40px",
+
 };
 
 const sectionTitleStyle = {
+
   color: "#0f172a",
 
   marginBottom: "20px",
 
   fontSize: "24px",
+
 };
 
 const cardStyle = {
+
   background: "#ffffff",
 
   padding: "24px",
@@ -2003,39 +2072,49 @@ const cardStyle = {
 
   border:
     "1px solid #e5e7eb",
+
 };
 
 const largeChartCardStyle = {
+
   ...cardStyle,
 
   padding: "28px",
+
 };
 
 const gridStyle = {
+
   display: "grid",
 
   gridTemplateColumns:
     "repeat(auto-fit, minmax(190px, 1fr))",
 
   gap: "18px",
+
 };
 
 const twoColumnStyle = {
+
   display: "grid",
 
   gridTemplateColumns:
     "repeat(auto-fit, minmax(330px, 1fr))",
 
   gap: "20px",
+
 };
 
 const iconStyle = {
+
   fontSize: "28px",
 
   marginBottom: "10px",
+
 };
 
 const labelStyle = {
+
   color: "#64748b",
 
   fontWeight: "800",
@@ -2045,63 +2124,81 @@ const labelStyle = {
   letterSpacing: "0.7px",
 
   marginBottom: "7px",
+
 };
 
 const numberStyle = {
+
   fontSize: "34px",
 
   margin: "5px 0",
 
   color: "#0f172a",
+
 };
 
 const largeScoreStyle = {
+
   fontSize: "54px",
 
   margin: "10px 0",
 
   color: "#2563eb",
+
 };
 
 const difficultyStyle = {
+
   fontSize: "44px",
 
   margin: "8px 0",
 
   color: "#2563eb",
+
 };
 
 const normalTextStyle = {
+
   color: "#374151",
+
 };
 
 const secondaryTextStyle = {
+
   color: "#64748b",
 
   lineHeight: "1.6",
+
 };
 
 const chartContainerStyle = {
+
   height: "300px",
 
   marginTop: "20px",
+
 };
 
 const smallChartStyle = {
+
   height: "260px",
 
   maxWidth: "300px",
 
   margin: "20px auto",
+
 };
 
 const habitChartContainerStyle = {
+
   height: "280px",
 
   marginTop: "15px",
+
 };
 
 const progressOuterStyle = {
+
   height: "12px",
 
   background: "#e5e7eb",
@@ -2111,9 +2208,11 @@ const progressOuterStyle = {
   overflow: "hidden",
 
   marginTop: "20px",
+
 };
 
 const progressInnerStyle = {
+
   height: "100%",
 
   background:
@@ -2123,9 +2222,11 @@ const progressInnerStyle = {
 
   transition:
     "width 0.5s ease",
+
 };
 
 const miniStatsGrid = {
+
   display: "grid",
 
   gridTemplateColumns:
@@ -2134,21 +2235,27 @@ const miniStatsGrid = {
   gap: "15px",
 
   marginTop: "15px",
+
 };
 
 const greenValueStyle = {
+
   color: "#15803d",
 
   fontSize: "22px",
+
 };
 
 const redValueStyle = {
+
   color: "#dc2626",
 
   fontSize: "22px",
+
 };
 
 const sleepDetailGrid = {
+
   display: "grid",
 
   gridTemplateColumns:
@@ -2157,20 +2264,11 @@ const sleepDetailGrid = {
   gap: "25px",
 
   marginTop: "20px",
-};
 
-const sleepHistoryGrid = {
-  display: "grid",
-
-  gridTemplateColumns:
-    "repeat(auto-fit, minmax(150px, 1fr))",
-
-  gap: "20px",
-
-  marginTop: "20px",
 };
 
 const historyGrid = {
+
   display: "grid",
 
   gridTemplateColumns:
@@ -2179,9 +2277,11 @@ const historyGrid = {
   gap: "20px",
 
   marginTop: "18px",
+
 };
 
 const adaptiveCardStyle = {
+
   ...cardStyle,
 
   display: "grid",
@@ -2192,9 +2292,11 @@ const adaptiveCardStyle = {
   gap: "35px",
 
   alignItems: "center",
+
 };
 
 const aiStatsGrid = {
+
   display: "grid",
 
   gridTemplateColumns:
@@ -2207,9 +2309,11 @@ const aiStatsGrid = {
   background: "#f8fafc",
 
   borderRadius: "15px",
+
 };
 
 const statRowStyle = {
+
   display: "flex",
 
   justifyContent:
@@ -2223,9 +2327,11 @@ const statRowStyle = {
     "1px solid #e5e7eb",
 
   color: "#475569",
+
 };
 
 const emptyChartStyle = {
+
   height: "100%",
 
   display: "flex",
@@ -2241,9 +2347,11 @@ const emptyChartStyle = {
   textAlign: "center",
 
   padding: "20px",
+
 };
 
 const refreshButtonStyle = {
+
   padding: "12px 18px",
 
   border: "none",
@@ -2260,17 +2368,21 @@ const refreshButtonStyle = {
 
   boxShadow:
     "0 5px 15px rgba(37,99,235,0.2)",
+
 };
 
 const heroButtonGroupStyle = {
+
   display: "flex",
 
   gap: "12px",
 
   flexWrap: "wrap",
+
 };
 
 const downloadButtonStyle = {
+
   padding: "12px 18px",
 
   border: "none",
@@ -2287,16 +2399,20 @@ const downloadButtonStyle = {
 
   boxShadow:
     "0 5px 15px rgba(15,23,42,0.15)",
+
 };
 
 const milestoneCardStyle = {
+
   ...cardStyle,
 
   background:
     "linear-gradient(135deg, #eff6ff, #ffffff)",
+
 };
 
 const statusGrid = {
+
   display: "grid",
 
   gridTemplateColumns:
@@ -2305,9 +2421,11 @@ const statusGrid = {
   gap: "15px",
 
   marginTop: "25px",
+
 };
 
 const statusItemStyle = {
+
   display: "flex",
 
   alignItems: "center",
@@ -2322,8 +2440,8 @@ const statusItemStyle = {
 
   border:
     "1px solid #e5e7eb",
+
 };
 
 export default Analytics;
-
 

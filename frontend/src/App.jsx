@@ -12,6 +12,7 @@ import Alarms from "./pages/Alarms";
 import Habits from "./pages/Habits";
 import Challenges from "./pages/Challenges";
 import Analytics from "./pages/Analytics";
+import Coach from "./pages/Coach";
 
 import AlarmTrigger from "./components/AlarmTrigger";
 
@@ -71,6 +72,10 @@ function App() {
           path="/analytics"
           element={<Analytics />}
         />
+        <Route
+  path="/coach"
+  element={<Coach />}
+/>
 
         {/* Unknown URL */}
         <Route

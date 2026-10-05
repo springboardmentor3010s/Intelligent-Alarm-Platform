@@ -1,17 +1,25 @@
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
+  const navigate = useNavigate();
+
   const [dashboard, setDashboard] = useState(null);
   const [adaptive, setAdaptive] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const email = localStorage.getItem("email");
+  const role = localStorage.getItem("role") || "User";
+
+  // =========================================================
+  // LOAD DASHBOARD
+  // =========================================================
 
   useEffect(() => {
     if (!email) {
-      window.location.href = "/login";
+      navigate("/login");
       return;
     }
 
@@ -19,45 +27,41 @@ function Dashboard() {
       try {
         setLoading(true);
 
-        // ============================================
-        // EXISTING DASHBOARD DATA
-        // ============================================
-
-        const dashboardResponse = await fetch(`http://localhost:8000/dashboard/${encodeURIComponent(email)}`);
+        // Dashboard
+        const dashboardResponse = await fetch(
+          `http://localhost:8000/dashboard/${encodeURIComponent(email)}`
+        );
 
         if (!dashboardResponse.ok) {
           throw new Error("Failed to load dashboard");
         }
 
         const dashboardData = await dashboardResponse.json();
-
         setDashboard(dashboardData);
 
-        // ============================================
-        // ADAPTIVE DIFFICULTY
-        // ============================================
-
+        // Adaptive Intelligence
         try {
-          const adaptiveResponse = await fetch(`http://localhost:8000/adaptive-difficulty/${encodeURIComponent(email)}`)
-          ;
+          const adaptiveResponse = await fetch(
+            `http://localhost:8000/adaptive-difficulty/${encodeURIComponent(
+              email
+            )}`
+          );
 
           if (adaptiveResponse.ok) {
             const adaptiveData = await adaptiveResponse.json();
             setAdaptive(adaptiveData);
           }
-        } catch (adaptiveError) {
-          console.error(
-            "Adaptive difficulty error:",
-            adaptiveError
-          );
+        } catch (error) {
+          console.error("Adaptive difficulty error:", error);
         }
 
-        // ============================================
-        // MILESTONE 4 ANALYTICS
-        // ============================================
-
+        // Analytics
         try {
-          const analyticsResponse = await fetch(`http://localhost:8000/analytics/dashboard/${encodeURIComponent(email)}`);
+          const analyticsResponse = await fetch(
+            `http://localhost:8000/analytics/dashboard/${encodeURIComponent(
+              email
+            )}`
+          );
 
           if (analyticsResponse.ok) {
             const analyticsData = await analyticsResponse.json();
@@ -66,38 +70,34 @@ function Dashboard() {
               setAnalytics(analyticsData);
             }
           }
-        } catch (analyticsError) {
-          console.error(
-            "Milestone 4 analytics error:",
-            analyticsError
-          );
+        } catch (error) {
+          console.error("Analytics error:", error);
         }
-
-        setLoading(false);
       } catch (error) {
         console.error("Dashboard error:", error);
+      } finally {
         setLoading(false);
       }
     };
 
     loadDashboard();
-  }, [email]);
+  }, [email, navigate]);
 
-  // ============================================
+  // =========================================================
   // LOGOUT
-  // ============================================
+  // =========================================================
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("email");
     localStorage.removeItem("role");
 
-    window.location.href = "/login";
+    navigate("/login");
   };
 
-  // ============================================
+  // =========================================================
   // LOADING
-  // ============================================
+  // =========================================================
 
   if (loading) {
     return (
@@ -110,9 +110,9 @@ function Dashboard() {
     );
   }
 
-  // ============================================
-  // DASHBOARD ERROR
-  // ============================================
+  // =========================================================
+  // ERROR
+  // =========================================================
 
   if (!dashboard) {
     return (
@@ -135,13 +135,12 @@ function Dashboard() {
     );
   }
 
+  // =========================================================
+  // DATA
+  // =========================================================
+
   const user = dashboard.user || {};
   const stats = dashboard.statistics || {};
-
-  // ============================================
-  // MILESTONE 4 ANALYTICS VALUES
-  // ============================================
-
   const analyticsSummary = analytics?.summary || {};
 
   const habitScore = Number(
@@ -165,13 +164,11 @@ function Dashboard() {
   );
 
   const totalAlarms = Number(
-    analyticsSummary.total_alarms ??
-      0
+    analyticsSummary.total_alarms ?? 0
   );
 
   const activeAlarms = Number(
-    analyticsSummary.active_alarms ??
-      0
+    analyticsSummary.active_alarms ?? 0
   );
 
   const totalChallenges = Number(
@@ -190,18 +187,14 @@ function Dashboard() {
     analyticsSummary.snooze_count ?? 0
   );
 
-  // ============================================
-  // ADAPTIVE DIFFICULTY
-  // ============================================
-
   const recommendedDifficulty =
     adaptive?.next_difficulty ||
     stats.recommended_difficulty ||
     "Easy";
 
-  // ============================================
+  // =========================================================
   // AI RECOMMENDATION
-  // ============================================
+  // =========================================================
 
   let aiRecommendation =
     "Keep maintaining a consistent wake-up routine.";
@@ -211,7 +204,7 @@ function Dashboard() {
       "Excellent progress! Maintain your current wake-up routine and challenge performance.";
   } else if (overallScore >= 70) {
     aiRecommendation =
-      "Good progress. Try maintaining the same wake-up time consistently to improve your habit score.";
+      "Good progress. Maintain the same wake-up time consistently to improve your habit score.";
   } else if (challengeAccuracy < 60) {
     aiRecommendation =
       "Focus on completing cognitive challenges accurately. COGNIA will gradually adapt the difficulty.";
@@ -223,12 +216,16 @@ function Dashboard() {
       "Continue completing challenges and maintaining a regular sleep and wake-up schedule.";
   }
 
+  // =========================================================
+  // DASHBOARD
+  // =========================================================
+
   return (
     <div className="dashboard">
 
-      {/* ==================================================
+      {/* =====================================================
           SIDEBAR
-          ================================================== */}
+      ===================================================== */}
 
       <aside className="sidebar">
 
@@ -237,12 +234,79 @@ function Dashboard() {
         </div>
 
         <nav>
-          <a href="/dashboard">🏠 Dashboard</a>
-          <a href="/alarms">⏰ Alarms</a>
-          <a href="/habits">🌱 Habits</a>
-          <a href="/challenges">🧩 Challenges</a>
-          <a href="/analytics">📊 Analytics</a>
-          <a href="/profile">👤 Profile</a>
+
+          <a
+            href="/dashboard"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/dashboard");
+            }}
+          >
+            🏠 Dashboard
+          </a>
+
+          <a
+            href="/alarms"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/alarms");
+            }}
+          >
+            ⏰ Alarms
+          </a>
+
+          <a
+            href="/habits"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/habits");
+            }}
+          >
+            🌱 Habits
+          </a>
+
+          <a
+            href="/challenges"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/challenges");
+            }}
+          >
+            🧩 Challenges
+          </a>
+
+          <a
+            href="/analytics"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/analytics");
+            }}
+          >
+            📊 Analytics
+          </a>
+
+          {/* WELLNESS COACH */}
+
+          <a
+            href="/coach"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/coach");
+            }}
+          >
+            👩‍🏫 Wellness Coach
+          </a>
+
+          <a
+            href="/profile"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/profile");
+            }}
+          >
+            👤 Profile
+          </a>
+
         </nav>
 
         <button
@@ -254,15 +318,13 @@ function Dashboard() {
 
       </aside>
 
-      {/* ==================================================
+      {/* =====================================================
           MAIN CONTENT
-          ================================================== */}
+      ===================================================== */}
 
       <main className="dashboard-content">
 
-        {/* ==================================================
-            HEADER
-            ================================================== */}
+        {/* HEADER */}
 
         <div className="dashboard-header">
 
@@ -290,10 +352,9 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ==================================================
-            MILESTONE 4 EXECUTIVE SUMMARY
-            ================================================== */}
+        {/* =====================================================
+            EXECUTIVE SUMMARY
+        ===================================================== */}
 
         <div
           style={{
@@ -301,11 +362,9 @@ function Dashboard() {
             gridTemplateColumns:
               "repeat(auto-fit, minmax(180px, 1fr))",
             gap: "18px",
-            marginBottom: "25px"
+            marginBottom: "25px",
           }}
         >
-
-          {/* OVERALL SCORE */}
 
           <div className="stat-card">
 
@@ -325,9 +384,6 @@ function Dashboard() {
 
           </div>
 
-
-          {/* WAKE-UP SUCCESS */}
-
           <div className="stat-card">
 
             <div className="stat-icon">
@@ -346,9 +402,6 @@ function Dashboard() {
 
           </div>
 
-
-          {/* CHALLENGE ACCURACY */}
-
           <div className="stat-card">
 
             <div className="stat-icon">
@@ -366,9 +419,6 @@ function Dashboard() {
             </span>
 
           </div>
-
-
-          {/* ALARMS */}
 
           <div className="stat-card">
 
@@ -390,10 +440,9 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ==================================================
-            EXISTING STATISTICS
-            ================================================== */}
+        {/* =====================================================
+            NORMAL STATISTICS
+        ===================================================== */}
 
         <div className="stats-grid">
 
@@ -415,7 +464,6 @@ function Dashboard() {
 
           </div>
 
-
           <div className="stat-card">
 
             <div className="stat-icon">
@@ -434,7 +482,6 @@ function Dashboard() {
 
           </div>
 
-
           <div className="stat-card">
 
             <div className="stat-icon">
@@ -452,7 +499,6 @@ function Dashboard() {
             </span>
 
           </div>
-
 
           <div className="stat-card">
 
@@ -474,10 +520,9 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ==================================================
-            PERFORMANCE VISUALIZATION
-            ================================================== */}
+        {/* =====================================================
+            PERFORMANCE OVERVIEW
+        ===================================================== */}
 
         <div className="section-title">
 
@@ -487,19 +532,16 @@ function Dashboard() {
 
           <button
             className="view-button"
-            onClick={() => {
-              window.location.href = "/analytics";
-            }}
+            onClick={() => navigate("/analytics")}
           >
             Full Analytics
           </button>
 
         </div>
 
-
         <div className="progress-card">
 
-          <div>
+          <div style={{ width: "100%" }}>
 
             <h3>
               Overall COGNIA Performance
@@ -510,26 +552,18 @@ function Dashboard() {
               challenges and habit formation.
             </p>
 
-
-            {/* OVERALL */}
+            {/* Overall */}
 
             <div style={{ marginTop: "20px" }}>
 
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "space-between"
+                  justifyContent: "space-between",
                 }}
               >
-
-                <strong>
-                  Overall Score
-                </strong>
-
-                <strong>
-                  {overallScore}%
-                </strong>
-
+                <strong>Overall Score</strong>
+                <strong>{overallScore}%</strong>
               </div>
 
               <div
@@ -539,7 +573,7 @@ function Dashboard() {
                   background: "#e5e7eb",
                   borderRadius: "10px",
                   marginTop: "8px",
-                  overflow: "hidden"
+                  overflow: "hidden",
                 }}
               >
 
@@ -552,7 +586,6 @@ function Dashboard() {
                     height: "100%",
                     background: "#2563eb",
                     borderRadius: "10px",
-                    transition: "width 0.5s"
                   }}
                 />
 
@@ -560,26 +593,18 @@ function Dashboard() {
 
             </div>
 
-
-            {/* CHALLENGE */}
+            {/* Challenge */}
 
             <div style={{ marginTop: "18px" }}>
 
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "space-between"
+                  justifyContent: "space-between",
                 }}
               >
-
-                <strong>
-                  Challenge Accuracy
-                </strong>
-
-                <strong>
-                  {challengeAccuracy}%
-                </strong>
-
+                <strong>Challenge Accuracy</strong>
+                <strong>{challengeAccuracy}%</strong>
               </div>
 
               <div
@@ -589,7 +614,7 @@ function Dashboard() {
                   background: "#e5e7eb",
                   borderRadius: "10px",
                   marginTop: "8px",
-                  overflow: "hidden"
+                  overflow: "hidden",
                 }}
               >
 
@@ -601,7 +626,7 @@ function Dashboard() {
                     )}%`,
                     height: "100%",
                     background: "#22c55e",
-                    borderRadius: "10px"
+                    borderRadius: "10px",
                   }}
                 />
 
@@ -609,26 +634,18 @@ function Dashboard() {
 
             </div>
 
-
-            {/* WAKE-UP */}
+            {/* Wake-up */}
 
             <div style={{ marginTop: "18px" }}>
 
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "space-between"
+                  justifyContent: "space-between",
                 }}
               >
-
-                <strong>
-                  Wake-up Success
-                </strong>
-
-                <strong>
-                  {wakeUpSuccess}%
-                </strong>
-
+                <strong>Wake-up Success</strong>
+                <strong>{wakeUpSuccess}%</strong>
               </div>
 
               <div
@@ -638,7 +655,7 @@ function Dashboard() {
                   background: "#e5e7eb",
                   borderRadius: "10px",
                   marginTop: "8px",
-                  overflow: "hidden"
+                  overflow: "hidden",
                 }}
               >
 
@@ -650,7 +667,7 @@ function Dashboard() {
                     )}%`,
                     height: "100%",
                     background: "#8b5cf6",
-                    borderRadius: "10px"
+                    borderRadius: "10px",
                   }}
                 />
 
@@ -658,26 +675,18 @@ function Dashboard() {
 
             </div>
 
-
-            {/* HABIT */}
+            {/* Habit */}
 
             <div style={{ marginTop: "18px" }}>
 
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "space-between"
+                  justifyContent: "space-between",
                 }}
               >
-
-                <strong>
-                  Habit Score
-                </strong>
-
-                <strong>
-                  {habitScore}%
-                </strong>
-
+                <strong>Habit Score</strong>
+                <strong>{habitScore}%</strong>
               </div>
 
               <div
@@ -687,7 +696,7 @@ function Dashboard() {
                   background: "#e5e7eb",
                   borderRadius: "10px",
                   marginTop: "8px",
-                  overflow: "hidden"
+                  overflow: "hidden",
                 }}
               >
 
@@ -699,7 +708,7 @@ function Dashboard() {
                     )}%`,
                     height: "100%",
                     background: "#f59e0b",
-                    borderRadius: "10px"
+                    borderRadius: "10px",
                   }}
                 />
 
@@ -711,10 +720,9 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ==================================================
+        {/* =====================================================
             TODAY'S ALARM
-            ================================================== */}
+        ===================================================== */}
 
         <div className="section-title">
 
@@ -724,15 +732,12 @@ function Dashboard() {
 
           <button
             className="view-button"
-            onClick={() => {
-              window.location.href = "/alarms";
-            }}
+            onClick={() => navigate("/alarms")}
           >
             View All
           </button>
 
         </div>
-
 
         <div className="alarm-card">
 
@@ -756,7 +761,6 @@ function Dashboard() {
 
           </div>
 
-
           <div className="alarm-middle">
 
             <span className="challenge-badge">
@@ -769,7 +773,6 @@ function Dashboard() {
 
           </div>
 
-
           <div className="alarm-status">
 
             <span></span>
@@ -780,10 +783,9 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ==================================================
-            ADAPTIVE DIFFICULTY
-            ================================================== */}
+        {/* =====================================================
+            ADAPTIVE AI
+        ===================================================== */}
 
         <div className="progress-card">
 
@@ -805,20 +807,23 @@ function Dashboard() {
               <>
 
                 <p>
-                  ML Model: {adaptive.model}
+                  ML Model:{" "}
+                  {adaptive.model || "Decision Tree Classifier"}
                 </p>
 
                 <p>
-                  Confidence: {adaptive.confidence}%
+                  Confidence:{" "}
+                  {adaptive.confidence ?? 100}%
                 </p>
 
                 <p>
-                  Accuracy: {adaptive.accuracy}%
+                  Accuracy:{" "}
+                  {adaptive.accuracy ?? 100}%
                 </p>
 
                 <p>
                   Attempts analyzed:{" "}
-                  {adaptive.attempts_analyzed}
+                  {adaptive.attempts_analyzed ?? 0}
                 </p>
 
               </>
@@ -828,10 +833,9 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ==================================================
+        {/* =====================================================
             BEHAVIORAL ANALYTICS
-            ================================================== */}
+        ===================================================== */}
 
         <div className="section-title">
 
@@ -841,15 +845,12 @@ function Dashboard() {
 
           <button
             className="view-button"
-            onClick={() => {
-              window.location.href = "/analytics";
-            }}
+            onClick={() => navigate("/analytics")}
           >
             View Analytics
           </button>
 
         </div>
-
 
         <div className="progress-card">
 
@@ -887,10 +888,9 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ==================================================
-            SLEEP
-            ================================================== */}
+        {/* =====================================================
+            SLEEP ANALYTICS
+        ===================================================== */}
 
         <div className="progress-card">
 
@@ -924,10 +924,9 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ==================================================
+        {/* =====================================================
             AI INSIGHT
-            ================================================== */}
+        ===================================================== */}
 
         <div className="progress-card">
 
@@ -960,10 +959,91 @@ function Dashboard() {
 
         </div>
 
+        {/* =====================================================
+            WELLNESS COACH
+        ===================================================== */}
 
-        {/* ==================================================
+        <div
+          style={{
+            marginTop: "30px",
+            padding: "25px",
+            borderRadius: "16px",
+            background:
+              "linear-gradient(135deg, #eef4ff, #ffffff)",
+            border: "1px solid #dbe5ff",
+            boxShadow:
+              "0 6px 20px rgba(0, 0, 0, 0.08)",
+          }}
+        >
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "20px",
+              flexWrap: "wrap",
+            }}
+          >
+
+            <div>
+
+              <p
+                style={{
+                  margin: "0 0 6px",
+                  color: "#2563eb",
+                  fontWeight: "600",
+                  fontSize: "13px",
+                  textTransform: "uppercase",
+                }}
+              >
+                Wellness & Monitoring
+              </p>
+
+              <h2
+                style={{
+                  margin: "0 0 8px",
+                  color: "#1e3a8a",
+                }}
+              >
+                👩‍🏫 Wellness Coach
+              </h2>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: "#475569",
+                  fontSize: "15px",
+                }}
+              >
+                Monitor wake-up habits, cognitive performance,
+                sleep patterns and wellness progress.
+              </p>
+
+            </div>
+
+            <button
+              onClick={() => navigate("/coach")}
+              style={{
+                padding: "12px 20px",
+                border: "none",
+                borderRadius: "10px",
+                background: "#2563eb",
+                color: "#ffffff",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              Open Wellness Coach →
+            </button>
+
+          </div>
+
+        </div>
+
+        {/* =====================================================
             MILESTONE 4 STATUS
-            ================================================== */}
+        ===================================================== */}
 
         <div className="progress-card">
 
@@ -990,11 +1070,15 @@ function Dashboard() {
             </p>
 
             <p>
-              Reporting system: ⏳ Next
+              Reporting system: ✅ Operational
             </p>
 
             <p>
-              Docker deployment: ⏳ Upcoming
+              Docker containerization: ✅ Operational
+            </p>
+
+            <p>
+              Cloud deployment: Optional
             </p>
 
           </div>
@@ -1008,5 +1092,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
-
 

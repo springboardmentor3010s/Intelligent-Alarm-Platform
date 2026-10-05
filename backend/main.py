@@ -2656,68 +2656,304 @@ def get_recommendations(email: str):
 # GENERAL ANALYTICS
 # =========================================================
 
+# =========================================================
+# GENERAL ANALYTICS
+# =========================================================
+
 @app.get("/analytics/{email}")
 def get_analytics(email: str):
 
     email = email.strip().lower()
 
-    total = challenge_history.count_documents({
-        "email":
-            email
-    })
+    try:
 
-    correct = challenge_history.count_documents({
-        "email":
-            email,
+        # -------------------------------------------------
+        # ALARMS
+        # -------------------------------------------------
 
-        "correct":
-            True
-    })
-
-    incorrect = challenge_history.count_documents({
-        "email":
-            email,
-
-        "correct":
-            False
-    })
-
-    if total > 0:
-
-        accuracy = round(
-
-            (
-                correct
-                /
-                total
+        alarms_data = list(
+            alarms.find(
+                {"email": email},
+                {"_id": 0}
             )
-            * 100
-
         )
 
-    else:
+        total_alarms = len(alarms_data)
 
-        accuracy = 0
+        active_alarms = sum(
+            1
+            for alarm in alarms_data
+            if (
+                alarm.get("active") is True
+                or alarm.get("enabled") is True
+                or str(
+                    alarm.get("status", "")
+                ).lower() == "active"
+            )
+        )
 
-    return {
+        # -------------------------------------------------
+        # CHALLENGES
+        # -------------------------------------------------
 
-        "email":
-            email,
+        challenge_data = list(
+            challenge_history.find(
+                {"email": email},
+                {"_id": 0}
+            )
+        )
 
-        "total_challenges":
-            total,
+        total_challenges = len(
+            challenge_data
+        )
 
-        "correct":
-            correct,
+        correct_challenges = sum(
+            1
+            for item in challenge_data
+            if (
+                item.get("correct") is True
+                or item.get("is_correct") is True
+                or str(
+                    item.get("result", "")
+                ).lower() == "correct"
+            )
+        )
 
-        "incorrect":
-            incorrect,
+        incorrect_challenges = (
+            total_challenges
+            - correct_challenges
+        )
 
-        "accuracy":
-            accuracy
-    }
+        if total_challenges > 0:
+
+            challenge_accuracy = round(
+                (
+                    correct_challenges
+                    / total_challenges
+                ) * 100,
+                2
+            )
+
+        else:
+
+            challenge_accuracy = 0
+
+        # -------------------------------------------------
+        # WAKE-UP
+        # -------------------------------------------------
+
+        wakeup_data = list(
+            wakeup_history.find(
+                {"email": email},
+                {"_id": 0}
+            )
+        )
+
+        total_wakeups = len(
+            wakeup_data
+        )
+
+        successful_wakeups = sum(
+            1
+            for item in wakeup_data
+            if (
+                item.get("verified") is True
+                or item.get("success") is True
+                or item.get("completed") is True
+            )
+        )
+
+        if total_wakeups > 0:
+
+            wakeup_success_rate = round(
+                (
+                    successful_wakeups
+                    / total_wakeups
+                ) * 100,
+                2
+            )
+
+        else:
+
+            wakeup_success_rate = 0
+
+        # -------------------------------------------------
+        # SNOOZE
+        # -------------------------------------------------
+
+        snooze_count = sum(
+            int(
+                item.get(
+                    "snooze_count",
+                    0
+                ) or 0
+            )
+            for item in wakeup_data
+        )
+
+        snooze_score = max(
+            0,
+            100 - (
+                snooze_count * 10
+            )
+        )
+
+        # -------------------------------------------------
+        # HABIT SCORE
+        # -------------------------------------------------
+
+        habit_data = get_habit_score(
+            email
+        )
+
+        habit_score = float(
+            habit_data.get(
+                "habit_score",
+                0
+            )
+        )
+
+        habit_components = habit_data.get(
+            "components",
+            {}
+        )
+
+        # -------------------------------------------------
+        # OVERALL SCORE
+        # Same formula used by Milestone 4
+        # -------------------------------------------------
+
+        overall_score = round(
+
+            (
+                wakeup_success_rate * 0.35
+                +
+                challenge_accuracy * 0.25
+                +
+                snooze_score * 0.20
+                +
+                habit_score * 0.20
+            ),
+
+            2
+        )
+
+        # -------------------------------------------------
+        # RETURN
+        # -------------------------------------------------
+
+        return {
+
+            "success": True,
+
+            "email": email,
+
+            "total_alarms":
+                total_alarms,
+
+            "active_alarms":
+                active_alarms,
+
+            "total_challenges":
+                total_challenges,
+
+            "correct":
+                correct_challenges,
+
+            "incorrect":
+                incorrect_challenges,
+
+            "accuracy":
+                challenge_accuracy,
+
+            "correct_challenges":
+                correct_challenges,
+
+            "incorrect_challenges":
+                incorrect_challenges,
+
+            "challenge_accuracy":
+                challenge_accuracy,
+
+            "total_wakeups":
+                total_wakeups,
+
+            "wake_up_success_rate":
+                wakeup_success_rate,
+
+            "snooze_count":
+                snooze_count,
+
+            "snooze_score":
+                snooze_score,
+
+            "habit_score":
+                round(
+                    habit_score,
+                    2
+                ),
+
+            "overall_score":
+                overall_score,
+
+            "habit_components":
+                habit_components,
+
+            "summary": {
+
+                "overall_score":
+                    overall_score,
+
+                "habit_score":
+                    round(
+                        habit_score,
+                        2
+                    ),
+
+                "challenge_accuracy":
+                    challenge_accuracy,
+
+                "wake_up_success_rate":
+                    wakeup_success_rate,
+
+                "total_alarms":
+                    total_alarms,
+
+                "active_alarms":
+                    active_alarms,
+
+                "total_challenges":
+                    total_challenges,
+
+                "correct_challenges":
+                    correct_challenges,
+
+                "incorrect_challenges":
+                    incorrect_challenges,
+
+                "total_wakeups":
+                    total_wakeups,
+
+                "snooze_count":
+                    snooze_count
+            }
+
+        }
+
+    except Exception as e:
+
+        return {
+
+            "success": False,
+
+            "error":
+                str(e)
+        }
 
 
+# =========================================================
+# DASHBOARD
+# =========================================================
 # =========================================================
 # DASHBOARD
 # =========================================================
@@ -3649,3 +3885,46 @@ def create_reminder(data: dict):
         "notification_id": str(result.inserted_id),
         "type": reminder_type
     }
+    # =========================================================
+# WELLNESS COACH
+# =========================================================
+
+@app.get("/coach/users")
+def get_coach_users():
+
+    coach_users = list(
+        users.find(
+            {"role": "User"},
+            {
+                "_id": 0,
+                "name": 1,
+                "email": 1,
+                "role": 1,
+                "created_at": 1
+            }
+        )
+    )
+
+    return {
+        "users": coach_users,
+        "total_users": len(coach_users)
+    }
+
+
+@app.get("/coach/user/{email}")
+def get_coach_user_details(email: str):
+
+    email = email.strip().lower()
+
+    user = users.find_one(
+        {"email": email},
+        {"_id": 0, "password": 0}
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return user
