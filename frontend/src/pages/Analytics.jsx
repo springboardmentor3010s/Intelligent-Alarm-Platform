@@ -1806,10 +1806,14 @@ function Analytics() {
             />
 
             <StatusItem
-              label="Docker Deployment"
-              status="Upcoming"
-              pending
-            />
+  label="Docker Containerization"
+  status="Operational"
+/>
+
+<StatusItem
+  label="Cloud Deployment"
+  status="Optional"
+/>
 
           </div>
 

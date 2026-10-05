@@ -1041,7 +1041,7 @@ function Dashboard() {
 
         </div>
 
-        {/* =====================================================
+                {/* =====================================================
             MILESTONE 4 STATUS
         ===================================================== */}
 
@@ -1078,7 +1078,7 @@ function Dashboard() {
             </p>
 
             <p>
-              Cloud deployment:  ✅ Operational
+              Cloud deployment: ⏸️ Optional
             </p>
 
           </div>
@@ -1092,4 +1092,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-
