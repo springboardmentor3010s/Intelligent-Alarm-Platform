@@ -23,7 +23,7 @@ function Dashboard() {
         // EXISTING DASHBOARD DATA
         // ============================================
 
-        const dashboardResponse = await fetch(`http://127.0.0.1:8000/dashboard/${encodeURIComponent(email)}`);
+        const dashboardResponse = await fetch(`http://localhost:8000/dashboard/${encodeURIComponent(email)}`);
 
         if (!dashboardResponse.ok) {
           throw new Error("Failed to load dashboard");
@@ -38,7 +38,7 @@ function Dashboard() {
         // ============================================
 
         try {
-          const adaptiveResponse = await fetch(`http://127.0.0.1:8000/adaptive-difficulty/${encodeURIComponent(email)}`)
+          const adaptiveResponse = await fetch(`http://localhost:8000/adaptive-difficulty/${encodeURIComponent(email)}`)
           ;
 
           if (adaptiveResponse.ok) {
@@ -57,7 +57,7 @@ function Dashboard() {
         // ============================================
 
         try {
-          const analyticsResponse = await fetch(`http://127.0.0.1:8000/analytics/dashboard/${encodeURIComponent(email)}`);
+          const analyticsResponse = await fetch(`http://localhost:8000/analytics/dashboard/${encodeURIComponent(email)}`);
 
           if (analyticsResponse.ok) {
             const analyticsData = await analyticsResponse.json();

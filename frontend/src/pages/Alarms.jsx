@@ -106,7 +106,7 @@ function Alarms() {
   const loadAlarms = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/alarms/${encodeURIComponent(email)}`
+        `http://localhost:8000/alarms/${encodeURIComponent(email)}`
       );
 
       const data = await response.json();
@@ -134,7 +134,7 @@ function Alarms() {
       setAdaptiveLoading(true);
 
       const response = await fetch(
-        `http://127.0.0.1:8000/adaptive-difficulty/${encodeURIComponent(email)}`
+        `http://localhost:8000/adaptive-difficulty/${encodeURIComponent(email)}`
       );
 
       const data = await response.json();
@@ -255,7 +255,7 @@ function Alarms() {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/alarms",
+        "http://localhost:8000/alarms",
         {
           method: "POST",
 

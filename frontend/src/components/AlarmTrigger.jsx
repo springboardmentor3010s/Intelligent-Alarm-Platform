@@ -1141,7 +1141,7 @@ function AlarmTrigger() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/alarms/${encodeURIComponent(
+        `http://localhost:8000/alarms/${encodeURIComponent(
           email
         )}`
       );
@@ -1419,7 +1419,7 @@ function AlarmTrigger() {
       // =============================================
 
       fetch(
-        "http://127.0.0.1:8000/wake-up/verify",
+        "http://localhost:8000/wake-up/verify",
         {
           method: "POST",
 
