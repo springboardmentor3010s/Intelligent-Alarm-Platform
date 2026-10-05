@@ -1078,7 +1078,7 @@ function Dashboard() {
             </p>
 
             <p>
-              Cloud deployment: Optional
+              Cloud deployment:  ✅ Operational
             </p>
 
           </div>
