@@ -3487,3 +3487,161 @@ Unable to generate report.
 Error:
 {str(e)}
 """
+# =========================================================
+# NOTIFICATION & REMINDER SYSTEM
+# =========================================================
+
+@app.post("/notifications")
+def create_notification(data: dict):
+    email = str(data.get("email", "")).strip().lower()
+
+    if not email:
+        raise HTTPException(
+            status_code=400,
+            detail="Email is required"
+        )
+
+    notification = {
+        "email": email,
+        "title": data.get(
+            "title",
+            "COGNIA Reminder"
+        ),
+        "message": data.get(
+            "message",
+            "You have a reminder from COGNIA."
+        ),
+        "type": data.get(
+            "type",
+            "general"
+        ),
+        "read": False,
+        "created_at": datetime.utcnow()
+    }
+
+    result = db.notifications.insert_one(notification)
+
+    return {
+        "message": "Notification created successfully",
+        "notification_id": str(result.inserted_id)
+    }
+
+
+@app.get("/notifications/{email}")
+def get_notifications(email: str):
+
+    email = email.strip().lower()
+
+    notifications = []
+
+    for item in db.notifications.find(
+        {"email": email}
+    ).sort("created_at", -1).limit(20):
+
+        notifications.append({
+            "id": str(item["_id"]),
+            "title": item.get(
+                "title",
+                "COGNIA Reminder"
+            ),
+            "message": item.get(
+                "message",
+                ""
+            ),
+            "type": item.get(
+                "type",
+                "general"
+            ),
+            "read": item.get(
+                "read",
+                False
+            ),
+            "created_at": str(
+                item.get("created_at", "")
+            )
+        })
+
+    return {
+        "notifications": notifications
+    }
+
+
+@app.put("/notifications/{notification_id}/read")
+def mark_notification_read(notification_id: str):
+
+    from bson import ObjectId
+
+    result = db.notifications.update_one(
+        {"_id": ObjectId(notification_id)},
+        {"$set": {"read": True}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=404,
+            detail="Notification not found"
+        )
+
+    return {
+        "message": "Notification marked as read"
+    }
+
+
+@app.post("/notifications/reminder")
+def create_reminder(data: dict):
+
+    email = str(data.get("email", "")).strip().lower()
+
+    if not email:
+        raise HTTPException(
+            status_code=400,
+            detail="Email is required"
+        )
+
+    reminder_type = data.get(
+        "type",
+        "general"
+    )
+
+    messages = {
+        "bedtime":
+            "Time to prepare for sleep and maintain your sleep routine.",
+        "wakeup":
+            "Your wake-up routine is ready. Complete your cognitive challenge.",
+        "habit":
+            "Keep your habit streak going today!",
+        "challenge":
+            "A new cognitive challenge is waiting for you.",
+        "progress":
+            "Check your COGNIA progress and habit score."
+    }
+
+    title = data.get(
+        "title",
+        "COGNIA Reminder"
+    )
+
+    message = data.get(
+        "message",
+        messages.get(
+            reminder_type,
+            "You have a new COGNIA reminder."
+        )
+    )
+
+    notification = {
+        "email": email,
+        "title": title,
+        "message": message,
+        "type": reminder_type,
+        "read": False,
+        "created_at": datetime.utcnow()
+    }
+
+    result = db.notifications.insert_one(notification)
+
+    return {
+        "message": "Reminder created successfully",
+        "notification_id": str(result.inserted_id),
+        "type": reminder_type
+    }
