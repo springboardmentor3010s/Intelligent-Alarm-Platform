@@ -74,3 +74,21 @@ build/
 # Local databases
 *.sqlite
 *.sqlite3
+
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+venv/
+.venv/
+
+# Build files
+dist/
+build/
+
+# IDE
+.vscode/
