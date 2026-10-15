@@ -1,0 +1,42 @@
+﻿# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node.js
+node_modules/
+dist/
+npm-debug.log*
+
+# IDE and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Project backup archives
+frontend-source.zip
+frontend-src-backup.zip
+frontend.zip
+
+# Temporary backup files
+*.bak
+*.backup
+*.recovery-*
+
+# Local backup files
+*.bak
+*.backup
+*.recovery-*
+*-backup
