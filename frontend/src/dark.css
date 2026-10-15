@@ -1,0 +1,760 @@
+/* =====================================================
+   DARK MODE
+   Applies only when <html data-theme="dark">. Light mode is the original
+   design and is not changed by anything in this file.
+   The rules below were generated from App.css (light surfaces, dark text and
+   light borders mapped to dark equivalents; brand blues kept as they are),
+   followed by a few hand-written base rules.
+   ===================================================== */
+
+html[data-theme="dark"] .app {
+  background: #202c3e;
+}
+
+html[data-theme="dark"] .avatar {
+  background: #143444;
+}
+
+html[data-theme="dark"] .topbar {
+  background: #212d40;
+  border-bottom: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .icon-button {
+  border: 1px solid #2f405b;
+  background: #212d40;
+  color: #a0afc6;
+}
+
+html[data-theme="dark"] .top-profile {
+  border-left: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .period {
+  border: 1px solid #2f405b;
+  background: #212d40;
+  color: #9faec5;
+}
+
+html[data-theme="dark"] .stat-card {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .stat-icon {
+  background: #1f2a3c;
+}
+
+html[data-theme="dark"] .stat-icon.blue {
+  background: #1f2a3c;
+}
+
+html[data-theme="dark"] .stat-icon.orange {
+  background: #442f14;
+}
+
+html[data-theme="dark"] .stat-icon.green {
+  background: #1e293b;
+  color: #9ddac3;
+}
+
+html[data-theme="dark"] .progress {
+  background: #1e293a;
+}
+
+html[data-theme="dark"] .blue-progress {
+  background: #1f2a3c;
+}
+
+html[data-theme="dark"] .positive {
+  color: #93d6b9;
+}
+
+html[data-theme="dark"] .chart-card,
+html[data-theme="dark"] .recommendation-card {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .grid-line {
+  border-top: 1px dashed #2f405b;
+}
+
+html[data-theme="dark"] .bar {
+  background: #12253d;
+}
+
+html[data-theme="dark"] .recommendation-card {
+  background: linear-gradient(145deg, #202b3d, #202c3f);
+  border-color: #225167;
+}
+
+html[data-theme="dark"] .recommendation-icon {
+  background: #143444;
+}
+
+html[data-theme="dark"] .recommendation-footer {
+  border-top: 1px solid #2c495d;
+}
+
+html[data-theme="dark"] .recommendation-footer span {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .summary-card {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .summary-icon.purple {
+  background: #1f2b3c;
+}
+
+html[data-theme="dark"] .summary-icon.green {
+  background: #1f2a3b;
+}
+
+html[data-theme="dark"] .summary-icon.blue {
+  background: #1f2b3c;
+}
+
+html[data-theme="dark"] .alarms-card {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .alarm-row {
+  border-top: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .alarm-status {
+  color: #9cdabb;
+}
+
+html[data-theme="dark"] .challenge-score {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .challenge-selection {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .challenge-type-card {
+  border: 1px solid #2f405b;
+  background: #212d40;
+}
+
+html[data-theme="dark"] .challenge-type-card:hover {
+  border-color: #244366;
+}
+
+html[data-theme="dark"] .challenge-type-card.selected {
+  background: #202b3d;
+}
+
+html[data-theme="dark"] .purple-bg {
+  background: #142844;
+}
+
+html[data-theme="dark"] .blue-bg {
+  background: #1f2a3c;
+}
+
+html[data-theme="dark"] .orange-bg {
+  background: #442f14;
+}
+
+html[data-theme="dark"] .difficulty-section {
+  border-top: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .difficulty-buttons button {
+  border: 1px solid #2f405b;
+  background: #212d40;
+}
+
+html[data-theme="dark"] .active-challenge {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .question-box {
+  background: #202c3f;
+}
+
+html[data-theme="dark"] .answer-input {
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .challenge-performance {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .performance-item {
+  background: #202c3f;
+}
+
+html[data-theme="dark"] .performance-item small {
+  color: #97d7b7;
+}
+
+html[data-theme="dark"] .challenge-type-card {
+  border: 2px solid #2f405b;
+  background: #212d40;
+}
+
+html[data-theme="dark"] .challenge-type-card:hover {
+  border-color: #234166;
+}
+
+html[data-theme="dark"] .challenge-type-card.active {
+  background: linear-gradient(
+    135deg,
+    #202b3d 0%,
+    #212d40 100%
+  );
+}
+
+html[data-theme="dark"] .challenge-icon {
+  background: #1f2b3c;
+}
+
+html[data-theme="dark"] .challenge-type-card p {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .difficulty-button {
+  border: 2px solid #2f405b;
+  background: #212d40;
+  color: #b0baca;
+}
+
+html[data-theme="dark"] .challenge-error {
+  background: #202c3d;
+  border: 1px solid #662424;
+  color: #d59090;
+}
+
+html[data-theme="dark"] .challenge-question-card {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .challenge-question-header span {
+  background: #202b3d;
+}
+
+html[data-theme="dark"] .challenge-question-card h2 {
+  color: #b0c5e1;
+}
+
+html[data-theme="dark"] .option-button {
+  border: 2px solid #2f405b;
+  background: #212d40;
+}
+
+html[data-theme="dark"] .option-button:hover {
+  background: #202c3f;
+}
+
+html[data-theme="dark"] .option-button.selected {
+  background: #202b3d;
+}
+
+html[data-theme="dark"] .answer-section input {
+  border: 2px solid #2f405b;
+}
+
+html[data-theme="dark"] .challenge-result.correct {
+  background: #1f2b3c;
+  border: 1px solid #2b5f47;
+  color: #b4e2d5;
+}
+
+html[data-theme="dark"] .challenge-result.incorrect {
+  background: #202c3d;
+  border: 1px solid #662424;
+  color: #d59090;
+}
+
+html[data-theme="dark"] .memory-instruction h2 {
+  color: #b0c5e1;
+}
+
+html[data-theme="dark"] .memory-instruction p {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .memory-countdown {
+  background: #202b3d;
+}
+
+html[data-theme="dark"] .memory-countdown span {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .memory-progress-container {
+  background: #1d2738;
+}
+
+html[data-theme="dark"] .memory-sequence {
+  border: 2px solid #234166;
+  background: linear-gradient(
+    135deg,
+    #202b3d 0%,
+    #212d40 100%
+  );
+  color: #b0c5e1;
+}
+
+html[data-theme="dark"] .memory-warning {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .memory-hidden-icon {
+  background: #1f2b3c;
+}
+
+html[data-theme="dark"] .memory-answer-mode h2 {
+  color: #b0c5e1;
+}
+
+html[data-theme="dark"] .memory-answer-mode p {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .memory-hidden-box {
+  background: #202c3e;
+  border: 2px dashed #2f405b;
+}
+
+html[data-theme="dark"] .memory-hidden-box span {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .option-button.selected {
+  background: #202b3d !important;
+}
+
+html[data-theme="dark"] .verification-card {
+  background: #212d40;
+  border: 1px solid #2e495c;
+}
+
+html[data-theme="dark"] .verification-icon {
+  background: linear-gradient(
+    135deg,
+    #1f2b3c,
+    #143444
+  );
+}
+
+html[data-theme="dark"] .verification-state h2 {
+  color: #bad0e5;
+}
+
+html[data-theme="dark"] .verification-state > p {
+  color: #a2b2c3;
+}
+
+html[data-theme="dark"] .verification-badge {
+  background: #1f2b3c;
+}
+
+html[data-theme="dark"] .success-badge {
+  background: #1e2a3b;
+  color: #afe1d8;
+}
+
+html[data-theme="dark"] .hold-progress-wrapper {
+  background: #1e2a3b;
+}
+
+html[data-theme="dark"] .verification-tip {
+  background: #202c3e;
+  border: 1px solid #2e495c;
+}
+
+html[data-theme="dark"] .verification-tip p {
+  color: #a2b2c3;
+}
+
+html[data-theme="dark"] .verification-spinner {
+  border: 4px solid #2f405b;
+}
+
+html[data-theme="dark"] .success-icon {
+  background: linear-gradient(
+    135deg,
+    #193b31,
+    #19362d
+  );
+  color: #afe1d8;
+}
+
+html[data-theme="dark"] .failed-icon {
+  background: #202b3d;
+}
+
+html[data-theme="dark"] .response-time-card {
+  background: #202c3e;
+  border: 1px solid #2e495c;
+}
+
+html[data-theme="dark"] .response-time-card span {
+  color: #a2b2c3;
+}
+
+html[data-theme="dark"] .verification-security-note {
+  background: #202c3f;
+  border: 1px solid #2e495c;
+}
+
+html[data-theme="dark"] .verification-security-note strong {
+  color: #b6cde3;
+}
+
+html[data-theme="dark"] .verification-security-note p {
+  color: #a2b2c3;
+}
+
+html[data-theme="dark"] .auth-loading,
+html[data-theme="dark"] .page-note {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .auth-page {
+  background: #202b3d;
+}
+
+html[data-theme="dark"] .auth-card {
+  background: #212d40;
+  border: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .auth-card h1 {
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .auth-brand {
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .auth-brand h2,
+html[data-theme="dark"] .auth-brand span {
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .auth-form label,
+html[data-theme="dark"] .settings-form label,
+html[data-theme="dark"] .modal label,
+html[data-theme="dark"] .inline-form label {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .auth-form small,
+html[data-theme="dark"] .settings-form small {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .auth-form input,
+html[data-theme="dark"] .settings-form input,
+html[data-theme="dark"] .settings-form select,
+html[data-theme="dark"] .settings-form textarea,
+html[data-theme="dark"] .modal input,
+html[data-theme="dark"] .modal select,
+html[data-theme="dark"] .inline-form input,
+html[data-theme="dark"] .inline-form select,
+html[data-theme="dark"] .data-table select {
+  border: 2px solid #2f405b;
+  background: #212d40;
+}
+
+html[data-theme="dark"] .settings-form input:disabled {
+  background: #202b3d;
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .auth-divider {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .auth-divider::before,
+html[data-theme="dark"] .auth-divider::after {
+  background: #1d2738;
+}
+
+html[data-theme="dark"] .auth-google {
+  border: 2px solid #2f405b;
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .auth-google:hover {
+  background: #202b3d;
+}
+
+html[data-theme="dark"] .auth-switch {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .notice-box {
+  background: #1f2b3c;
+  border: 1px solid #2b5f47;
+  color: #b4e2d5;
+}
+
+html[data-theme="dark"] .empty-state {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .negative-text {
+  color: #d59090;
+}
+
+html[data-theme="dark"] .rec-basis,
+html[data-theme="dark"] .small-note {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .info-card {
+  background: #202b3d;
+}
+
+html[data-theme="dark"] .reason-list {
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .muted-line {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .sub-heading {
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .small-button {
+  border: 1px solid #234166;
+  background: #212d40;
+}
+
+html[data-theme="dark"] .small-button:hover:not(:disabled) {
+  background: #143444;
+}
+
+html[data-theme="dark"] .small-button.danger {
+  color: #d59090;
+  border-color: #662424;
+}
+
+html[data-theme="dark"] .small-button.danger:hover:not(:disabled) {
+  background: #202c3d;
+}
+
+html[data-theme="dark"] .data-table th {
+  color: #a3aebe;
+  border-bottom: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .data-table td {
+  border-top: 1px solid #2f405b;
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .bar-list-row {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .bar-list-value {
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .inline-form {
+  border-top: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .inline-form strong {
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .check-line {
+  color: #b4cae3;
+}
+
+html[data-theme="dark"] .notification-item {
+  border-top: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .notification-item p {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .notification-item small {
+  color: #a3aebe;
+}
+
+html[data-theme="dark"] .notification-icon {
+  background: #143444;
+}
+
+html[data-theme="dark"] .badge-risk {
+  background: #202c3d;
+  color: #d59090;
+  border: 1px solid #662424;
+}
+
+html[data-theme="dark"] .badge-ok {
+  background: #1f2b3c;
+  color: #b4e2d5;
+  border: 1px solid #2b5f47;
+}
+
+html[data-theme="dark"] .risk-item {
+  border-top: 1px solid #2f405b;
+}
+
+html[data-theme="dark"] .modal {
+  background: #212d40;
+}
+
+html[data-theme="dark"] .modal h2 {
+  color: #b4cae3;
+}
+
+
+/* ---- hand-written base rules ---- */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  color: #e6eefb;
+  background: #0d1626;
+
+  --surface: #212d40;
+  --page-background: #0d1626;
+  --text-primary: #e6eefb;
+  --text-secondary: #9faec5;
+  --border-blue: #2f405b;
+  --brand-blue-light: #182540;
+  --brand-blue-soft: #17304f;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app,
+html[data-theme="dark"] .auth-page {
+  background-color: #0d1626;
+}
+
+html[data-theme="dark"] .app,
+html[data-theme="dark"] .auth-page {
+  background: #0d1626;
+}
+
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3 {
+  color: #e6eefb;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background: #18243a;
+  color: #e6eefb;
+  border-color: #2f405b;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #7f92ad;
+}
+
+html[data-theme="dark"] input:disabled {
+  background: #141f33;
+  color: #7f92ad;
+}
+
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] .auth-card {
+  background: #212d40;
+  border-color: #2f405b;
+}
+
+html[data-theme="dark"] .auth-card h1,
+html[data-theme="dark"] .auth-brand h2,
+html[data-theme="dark"] .auth-brand span,
+html[data-theme="dark"] .auth-google {
+  color: #e6eefb;
+}
+
+html[data-theme="dark"] .info-card {
+  background: #182540;
+}
+
+html[data-theme="dark"] .reason-list,
+html[data-theme="dark"] .data-table td,
+html[data-theme="dark"] .check-line,
+html[data-theme="dark"] .bar-list-value,
+html[data-theme="dark"] .inline-form strong,
+html[data-theme="dark"] .sub-heading {
+  color: #e6eefb;
+}
+
+html[data-theme="dark"] .data-table td,
+html[data-theme="dark"] .data-table th,
+html[data-theme="dark"] .notification-item,
+html[data-theme="dark"] .risk-item,
+html[data-theme="dark"] .inline-form {
+  border-color: #2f405b;
+}
+
+html[data-theme="dark"] .small-button {
+  background: #18243a;
+  color: #7fb2ff;
+  border-color: #2f405b;
+}
+
+html[data-theme="dark"] .small-button:hover:not(:disabled) {
+  background: #17304f;
+}
+
+html[data-theme="dark"] .small-button.danger {
+  color: #fca5a5;
+}
+
+html[data-theme="dark"] .notice-box {
+  background: #0f2a22;
+  border-color: #1f5b45;
+  color: #6ee7b7;
+}
+
+html[data-theme="dark"] .challenge-error,
+html[data-theme="dark"] .badge-risk {
+  background: #331a1f;
+  border-color: #6b2a33;
+  color: #fca5a5;
+}
+
+html[data-theme="dark"] .badge-ok {
+  background: #0f2a22;
+  border-color: #1f5b45;
+  color: #6ee7b7;
+}
+
+html[data-theme="dark"] .modal-backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* ---- theme switch button ---- */
+
+.theme-toggle {
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.auth-theme-toggle {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+}

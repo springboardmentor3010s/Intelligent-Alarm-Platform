@@ -1,0 +1,963 @@
+﻿/* =========================================================
+   COGNITIVE ALARM PLATFORM - BASE LAYOUT
+   Existing application styles preserved.
+   Wellness chart sizing corrected.
+   ========================================================= */
+
+/* Profile elements */
+.user-mini > div:last-child,
+.top-profile > div:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.icon-button:hover {
+  background: #eff6ff;
+  color: var(--app-blue);
+}
+
+.icon-button.notification > span {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #ffffff;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+/* General utility styles */
+.muted-line {
+  color: var(--app-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.data-table th {
+  padding: 13px;
+  border-bottom: 1px solid var(--app-border);
+  background: #f8fafc;
+  color: var(--app-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 14px 13px;
+  border-bottom: 1px solid #edf1f7;
+  color: #334155;
+}
+
+.data-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+/* Buttons */
+.secondary-button,
+.small-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.primary-button:hover {
+  background: var(--app-blue-dark);
+}
+
+.secondary-button {
+  border-color: var(--app-border);
+  background: #ffffff;
+  color: #334155;
+}
+
+.small-button {
+  min-height: 32px;
+  padding: 6px 11px;
+  background: #eff6ff;
+  color: var(--app-blue-dark);
+}
+
+/* Status badges */
+.badge-ok,
+.badge-success,
+.badge-risk,
+.badge-warning {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-ok,
+.badge-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-risk {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Risk information */
+.reason-list {
+  padding-left: 20px;
+  color: var(--app-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.risk-item {
+  padding: 16px 0;
+  border-top: 1px solid #fee2e2;
+}
+
+.error-box {
+  margin: 14px 0;
+  padding: 13px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.auth-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--app-muted);
+  font-size: 15px;
+}
+
+/* General responsive layout */
+@media (max-width: 900px) {
+  .two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .coach-charts-grid,
+  .coach-insight-grid,
+  .coach-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   LOGIN PAGE LAYOUT
+   ========================================================= */
+
+.auth-page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: 70px 20px 35px;
+  margin: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  background: linear-gradient(
+    135deg,
+    #f0f6ff 0%,
+    #f8faff 50%,
+    #e8f1ff 100%
+  );
+}
+
+.auth-page *,
+.auth-page *::before,
+.auth-page *::after {
+  box-sizing: border-box;
+}
+
+.auth-page .auth-card {
+  display: block;
+  width: 100%;
+  max-width: 440px;
+  min-width: 0;
+  margin: auto;
+  padding: 36px;
+  border: 1px solid #e0e9f7;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #1e293b;
+  box-shadow: 0 18px 55px rgba(30, 64, 175, 0.12);
+}
+
+.auth-page .auth-brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 30px;
+  padding: 0;
+}
+
+.auth-page .auth-brand .brand-icon {
+  display: flex;
+  flex: 0 0 50px;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  margin: 0;
+  border-radius: 13px;
+  background: #eaf2ff;
+  color: #2563eb;
+  font-size: 23px;
+}
+
+.auth-page .auth-brand h2 {
+  margin: 0 0 3px;
+  color: #123b72;
+  font-size: 23px;
+  line-height: 1.3;
+}
+
+.auth-page .auth-brand span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  letter-spacing: 3px;
+}
+
+.auth-page .auth-card > h1 {
+  display: block;
+  margin: 0 0 10px;
+  color: #123b72;
+  font-size: 28px;
+  font-weight: 750;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.auth-page .auth-card > .subtitle {
+  display: block;
+  margin: 0 0 28px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.auth-page .auth-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+  width: 100%;
+  margin: 0;
+}
+
+.auth-page .auth-form label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.auth-page .auth-form input {
+  display: block;
+  width: 100%;
+  height: 48px;
+  min-height: 48px;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid #d6e0ed;
+  border-radius: 9px;
+  outline: none;
+  background: #ffffff;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: normal;
+  box-shadow: none;
+}
+
+.auth-page .auth-form input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.auth-page .auth-form small {
+  display: block;
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.auth-page .auth-card .auth-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  margin: 2px 0 0;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #2563eb;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.auth-page .auth-card .auth-submit:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.auth-page .auth-card .auth-submit:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.auth-page .auth-card .challenge-error {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.auth-page .auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 22px 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.auth-page .auth-divider::before,
+.auth-page .auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.auth-page .auth-card .auth-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #d6e0ed;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.auth-page .auth-card .auth-google:hover {
+  background: #f8faff;
+  border-color: #93b4f8;
+}
+
+.auth-page .auth-card .auth-switch {
+  display: block;
+  margin: 24px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.auth-page .auth-card .auth-switch button {
+  display: inline;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-page .auth-theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  z-index: 10;
+}
+
+@media (max-width: 520px) {
+  .auth-page {
+    align-items: center;
+    padding: 75px 15px 25px;
+  }
+
+  .auth-page .auth-card {
+    max-width: 440px;
+    padding: 27px 21px;
+    border-radius: 16px;
+  }
+
+  .auth-page .auth-card > h1 {
+    font-size: 25px;
+  }
+
+  .auth-page .auth-theme-toggle {
+    top: 15px;
+    right: 15px;
+  }
+}
+
+/* Dark mode login styling */
+html[data-theme="dark"] .auth-page {
+  background: #111827;
+}
+
+html[data-theme="dark"] .auth-page .auth-card {
+  background: #1f2937;
+  border-color: #374151;
+  color: #f3f4f6;
+}
+
+html[data-theme="dark"] .auth-page .auth-card > h1,
+html[data-theme="dark"] .auth-page .auth-brand h2 {
+  color: #f3f4f6;
+}
+
+html[data-theme="dark"] .auth-page .auth-form label,
+html[data-theme="dark"] .auth-page .auth-switch {
+  color: #d1d5db;
+}
+
+html[data-theme="dark"] .auth-page .auth-form input {
+  background: #111827;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+html[data-theme="dark"] .auth-page .auth-google {
+  background: #273449;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+/* =========================================================
+   WELLNESS COACH DASHBOARD
+   ========================================================= */
+
+.wellness-coach-page {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 28px;
+  min-width: 0;
+}
+
+.wellness-coach-page,
+.wellness-coach-page * {
+  box-sizing: border-box;
+}
+
+/* Header */
+.wellness-coach-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.wellness-coach-page .page-header > div:first-child {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.wellness-coach-page .page-header h1 {
+  margin: 4px 0 10px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.wellness-coach-page .page-header .subtitle {
+  max-width: 680px;
+  line-height: 1.65;
+  margin-top: 8px;
+}
+
+.wellness-coach-page .page-header > div:last-child {
+  max-width: 100%;
+}
+
+.wellness-coach-page .page-header button,
+.wellness-coach-page .page-header select {
+  min-height: 42px;
+  max-width: 100%;
+}
+
+/* Overview statistics */
+.wellness-coach-page .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 24px 0;
+}
+
+.wellness-coach-page .stat-card {
+  min-width: 0;
+  padding: 22px;
+  border-radius: 16px;
+}
+
+.wellness-coach-page .stat-top {
+  min-height: 24px;
+  line-height: 1.5;
+}
+
+.wellness-coach-page .stat-top span {
+  overflow-wrap: anywhere;
+}
+
+.wellness-coach-page .stat-card h3 {
+  margin: 12px 0 0;
+  font-size: clamp(24px, 2.2vw, 34px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* Main dashboard cards */
+.wellness-coach-page > .alarms-card {
+  min-width: 0;
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 18px;
+}
+
+.wellness-coach-page .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.wellness-coach-page .card-header > div {
+  min-width: 0;
+}
+
+.wellness-coach-page .card-header h2 {
+  margin: 0;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.wellness-coach-page .card-header p {
+  margin: 8px 0 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+/* Chart grid */
+.wellness-coach-page .wellness-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  width: 100%;
+  min-width: 0;
+  align-items: stretch;
+}
+
+.wellness-coach-page .wellness-chart-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 390px;
+  margin: 0;
+  padding: 20px;
+  border-radius: 16px;
+  overflow: visible;
+}
+
+.wellness-coach-page .wellness-chart-card .card-header {
+  flex: 0 0 auto;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+
+.wellness-coach-page .wellness-chart-card .card-header h2 {
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.wellness-coach-page .wellness-chart-card .card-header p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/*
+ * IMPORTANT CHART FIX
+ *
+ * The browser diagnostics showed that ResponsiveContainer
+ * had a valid width but Recharts' inner wrapper had width 0.
+ *
+ * Explicitly size the inner wrapper and SVG. The !important
+ * declarations override normal inline width declarations.
+ */
+
+.wellness-coach-page .wellness-chart-card
+  .recharts-responsive-container {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  height: 280px !important;
+  min-width: 0 !important;
+  min-height: 280px !important;
+  flex: 0 0 280px !important;
+}
+
+.wellness-coach-page .wellness-chart-card
+  .recharts-wrapper {
+  display: block !important;
+  position: relative;
+  width: 100% !important;
+  height: 280px !important;
+  max-width: 100% !important;
+}
+
+.wellness-coach-page .wellness-chart-card
+  .recharts-surface {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 280px !important;
+  overflow: visible;
+}
+
+.wellness-coach-page .wellness-chart-card svg {
+  overflow: visible;
+}
+
+.wellness-coach-page .wellness-chart-card
+  .recharts-cartesian-axis-tick-value {
+  font-size: 11px;
+}
+
+.wellness-coach-page .wellness-chart-card
+  .recharts-legend-item-text {
+  font-size: 12px;
+}
+
+.wellness-coach-page .wellness-chart-card
+  .recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.wellness-coach-page .wellness-chart-card .muted-line {
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
+/* People table */
+.wellness-coach-page .table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-radius: 10px;
+}
+
+.wellness-coach-page .data-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.wellness-coach-page .data-table th,
+.wellness-coach-page .data-table td {
+  padding: 13px 14px;
+  text-align: left;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.wellness-coach-page .data-table th {
+  white-space: nowrap;
+}
+
+.wellness-coach-page .data-table td {
+  overflow-wrap: anywhere;
+}
+
+/* Risk insights */
+.wellness-coach-page .risk-item {
+  padding: 18px;
+  margin: 14px 0;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  line-height: 1.65;
+}
+
+.wellness-coach-page .risk-item > strong {
+  display: block;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.wellness-coach-page .reason-list {
+  padding-left: 22px;
+  margin: 12px 0;
+}
+
+.wellness-coach-page .reason-list li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.wellness-coach-page .risk-item button {
+  margin-top: 8px;
+}
+
+/* Individual user detail */
+.wellness-coach-page .two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.wellness-coach-page .two-column > div {
+  min-width: 0;
+}
+
+.wellness-coach-page .sub-heading {
+  margin: 22px 0 12px;
+  line-height: 1.4;
+}
+
+.wellness-coach-page .sub-heading:first-child {
+  margin-top: 0;
+}
+
+.wellness-coach-page .muted-line {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+/* Tablet */
+@media (max-width: 1050px) {
+  .wellness-coach-page {
+    padding: 22px;
+  }
+
+  .wellness-coach-page .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wellness-coach-page .wellness-chart-grid {
+    gap: 16px;
+  }
+
+  .wellness-coach-page .wellness-chart-card {
+    padding: 16px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 680px) {
+  .wellness-coach-page {
+    padding: 14px;
+  }
+
+  .wellness-coach-page .page-header {
+    gap: 18px;
+    margin-bottom: 20px;
+  }
+
+  .wellness-coach-page .page-header > div:last-child {
+    width: 100%;
+  }
+
+  .wellness-coach-page .page-header > div:last-child button,
+  .wellness-coach-page .page-header > div:last-child select {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .wellness-coach-page .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .wellness-coach-page .stat-card {
+    padding: 16px;
+  }
+
+  .wellness-coach-page > .alarms-card {
+    padding: 16px;
+    margin-top: 18px;
+  }
+
+  .wellness-coach-page .wellness-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .wellness-coach-page .wellness-chart-card {
+    min-height: 360px;
+    padding: 14px;
+  }
+
+  .wellness-coach-page .two-column {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .wellness-coach-page .card-header {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .wellness-coach-page .stats-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Form controls inherit the page font */
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+/* =====================================================
+   PERMANENT FIX: WELLNESS COACH CHART RENDERING
+   ===================================================== */
+
+.wellness-coach-page .wellness-chart-grid {
+  width: 100%;
+  min-width: 0;
+}
+
+.wellness-coach-page .wellness-chart-card {
+  min-width: 0;
+  min-height: 390px;
+  display: flex;
+  flex-direction: column;
+}
+
+.wellness-coach-page .wellness-chart-card .recharts-responsive-container {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 280px !important;
+  min-height: 280px !important;
+  flex: 0 0 280px !important;
+  overflow: visible !important;
+}
+
+.wellness-coach-page .wellness-chart-card .recharts-wrapper {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  height: 280px !important;
+  flex: 0 0 auto !important;
+  overflow: visible !important;
+}
+
+.wellness-coach-page .wellness-chart-card .recharts-surface {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 280px !important;
+  overflow: visible !important;
+}
+
+.wellness-coach-page .wellness-chart-card .recharts-cartesian-axis-tick-value {
+  font-size: 11px;
+}
+
+.wellness-coach-page .wellness-chart-card .recharts-legend-item-text {
+  font-size: 12px;
+}
+
+.wellness-coach-page .wellness-chart-card .recharts-tooltip-wrapper {
+  outline: none;
+}
+
+@media (max-width: 680px) {
+  .wellness-coach-page .wellness-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wellness-coach-page .wellness-chart-card {
+    min-height: 360px;
+    padding: 14px;
+  }
+}
