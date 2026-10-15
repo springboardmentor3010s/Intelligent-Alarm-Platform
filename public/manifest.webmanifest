@@ -1,0 +1,19 @@
+{
+  "name": "Intelligent Cognitive Alarm",
+  "short_name": "Cognitive Alarm",
+  "description": "Wake your mind before starting your day with adaptive cognitive challenges.",
+  "start_url": "/alarms",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "productivity", "utilities"]
+}

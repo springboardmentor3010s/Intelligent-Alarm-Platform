@@ -1,0 +1,153 @@
+{
+  "model_version": "1.0.0",
+  "algorithm": "XGBoost Behavioral Intelligence Suite (Classifier + Regressor)",
+  "trained_at": "2026-09-30T10:36:00.210882+00:00",
+  "dataset_origin": "synthetic_circadian_benchmark",
+  "dataset_notice": "Model was trained on a reproducible synthetic circadian benchmark dataset. It establishes verified ML pipeline mechanics and baseline behavioral relationships. Does not represent real-world clinical precision.",
+  "dataset_stats": {
+    "total_records": 1200,
+    "train_records": 960,
+    "test_records": 240,
+    "train_positive_ratio": 0.7812,
+    "test_positive_ratio": 0.8042
+  },
+  "target_definition": {
+    "target_variable": "on_time_wakeup",
+    "label_1": "On-Time Prompt Wakeup (snooze_count == 0 and completed with response_time <= 60s)",
+    "label_0": "Delayed / At-Risk Wakeup (snooze_count >= 1, response_time > 60s, or expired)"
+  },
+  "features": {
+    "numerical": [
+      "alarm_hour",
+      "alarm_minute",
+      "alarm_time_minutes",
+      "sin_alarm_time",
+      "cos_alarm_time",
+      "day_of_week",
+      "is_weekend",
+      "difficulty_num",
+      "preferred_wake_minutes",
+      "schedule_diff_minutes",
+      "sleep_duration_hours",
+      "prior_habit_score",
+      "prior_snooze_rate",
+      "prior_avg_response_time"
+    ],
+    "categorical": [
+      "challenge_type"
+    ],
+    "all_features": [
+      "alarm_hour",
+      "alarm_minute",
+      "alarm_time_minutes",
+      "sin_alarm_time",
+      "cos_alarm_time",
+      "day_of_week",
+      "is_weekend",
+      "difficulty_num",
+      "preferred_wake_minutes",
+      "schedule_diff_minutes",
+      "sleep_duration_hours",
+      "prior_habit_score",
+      "prior_snooze_rate",
+      "prior_avg_response_time",
+      "challenge_type"
+    ]
+  },
+  "metrics": {
+    "accuracy": 0.7958,
+    "balanced_accuracy": 0.6236,
+    "precision": 0.8495,
+    "recall": 0.9067,
+    "f1_score": 0.8772,
+    "roc_auc": 0.7339,
+    "brier_score": 0.1429,
+    "log_loss": 0.4497,
+    "confusion_matrix": {
+      "true_negatives": 16,
+      "false_positives": 31,
+      "false_negatives": 18,
+      "true_positives": 175
+    }
+  },
+  "difficulty_model_metrics": {
+    "accuracy": 0.5708,
+    "balanced_accuracy": 0.4008,
+    "weighted_f1_score": 0.5526,
+    "class_labels": {
+      "0": "decrease",
+      "1": "maintain",
+      "2": "increase"
+    }
+  },
+  "behavior_regressor_metrics": {
+    "rmse": 7.1083,
+    "mae": 5.2997,
+    "r2_score": 0.4988
+  },
+  "models": {
+    "wake_prediction": {
+      "artifact": "xgb_wake_model.joblib",
+      "metrics": {
+        "accuracy": 0.7958,
+        "balanced_accuracy": 0.6236,
+        "precision": 0.8495,
+        "recall": 0.9067,
+        "f1_score": 0.8772,
+        "roc_auc": 0.7339,
+        "brier_score": 0.1429,
+        "log_loss": 0.4497,
+        "confusion_matrix": {
+          "true_negatives": 16,
+          "false_positives": 31,
+          "false_negatives": 18,
+          "true_positives": 175
+        }
+      }
+    },
+    "adaptive_difficulty": {
+      "artifact": "xgb_difficulty_model.joblib",
+      "metrics": {
+        "accuracy": 0.5708,
+        "balanced_accuracy": 0.4008,
+        "weighted_f1_score": 0.5526,
+        "class_labels": {
+          "0": "decrease",
+          "1": "maintain",
+          "2": "increase"
+        }
+      }
+    },
+    "behavior_regressor": {
+      "artifact": "xgb_behavior_regressor.joblib",
+      "metrics": {
+        "rmse": 7.1083,
+        "mae": 5.2997,
+        "r2_score": 0.4988
+      }
+    }
+  },
+  "feature_importances": {
+    "is_weekend": 0.1619,
+    "cos_alarm_time": 0.0815,
+    "day_of_week": 0.0813,
+    "sleep_duration_hours": 0.0504,
+    "schedule_diff_minutes": 0.0459,
+    "alarm_time_minutes": 0.0454,
+    "challenge_type_quiz": 0.0442,
+    "prior_snooze_rate": 0.0419,
+    "alarm_hour": 0.0411,
+    "prior_habit_score": 0.0396,
+    "challenge_type_word": 0.0385,
+    "prior_avg_response_time": 0.0382,
+    "sin_alarm_time": 0.0368,
+    "challenge_type_riddle": 0.0362,
+    "challenge_type_math": 0.0357,
+    "challenge_type_memory": 0.0331,
+    "challenge_type_pattern": 0.0323,
+    "preferred_wake_minutes": 0.0322,
+    "alarm_minute": 0.0322,
+    "challenge_type_logic": 0.0264,
+    "difficulty_num": 0.025
+  }
+}

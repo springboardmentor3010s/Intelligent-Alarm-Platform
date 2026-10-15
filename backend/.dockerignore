@@ -1,0 +1,26 @@
+# Exclude environment configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Exclude virtual environments and cache
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Exclude test files and trajectories
+test_*.py
+tests/
+.pytest_cache/
+
+# Exclude Git files
+.git/
+.gitignore
+
+# Exclude local scratch directories
+scratch/
+*.log
