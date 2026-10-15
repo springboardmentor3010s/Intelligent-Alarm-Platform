@@ -34,9 +34,4 @@ frontend.zip
 *.bak
 *.backup
 *.recovery-*
-
-# Local backup files
-*.bak
-*.backup
-*.recovery-*
 *-backup
