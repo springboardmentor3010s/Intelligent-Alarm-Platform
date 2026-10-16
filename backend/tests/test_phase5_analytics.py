@@ -176,6 +176,56 @@ def test_reports_on_empty_data(client, user_headers):
 
 
 # ------------------------------------------------------------------
+# Sleep report (FR-REP-005): bedtime/wake trend + duration analysis
+# ------------------------------------------------------------------
+
+def _seed_alarm_at(user_id, when):
+    session = TestingSession()
+    try:
+        session.add(Alarm(
+            user_id=user_id,
+            title="Sleep anchor",
+            alarm_type="One-Time",
+            next_trigger=when,
+            is_enabled=True,
+            times_snoozed=0,
+        ))
+        session.commit()
+    finally:
+        session.close()
+
+
+def test_sleep_report_windows_match_duration_analysis(client, registered_user):
+    _, _, user_id, headers = registered_user
+    now = datetime.now(timezone.utc)
+    # Consecutive-day overnight window: bedtime 22:00 -> wake 06:30 (8.5h).
+    _seed_alarm_at(user_id, (now - timedelta(days=2)).replace(hour=22, minute=0, second=0, microsecond=0))
+    _seed_alarm_at(user_id, (now - timedelta(days=1)).replace(hour=6, minute=30, second=0, microsecond=0))
+
+    report = client.get("/api/v1/dashboard/reports/sleep?format=json&days=7", headers=headers).json()
+    assert report["report_type"] == "sleep"
+    rows = report["data"]
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["bedtime"] == "22:00"
+    assert row["wake_time"] == "06:30"
+    assert row["sleep_window_hours"] == 8.5
+
+    # Single source: the report's per-day window matches /analytics/me's average.
+    analytics = client.get("/api/v1/analytics/me", headers=headers).json()
+    assert analytics["sleep_duration_avg"] == 8.5
+
+
+def test_sleep_report_empty_without_consecutive_alarms(client, user_headers):
+    report = client.get("/api/v1/dashboard/reports/sleep?format=json&days=7", headers=user_headers).json()
+    assert report["data"] == []
+
+    pdf = client.get("/api/v1/dashboard/reports/sleep?format=pdf&days=7", headers=user_headers)
+    assert pdf.status_code == 200
+    assert pdf.content.startswith(b"%PDF")
+
+
+# ------------------------------------------------------------------
 # Wellness-coach cohort access control
 # ------------------------------------------------------------------
 

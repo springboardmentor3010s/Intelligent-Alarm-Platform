@@ -13,6 +13,7 @@ Canonical homes:
 from .behavior_analytics_service import (
     compute_recent_activity,
     compute_sleep_duration_avg,
+    compute_sleep_windows,
     compute_wake_up_consistency_trend,
     get_user_analytics_summary,
 )
@@ -28,6 +29,7 @@ __all__ = [
     "compute_habit_composite",
     "compute_recent_activity",
     "compute_sleep_duration_avg",
+    "compute_sleep_windows",
     "compute_streak_length",
     "compute_wake_up_consistency_trend",
     "get_habit_score_history",

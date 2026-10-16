@@ -8,6 +8,8 @@ dashboards read, so API, web, mobile, and exports always agree:
   exact source behind `/habits/score/history`); gap days with no stored score
   are omitted from exports while dashboards render them honestly as gaps.
 - wake-up rows come from the user's real `alarms` table ordered by trigger.
+- sleep rows (FR-REP-005) come from the same overnight-window estimate behind
+  `/analytics/me` `sleep_duration_avg`, joined to stored bedtime adherence.
 - challenge rows come from the user's real `challenge_attempts` table.
 """
 
@@ -69,6 +71,33 @@ def habits_report_records(db: Session, user_id: int, days: int) -> List[Dict[str
         }
         for entry in history
         if entry.get("overall_score") is not None
+    ]
+
+
+def sleep_report_records(db: Session, user_id: int, days: int) -> List[Dict[str, Any]]:
+    """Per-day sleep window rows (FR-REP-005), oldest day first.
+
+    Bedtime/wake anchors come from the same alarm-gap estimate behind
+    `/analytics/me` `sleep_duration_avg` (single source); bedtime-schedule
+    adherence is the stored habit-score pillar when that day has a score.
+    Days without a derivable overnight window are simply absent.
+    """
+    from .behavior_analytics_service import compute_sleep_windows
+
+    windows = compute_sleep_windows(db, user_id, days=_clamp_days(days))
+    adherence = {
+        entry["date"]: entry.get("sleep_schedule_adherence")
+        for entry in get_habit_score_history(db, user_id, days=_clamp_days(days))
+    }
+    return [
+        {
+            "date": w["date"],
+            "bedtime": w["bedtime"],
+            "wake_time": w["wake_time"],
+            "sleep_window_hours": w["sleep_window_hours"],
+            "sleep_schedule_adherence": adherence.get(w["date"]),
+        }
+        for w in windows
     ]
 
 

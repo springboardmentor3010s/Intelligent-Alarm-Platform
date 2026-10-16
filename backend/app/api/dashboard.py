@@ -160,6 +160,26 @@ def report_wake_up(
     )
 
 
+@router.get("/reports/sleep")
+def report_sleep(
+    days: int = Query(7, ge=1, le=365),
+    format: str = Query("csv", pattern="^(csv|json|pdf|excel)$"),
+    background_tasks: BackgroundTasks = None,
+    async_flag: int = Query(0, alias="async"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Export sleep analytics (FR-REP-005): bedtime/wake-time trend + duration.
+
+    Contains only days with a derivable overnight alarm window; honest-empty for
+    accounts without consecutive-day alarms.
+    """
+    return _dispatch_report(
+        report_service.sleep_report_records, db, current_user.id, days,
+        format, "sleep", "Sleep Report", background_tasks, bool(async_flag),
+    )
+
+
 @router.get("/reports/challenges")
 def report_challenges(
     days: int = Query(7, ge=1, le=365),
