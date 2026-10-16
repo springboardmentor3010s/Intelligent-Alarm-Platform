@@ -14,6 +14,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from ..Models import User, Alarm, Challenge
+from ..integrations import event_store
 from ..schemas import AlarmCreateReq, AlarmDismissReq, AlarmRes, DismissRes
 from ..services.habit_scoring_service import refresh_habit_score
 from ..services.notification_service import NotificationService
@@ -128,7 +129,7 @@ def _find_owned_alarm(db: Session, user_id: int, alarm_id: int) -> Alarm:
 
 
 def _log_alarm(name: str, alarm: Alarm, **extra) -> None:
-    """Emit a structured alarm lifecycle log line."""
+    """Emit a structured alarm lifecycle log line and mirror it to the event store."""
     logger.info(
         "alarm.%s alarm_id=%s user_id=%s title=%s type=%s enabled=%s next_trigger=%s %s",
         name,
@@ -139,6 +140,18 @@ def _log_alarm(name: str, alarm: Alarm, **extra) -> None:
         alarm.is_enabled,
         alarm.next_trigger.isoformat() if alarm.next_trigger else None,
         " ".join(f"{k}={v}" for k, v in extra.items()),
+    )
+    event_store.record(
+        f"alarm.{name}",
+        {
+            "alarm_id": alarm.id,
+            "title": alarm.title,
+            "alarm_type": alarm.alarm_type,
+            "is_enabled": alarm.is_enabled,
+            "next_trigger": alarm.next_trigger.isoformat() if alarm.next_trigger else None,
+            **extra,
+        },
+        user_id=alarm.user_id,
     )
 
 

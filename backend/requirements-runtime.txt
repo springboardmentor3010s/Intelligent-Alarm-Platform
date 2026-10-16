@@ -21,3 +21,4 @@ reportlab==5.0.1
 openpyxl==3.1.5
 sentry-sdk==2.41.0
 httpx==0.28.1  # ExpoPushProvider transport (PUSH_PROVIDER=expo); absent -> pushes fail silently
+pymongo[srv]==4.19.0  # MongoDB event log (MONGODB_URI); [srv] enables Atlas SRV strings

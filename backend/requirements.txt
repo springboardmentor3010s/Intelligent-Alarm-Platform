@@ -22,6 +22,7 @@ openpyxl>=3.1.0  # Excel report export
 python-multipart>=0.0.6  # for file uploads
 email-validator>=2.1.0  # for JWT email validation
 aioredis>=2.0.0  # optional Redis for caching
+pymongo[srv]>=4.19.0  # optional MongoDB event log (MONGODB_URI); default is a silent no-op
 alembic>=1.13.0  # database migrations
 
 # Testing

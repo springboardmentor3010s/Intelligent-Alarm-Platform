@@ -117,3 +117,24 @@ def get_push_expo_url() -> str:
         os.getenv("PUSH_EXPO_URL", "https://exp.host/--/api/v2/push/send").strip()
         or "https://exp.host/--/api/v2/push/send"
     )
+
+
+# ---------------------------------------------------------------------------
+# MongoDB secondary event log (optional)
+# ---------------------------------------------------------------------------
+
+
+def get_mongodb_uri() -> str:
+    """Return the MongoDB connection URI, or "" when the event log is disabled.
+
+    Empty (the default) means no MongoDB: the event store is a silent no-op, so
+    PostgreSQL remains the only required datastore for a local-first run. Set
+    ``MONGODB_URI`` (e.g. ``mongodb://mongo:27017`` for the bundled compose
+    service, or a ``mongodb+srv://`` Atlas string) to enable event logging.
+    """
+    return os.getenv("MONGODB_URI", "").strip()
+
+
+def get_mongodb_db_name() -> str:
+    """Return the database the event log writes to (default ``cerebrokognit_events``)."""
+    return os.getenv("MONGODB_DB", "cerebrokognit_events").strip() or "cerebrokognit_events"

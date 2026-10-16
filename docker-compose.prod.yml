@@ -25,6 +25,10 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS to the exact production frontend origin(s)}
       PUSH_PROVIDER: ${PUSH_PROVIDER:-noop}
       EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
+      # Optional secondary event log; empty = silent no-op (Postgres is the
+      # only required datastore). Set to a hosted (Atlas) URI for cloud.
+      MONGODB_URI: ${MONGODB_URI:-}
+      MONGODB_DB: ${MONGODB_DB:-cerebrokognit_events}
       SENTRY_DSN: ${SENTRY_DSN:-}
     ports:
       - "${API_PORT:-8000}:8000"

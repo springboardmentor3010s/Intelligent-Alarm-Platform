@@ -81,8 +81,8 @@ if ($NoDb) {
 } elseif (Get-Command docker -ErrorAction SilentlyContinue) {
   & docker version 2>&1 | Out-Null
   if ($LASTEXITCODE -eq 0) {
-    Write-Host "[database] docker compose up -d db" -ForegroundColor $color.database
-    & docker compose -f (Join-Path $root 'docker-compose.yml') up -d db 2>&1 | ForEach-Object { Write-Host "[database] $_" -ForegroundColor $color.database }
+    Write-Host "[database] docker compose up -d db mongo" -ForegroundColor $color.database
+    & docker compose -f (Join-Path $root 'docker-compose.yml') up -d db mongo 2>&1 | ForEach-Object { Write-Host "[database] $_" -ForegroundColor $color.database }
     # Wait until Postgres is actually ready (pg_isready inside the container).
     $composeFile = Join-Path $root 'docker-compose.yml'
     $pgReady = $false

@@ -6,5 +6,6 @@ Concrete providers are planned; none are fabricated.
 """
 
 from . import messaging  # noqa: F401
+from . import event_store  # noqa: F401
 
-__all__ = ["messaging"]
+__all__ = ["messaging", "event_store"]
