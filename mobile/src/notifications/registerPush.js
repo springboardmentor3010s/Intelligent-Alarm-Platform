@@ -11,6 +11,7 @@
  * previous flow used.
  */
 import { Platform } from 'react-native';
+import { isExpoGo } from '../utils/env';
 
 export const EXPO_PUSH_TAG = 'ExpoPushToken';
 
@@ -49,8 +50,7 @@ export async function registerPushToken({
  */
 export async function getExpoPushToken() {
   try {
-    const { isRunningInExpoGo } = require('expo');
-    if (isRunningInExpoGo()) {
+    if (isExpoGo()) {
       return null;
     }
     const { default: Notifications } = await import('expo-notifications');

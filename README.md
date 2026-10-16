@@ -22,12 +22,12 @@ The **Intelligent Cognitive Alarm Platform** is an AI-powered alarm clock applic
 | Backend Security | Good | ~95% | **Phase 2 (2026-09-16)**: secret fail-fast in production, CORS allowlist, refresh-token rotation + hashed single-use tokens, password-reset/email-verification, audit log, security headers, deactivation + admin role-change; env-driven JWT secret + RBAC, structured error envelope, rate limiting |
 | Web Dashboard | Good | ~95% | **Retro-futuristic redesign (2026-09-10)**: flat brand palette `#F4A442`/#3E7C17/#125C13/#E8E1D9 (no gradients, no glow), landing page, grouped nav IA, Home command-center dashboard, admin UI, brand login-bg; **responsive + overflow pass** (no page-level horizontal scroll at any width, fixed-clock clearance, 4→2→1 column chart/metric grids, mobile alarm/settings layouts) |
 | Mobile App | Good | ~85% | **Custom HOME/ALARMS/INSIGHTS/PROFILE bottom nav + redesigned screens (2026-09-10)**; alarm dismiss E2E functional; offline-first sync + Expo push registration wired; **Phase 3 (2026-09-17)**: on-device local alarm scheduling (`expo-notifications`, channel `cerebrokognit-alarms`), notification-tap → challenge gate routing, offline alarm cache; on-device E2E still requires the manual checklist |
-| Testing | Good | ~95% | **Backend pytest suite (187, verified 3.11 + 3.14, coverage 88%)**; **web Vitest (55) + mobile jest-expo (72)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
+| Testing | Good | ~95% | **Backend pytest suite (187, verified 3.11 + 3.14, coverage 88%)**; **web Vitest (55) + mobile jest-expo (77)**; smoke_m1 (22)/smoke_m2 (25) regression gates; CI via GitHub Actions |
 | Infrastructure/Docker | Good | ~90% | **Compose up-tested**: Postgres + migrations entrypoint + lean runtime image + api healthcheck; PDF/Excel served in container |
 
 ### Known Critical Issues (remaining after Phase 3)
-1. Mobile on-device notification delivery is **not yet E2E-verified** — run `Markdown Files/REAL_DEVICE_CHECKLIST.md`. Remote push needs an Expo **dev build** (Expo Go disables token acquisition); local scheduling works in Expo Go
-2. Test coverage now exists for backend (pytest **187**, coverage 88%), web (Vitest 55) and mobile (jest 72) with coverage tooling; remaining: broader flow-level alarm-dismiss component coverage
+1. Mobile on-device notification delivery is **not yet E2E-verified** — run `Markdown Files/REAL_DEVICE_CHECKLIST.md`. Remote push needs an Expo **dev build** (Expo Go disables token acquisition). Local scheduling works in Expo Go on **iOS only**: on Android, Expo Go throws when `expo-notifications` is imported (SDK 53+ removed Android remote push from Expo Go), so on-device Android alarms also require a development build — the app detects this and degrades gracefully (no crash)
+2. Test coverage now exists for backend (pytest **187**, coverage 88%), web (Vitest 55) and mobile (jest 77) with coverage tooling; remaining: broader flow-level alarm-dismiss component coverage
 3. No real cloud deployment yet — Docker compose works locally (M4 backlog)
 4. Web settings are saved to `/users/settings` + `/users/{key}` (theme, notifications, auto-dismiss, vibrate) — completed 2026-09-08
 5. `PUSH_PROVIDER=expo` requires `EXPO_ACCESS_TOKEN` to avoid relay throttling/401s; defaults to `noop` (strict) outside production
@@ -67,7 +67,7 @@ Full issue inventory: see **Section 9 (Known Issues)** in `Markdown Files/SRS.md
 
 **Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 43 HTTP endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications.
 **Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **5 nav sections (Overview/Wake/Insights/Account/Administration)** with a collapsible icon rail and a global circular theme toggle in the topbar.
-**Mobile** (Expo SDK 57 / React Native 0.87): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); **offline-first sync + Expo push-token registration wired & jest-tested**; **Phase 3: on-device local alarm scheduling (Android channel `cerebrokognit-alarms`), notification-tap → challenge-gate routing, offline alarm cache**; remote push delivery needs an Expo dev build.
+**Mobile** (Expo SDK 57 / React Native 0.86.3): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); **offline-first sync + Expo push-token registration wired & jest-tested**; **Phase 3: on-device local alarm scheduling (Android channel `cerebrokognit-alarms`), notification-tap → challenge-gate routing, offline alarm cache**; remote push delivery needs an Expo dev build.
 **Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 9 ORM tables with performance indexes.
 
 ---
@@ -290,7 +290,7 @@ Full milestone detail: see `Markdown Files/SRS.md` Section 6 (Acceptance Criteri
 |---|---|
 | `npx expo start` | Start Expo dev server |
 | `npx expo start --android` | Launch Android emulator |
-| `npx jest --ci` | Run jest-expo mobile tests (72) |
+| `npx jest --ci` | Run jest-expo mobile tests (77) |
 | `npx expo export --platform android` | Produce a release bundle (compile check) |
 
 > Before claiming Phase 3 delivery, walk `Markdown Files/REAL_DEVICE_CHECKLIST.md` on a

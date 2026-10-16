@@ -423,7 +423,7 @@ desktop (>=1280px) widths, and check the live dev server refresh
 For mobile work, also run `./mobile` gates:
 
 ```
-npm test                     # jest-expo suite (currently 72 passing)
+npm test                     # jest-expo suite (currently 77 passing)
 npx expo export --platform android   # must bundle cleanly
 npx expo export --platform ios
 ```

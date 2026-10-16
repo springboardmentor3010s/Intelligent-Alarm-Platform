@@ -4,8 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest"
   },
@@ -17,10 +17,10 @@
     "@react-native-community/netinfo": "12.0.1",
     "@react-navigation/native": "^7.3.17",
     "@react-navigation/native-stack": "^7.18.9",
-    "expo": "~57.0.22",
-    "expo-constants": "~57.0.18",
+    "expo": "~57.0.27",
+    "expo-constants": "~57.0.21",
     "expo-font": "~57.0.4",
-    "expo-notifications": "~57.0.18",
+    "expo-notifications": "~57.0.22",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.3",
@@ -53,8 +53,15 @@
     ],
     "collectCoverage": true,
     "coverageDirectory": "./coverage",
-    "coverageReporters": ["text", "text-summary"],
-    "collectCoverageFrom": ["src/**/*.{js,jsx}", "!src/**/*.test.*", "!src/**/__mocks__/**"]
+    "coverageReporters": [
+      "text",
+      "text-summary"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx}",
+      "!src/**/*.test.*",
+      "!src/**/__mocks__/**"
+    ]
   },
   "private": true
 }

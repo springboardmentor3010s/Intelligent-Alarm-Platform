@@ -1,20 +1,10 @@
 // CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import { useState, useEffect, useCallback } from 'react';
-import Constants from 'expo-constants';
-import * as Expo from 'expo';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch, parseApiError, describeFetchError, authHeaders, onAuthExpired } from '../utils/api';
+import { isExpoGo } from '../utils/env';
 import { getExpoPushToken, registerPushToken } from '../notifications/registerPush';
-
-function checkExpoGo() {
-  try {
-    if (typeof Expo.isRunningInExpoGo === 'function') return Expo.isRunningInExpoGo();
-    return Constants?.appOwnership === 'expo';
-  } catch {
-    return false;
-  }
-}
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -131,7 +121,7 @@ export function useAuth() {
   const registerForPushNotifications = useCallback(
     async (explicitToken = token) => {
       // Expo Go (SDK 53+) disables expo-notifications push; dev/physical builds use EAS.
-      if (checkExpoGo()) {
+      if (isExpoGo()) {
         console.log('Push registration skipped (Expo Go): remote push requires a development build.');
         return { registered: false, reason: 'expo-go' };
       }

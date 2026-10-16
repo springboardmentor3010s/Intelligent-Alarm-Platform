@@ -141,9 +141,9 @@ All commands are from `.github/workflows/ci.yml`, run locally:
 | `smoke_m2.py` | `cd backend; .venv\Scripts\python.exe scripts/smoke_m2.py` | PASS (25/25) |
 | `npm test` (web) | `cd web; npm test` | PASS (55/55) |
 | `npm run build` (web) | `cd web; npm run build` | PASS |
-| `npm test -- --ci` (mobile) | `cd mobile; npm test -- --ci` | PASS (72/72) |
+| `npm test -- --ci` (mobile) | `cd mobile; npm test -- --ci` | PASS (77/77) |
 
-**Total across all layers:** 314 tests, 314 passed, 0 failed, 0 skipped (187 pytest + 55 Vitest + 72 jest + 22 smoke_m1/smoke_m2 counted separately as gates).
+**Total across all layers:** 319 tests, 319 passed, 0 failed, 0 skipped (187 pytest + 55 Vitest + 77 jest + 22 smoke_m1/smoke_m2 counted separately as gates).
 
 ---
 

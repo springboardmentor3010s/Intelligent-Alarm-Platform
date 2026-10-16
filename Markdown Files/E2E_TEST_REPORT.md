@@ -20,8 +20,8 @@ test and its observed result.
 | smoke_m1 / smoke_m2 | `scripts/smoke_m1.py`, `scripts/smoke_m2.py` | 22/22, 25/25 PASS |
 | Web Vitest | `cd web; npm run test -- --run` | 55/55 PASS |
 | Web build | `cd web; npm run build` | clean |
-| Mobile jest | `cd mobile; npx jest` | 72/72 PASS |
-| **Total** | | **314/314 PASS** |
+| Mobile jest | `cd mobile; npx jest` | 77/77 PASS |
+| **Total** | | **319/319 PASS** |
 
 Browser-driven E2E (Playwright/Cypress) is intentionally not introduced: no
 browser harness exists in the repo or CI, and web behavior is covered by 55

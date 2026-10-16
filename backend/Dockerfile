@@ -24,7 +24,10 @@ COPY backend/ml_models /app/ml_models
 COPY migrations /app/migrations
 COPY alembic.ini /app/alembic.ini
 COPY backend/docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh \
+# Strip CR defensively: a CRLF working tree (Windows checkout) makes sh read
+# `set -e\r` as an illegal option and the container crash-loops.
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh \
+    && chmod +x /app/docker-entrypoint.sh \
     && useradd --create-home --uid 10001 appuser \
     && chown -R appuser:appuser /app
 USER appuser

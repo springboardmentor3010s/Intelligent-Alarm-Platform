@@ -42,6 +42,8 @@ mobile/.expo/
 web-build/
 expo-env.d.ts
 *.orig.*
+mobile/android/
+mobile/ios/
 
 # IDE
 .idea/

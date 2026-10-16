@@ -957,7 +957,7 @@ FUNCTION sync_pending_records(records):
 | ~~13~~ | 🟡 | ~~Web dashboard renders hardcoded mock chart data~~ | `web/src/utils/chartUtils.js` | **RESOLVED (M3):** Home/Dashboard/Reports wired to live `/habits/score/history` | — |
 | ~~14~~ | 🟡 | ~~Web silently substitutes fake scores (70) on API failure~~ | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | **RESOLVED (M3):** `'—'` fallback removed; real API data only | — |
 | ~~18~~ | 🟢 | ~~Triplicated divergent schema definitions~~ | `schemas/__init__.py`, `schemas/auth.py` | **RESOLVED (Level 2, 2026-09-19)** — `schemas/all.py` deleted; drift risk eliminated | — |
-| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + phases):** pytest (187), Vitest (55), jest-expo (72), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
+| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + phases):** pytest (187), Vitest (55), jest-expo (77), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
 
 ---
 
@@ -987,7 +987,7 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Security Hardening | ✅ Complete (Phase 2, 2026-09-16) | Secret fail-fast (`ENVIRONMENT=production`), CORS allowlist, refresh-token rotation + hashed single-use tokens, password reset/email verification, audit log, security headers, deactivate + role-change | 90% |
 | Notification Delivery | ✅ Complete (Phase 3, 2026-09-17) | `ExpoPushProvider` behind `PUSH_PROVIDER`, dead-token pruning, dedupe, `/notifications/status` + `/notifications/test` + `/alarms/{id}/notify`; delivery config strict-raise by default | 85% |
 | Testing (pytest) | ✅ Complete (M4 + Phase 2/3/5/6/7/8/9) | **187 tests** (auth, alarms, challenges, analytics, coach cohort, productivity, feedback, notifications, security incl. boot guard, uptime, AI engine, E2E journeys); coverage **88%**; verified Python 3.11 + 3.14 | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 55) + mobile jest (72) | 90% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 55) + mobile jest (77) | 90% |
 
 ### Web Dashboard
 
@@ -1023,7 +1023,7 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 |---|---|---|---|
 | Docker | ✅ Complete (M4 + Phase 9) | Pinned lean image (non-root), env-driven compose + prod overlay (secret guards), web nginx image, Postgres migrations entrypoint; prod-container validated (migrate/E2E/restart/backup-restore/logs) — see FINAL_VALIDATION_REPORT.md | 95% |
 | Database Migrations | ✅ Complete | Migration at head (`f2b1d8e4a903` adds `productivity_logs`; `e7a2c4d6b810` added `coach_assignments`); `upgrade head` verified on fresh DB | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (187) + smoke_m1 (22) + smoke_m2 (25) + web test (55)/build + mobile jest (72) | 90% |
-| Testing | ✅ Complete (M4-backlog + Phase 2/3/5/6/7/8/9) | pytest **187** + Vitest 55 + jest 72; smoke_m1 (22) + smoke_m2 (25) regression gates; `E2E_TEST_REPORT.md` (W01–W20); `FINAL_VALIDATION_REPORT.md` (prod-container evidence); coverage 88%/74.67%/31.2% (2026-09-19) | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (187) + smoke_m1 (22) + smoke_m2 (25) + web test (55)/build + mobile jest (77) | 90% |
+| Testing | ✅ Complete (M4-backlog + Phase 2/3/5/6/7/8/9) | pytest **187** + Vitest 55 + jest 77; smoke_m1 (22) + smoke_m2 (25) regression gates; `E2E_TEST_REPORT.md` (W01–W20); `FINAL_VALIDATION_REPORT.md` (prod-container evidence); coverage 88%/74.67%/31.2% (2026-09-19) | 95% |
 | On-Device Verification | 🟡 Manual | `Markdown Files/REAL_DEVICE_CHECKLIST.md` written; firing must be confirmed on a physical device | 40% |
 | Environment Config | ✅ Complete (Phase 2) | Secrets/CORS from env with prod fail-fast; `AUTO_INIT` SQLite auto-init | 95% |

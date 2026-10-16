@@ -127,7 +127,10 @@ def test_fallback_when_torch_missing(monkeypatch):
 
 
 def test_inference_when_model_present():
-    pytest.importorskip("torch")
+    try:
+        import torch  # noqa: F401
+    except (ImportError, OSError):  # OSError: WinError 4551 when Smart App Control/WDAC blocks torch DLLs
+        pytest.skip("torch unusable in this environment (not installed, or DLLs blocked by policy)")
     assert engine.MODEL_PATH.exists(), "weights file required for the inference test"
     MLInferenceService.reset_cache()
     predicted, method = MLInferenceService.predict_difficulty(0.9, 25.0, 0, 8, "Medium")

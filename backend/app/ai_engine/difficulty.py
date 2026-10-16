@@ -195,7 +195,7 @@ try:
             return self.net(x)
 
     _torch_available = True
-except ImportError:
+except (ImportError, OSError):  # OSError: torch raises WinError 4551 when Smart App Control/WDAC blocks its DLLs
     _torch_available = False
     logger.warning("PyTorch not available; ML inference disabled, using rule-based fallback.")
 

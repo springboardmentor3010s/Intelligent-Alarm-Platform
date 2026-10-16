@@ -7,12 +7,13 @@
  * missing permission, an unsupported environment (Expo Go push limits), or a
  * native failure returns a safe value rather than crashing the screen.
  *
- * Local notifications work in Expo Go; acquiring an Expo *push* token for
- * server-driven FCM/APNs delivery requires a development build (see
- * REAL_DEVICE_CHECKLIST.md).
+ * Local notifications work in Expo Go on iOS; on Android, Expo Go cannot load
+ * `expo-notifications` at all (SDK 53+), so every call returns a safe value and
+ * on-device alarms need a development build (see REAL_DEVICE_CHECKLIST.md).
  */
 
 import { Platform } from 'react-native';
+import { isExpoGo } from '../utils/env';
 
 export const ANDROID_CHANNEL_ID = 'cerebrokognit-alarms';
 
@@ -21,7 +22,15 @@ let notificationsModule = null;
 function getNotifications() {
   if (notificationsModule === null) {
     try {
-      notificationsModule = require('expo-notifications');
+      // Importing `expo-notifications` in Expo Go on Android evaluates its push
+      // auto-registration side effect, which throws (SDK 53+ removed Android
+      // remote push from Expo Go). Local alarms can't work there either, so
+      // skip the import entirely instead of letting it throw.
+      if (isExpoGo() && Platform.OS === 'android') {
+        notificationsModule = false;
+      } else {
+        notificationsModule = require('expo-notifications');
+      }
     } catch (e) {
       notificationsModule = false;
     }

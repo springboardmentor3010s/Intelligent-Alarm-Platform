@@ -42,8 +42,8 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | SQLite | (local dev) | — | Used via `backend/.env` override |
 | | MongoDB | — | 7.x | ⚠️ **Not implemented** — referenced in architecture only |
 | **DevOps** | Docker | Compose v2 | latest | Containerization |
-| | Git & GitHub | — | Latest | Version control; `main` synced with `origin` (HEAD `24cce95`, 2026-09-19) |
-| | GitHub Actions | — | Latest | ✅ **Implemented (M4)** — `.github/workflows/ci.yml`: ruff + pytest + smokes + web test (Vitest 55) + web build + mobile jest (72) |
+| | Git & GitHub | — | Latest | Version control; `main` synced with `origin` (HEAD `57db2cb`, 2026-09-19) |
+| | GitHub Actions | — | Latest | ✅ **Implemented (M4)** — `.github/workflows/ci.yml`: ruff + pytest + smokes + web test (Vitest 55) + web build + mobile jest (77) |
 | **Mobile** | Expo | SDK ~57.0.15 | Latest | React Native framework |
 | | Firebase Cloud Messaging | — | Latest | ✅ **Delivery wired (Phase 3, 2026-09-17)** — Expo Push Service provider (`ExpoPushProvider`, covers FCM+APNs) behind `PUSH_PROVIDER=noop\|expo`; dead-token pruning + dedupe; on-device **expo-notifications** local scheduling (channel `cerebrokognit-alarms`) is the time-critical path |
 | | Android Alarm Manager | — | Native | ⚠️ **Backlog** — on-device local alarm scheduling (Levels 12/16) |
@@ -539,8 +539,8 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 12. **Level 11 — Mobile Core Flow** — fix dismiss flow, challenge wiring, add registration/alarm-creation screens ✅ (M2) — screens exist; polish pending
 13. **Level 12 — Notifications** — server push-token API + mobile Expo-token registration ✅ DONE (P5 + 2026-09-07); **Phase 3 (2026-09-17): Expo Push Service delivery provider + on-device local scheduling + tap routing ✅ IMPLEMENTED** — on-device firing still needs the manual `REAL_DEVICE_CHECKLIST.md` pass
 14. **Level 13 — Offline Sync** — SQLite/AsyncStorage cache + sync engine + screen wiring ✅ DONE (2026-09-07, but on-device E2E pending; Alarms tab cache added Phase 3)
-15. **Level 14 — Testing** — pytest + httpx ✅ backend (**187** tests incl. boot-guard test; 3.11+3.14 verified); **web Vitest (55) + mobile jest-expo (72) ✅ added 2026-09-07, grown through Phase 9**; coverage: pytest-cov 88% / @vitest/coverage-v8 74.67% / jest 31.2%; Phase 8: `E2E_TEST_REPORT.md` (W01–W20, device leg manual); reminders: broader flow-level component coverage
-16. **Level 15 — Linting & CI/CD** — Ruff ✅ (pyproject pragmatic E/F/W config, `ruff check app tests scripts` clean); ESLint/mypy ⚠️; **GitHub Actions ✅ DONE (M4)** (`ci.yml`: ruff + pytest (187) + smokes + web test (55)/build + mobile jest (72))
+15. **Level 14 — Testing** — pytest + httpx ✅ backend (**187** tests incl. boot-guard test; 3.11+3.14 verified); **web Vitest (55) + mobile jest-expo (77) ✅ added 2026-09-07, grown through Phase 9**; coverage: pytest-cov 88% / @vitest/coverage-v8 74.67% / jest 31.2%; Phase 8: `E2E_TEST_REPORT.md` (W01–W20, device leg manual); reminders: broader flow-level component coverage
+16. **Level 15 — Linting & CI/CD** — Ruff ✅ (pyproject pragmatic E/F/W config, `ruff check app tests scripts` clean); ESLint/mypy ⚠️; **GitHub Actions ✅ DONE (M4)** (`ci.yml`: ruff + pytest (187) + smokes + web test (55)/build + mobile jest (77))
 17. **Level 16 — Production Hardening** — monitoring, rate limiting, Sentry, performance fixes
 
 > Full detail for every level: see **`HierarchicalRemediationPlan.md`**.

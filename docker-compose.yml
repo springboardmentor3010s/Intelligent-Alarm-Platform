@@ -4,6 +4,10 @@
 # `docker compose up -d` works out of the box, while production uses
 # docker-compose.prod.yml, which *requires* real secrets and drops every
 # development default. Copy .env.docker.example to .env.docker to pin values.
+# Pin the compose project name so container/volume/network names never depend
+# on the repo folder name (renaming the folder used to clash with an existing
+# `cerebrokognit-db` container via the hardcoded container_name below).
+name: cerebrokognit
 services:
 
   # PostgreSQL database
