@@ -14,6 +14,7 @@ def test_create_and_list_alarm(client, user_headers):
     assert alarm["title"] == "Wake up"
     assert alarm["alarm_type"] == "Daily"
     assert alarm["time"] == "06:30"
+    assert alarm["question_count"] == 1
     assert alarm["next_trigger"]
 
     lst = client.get("/api/v1/alarms", headers=user_headers)
@@ -30,6 +31,36 @@ def test_update_alarm(client, user_headers):
     })
     assert upd.status_code == 200
     assert upd.json()["title"] == "A2"
+
+
+def test_question_count_persists_and_updates(client, user_headers):
+    """FR-WV-002: per-alarm question count is accepted, persisted, and returned."""
+    created = client.post("/api/v1/alarms", headers=user_headers, json={
+        "title": "Drill", "type": "Daily", "time": "07:00",
+        "challenge_type": "Math", "difficulty": "Hard", "question_count": 5,
+    })
+    assert created.status_code == 200, created.text
+    assert created.json()["question_count"] == 5
+
+    # Round-trips on list (so the edit form can read it back)
+    listed = client.get("/api/v1/alarms", headers=user_headers).json()
+    assert next(a for a in listed if a["id"] == created.json()["id"])["question_count"] == 5
+
+    upd = client.put(f"/api/v1/alarms/{created.json()['id']}", headers=user_headers, json={
+        "title": "Drill", "type": "Daily", "time": "07:00",
+        "challenge_type": "Math", "difficulty": "Hard", "question_count": 3,
+    })
+    assert upd.status_code == 200, upd.text
+    assert upd.json()["question_count"] == 3
+
+
+def test_question_count_optional(client, user_headers):
+    """Omitting question_count leaves it null (adaptive/difficulty default applies)."""
+    created = client.post("/api/v1/alarms", headers=user_headers, json={
+        "title": "No count", "type": "Daily", "time": "07:00", "challenge_type": "Logic",
+    })
+    assert created.status_code == 200, created.text
+    assert created.json()["question_count"] is None
 
 
 def test_delete_alarm(client, user_headers):

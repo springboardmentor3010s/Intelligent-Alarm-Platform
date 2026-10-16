@@ -42,6 +42,7 @@ export default function AlarmFormScreen({ route, navigation }) {
           setType(alarm.alarm_type || 'Daily');
           setChallengeType(alarm.challenge_type || 'Math');
           setDifficulty(alarm.difficulty || 'Medium');
+          setCount(alarm.question_count || 3);
         })
         .catch(() => {});
     }, [alarmId, token])

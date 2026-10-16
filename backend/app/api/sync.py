@@ -41,6 +41,7 @@ def _upsert_alarm(db: Session, user_id: int, payload: dict, client_timestamp: da
             if c_ts > e_ts:
                 existing.title = payload.get("title", existing.title)
                 existing.alarm_type = payload.get("alarm_type", payload.get("type", existing.alarm_type))
+                existing.question_count = payload.get("question_count", existing.question_count)
                 existing.is_enabled = payload.get("is_enabled", existing.is_enabled)
                 existing.times_snoozed = payload.get("times_snoozed", existing.times_snoozed)
                 if payload.get("next_trigger"):
@@ -55,6 +56,7 @@ def _upsert_alarm(db: Session, user_id: int, payload: dict, client_timestamp: da
             title=payload.get("title", "Synced Alarm"),
             alarm_type=payload.get("alarm_type", payload.get("type", "Daily")),
             is_enabled=payload.get("is_enabled", True),
+            question_count=payload.get("question_count"),
             times_snoozed=payload.get("times_snoozed", 0),
             next_trigger=datetime.fromisoformat(payload["next_trigger"]) if payload.get("next_trigger") and isinstance(payload["next_trigger"], str) else payload.get("next_trigger"),
         )
@@ -208,6 +210,7 @@ def sync_pull(
                 "id": a.id,
                 "title": a.title,
                 "alarm_type": a.alarm_type,
+                "question_count": a.question_count,
                 "next_trigger": a.next_trigger.isoformat() if a.next_trigger else None,
                 "is_enabled": a.is_enabled,
                 "times_snoozed": a.times_snoozed,

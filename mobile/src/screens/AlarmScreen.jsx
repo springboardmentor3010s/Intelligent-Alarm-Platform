@@ -41,6 +41,7 @@ export default function AlarmScreen({ navigation, route }) {
         const challenge = await fetchChallenge({
           challengeType: enabled.challenge_type,
           difficulty: enabled.difficulty,
+          questionCount: enabled.question_count,
         });
         const total = challenge.puzzle_payload.total_questions || 1;
         setAnswers(Array(total).fill(''));

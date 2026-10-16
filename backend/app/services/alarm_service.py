@@ -110,6 +110,7 @@ def _to_alarm_res(alarm: Alarm) -> AlarmRes:
         challenge_id=alarm.challenge_id,
         challenge_type=alarm.challenge.challenge_type if alarm.challenge else None,
         difficulty=alarm.challenge.difficulty if alarm.challenge else None,
+        question_count=alarm.question_count,
         recurrence=alarm.recurrence,
         time=local_time.strftime("%H:%M") if local_time else None,
         times_snoozed=alarm.times_snoozed,
@@ -201,6 +202,7 @@ def create_alarm(db: Session, user: User, payload: AlarmCreateReq) -> AlarmRes:
         times_snoozed=0,
         next_trigger=next_trigger,
         challenge_id=challenge_id,
+        question_count=payload.question_count,
         recurrence=payload.recurrence,
     )
     db.add(alarm)
@@ -230,6 +232,8 @@ def update_alarm(
     if payload.challenge_type:
         challenge = _link_challenge(db, payload.challenge_type, payload.difficulty or "Medium")
         alarm.challenge_id = challenge.id
+    if payload.question_count is not None:
+        alarm.question_count = payload.question_count
     if payload.recurrence is not None:
         alarm.recurrence = payload.recurrence
 

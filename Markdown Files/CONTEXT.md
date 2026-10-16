@@ -388,7 +388,7 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 ### Alarm Scheduling System
 | Requirement | Status | Notes |
 |---|---|---|
-| FR-AS-001: Alarm types enum | ⚠️ No constraint | `alarm_type` column accepts string; no enum validation |
+| FR-AS-001: Alarm types enum | ✅ Complete | `ALARM_TYPES` validated at the API boundary (`AlarmCreateReq` field_validator normalizes case/whitespace, rejects unknown → 422); DB column stays a plain string so legacy rows are untouched |
 | FR-AS-002: Recurring with recurrence rules | ✅ Complete | Daily/Weekday alarms auto-compute next_trigger on dismiss |
 | FR-AS-003: Smart adaptive alarms | ✅ Complete | Challenge selection based on user performance history |
 | FR-AS-004: Compute next_trigger | ✅ Complete | Auto-computed for Daily/Weekday; One-Time stays disabled |
@@ -410,9 +410,9 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | Requirement | Status | Notes |
 |---|---|---|
 | FR-WV-001: Challenge completion required | ✅ Complete | Server creates the pending attempt at `/next`; dismiss verifies ownership + `completed` + all-correct (smoke_m2 verified: incomplete → 400, unknown → 404). |
-| FR-WV-002: Multi-step challenges | ⚠️ Partial | Total questions configurable per challenge attempt |
-| FR-WV-003: Consecutive correct answers | ⚠️ Partial | Streak computed in ML inference from attempt history |
-| FR-WV-004: Time-based challenges | ⚠️ Partially documented | time_taken_seconds tracked |
+| FR-WV-002: Multi-step challenges | ✅ Complete | `alarms.question_count` (migration `a7d3e5f1b9c2`) persisted + returned in `AlarmRes`; ring-time `/challenges/next?question_count=` honors it; defaults scale by difficulty (Expert 3–5) |
+| FR-WV-003: Consecutive correct answers | ✅ Complete | Streak derived from ordered attempt history in adaptive difficulty + `rule_based_v2` `streak_length` signal |
+| FR-WV-004: Time-based challenges | ✅ Complete | Per-type `TIMEOUTS` + `expires_at`/`AttemptExpired` (410); `timeout_seconds` in payload enforced by client countdown |
 | FR-WV-005: Record start_time/end_time | ✅ Complete | ChallengeAttempt tracks start_time, end_time, time_taken |
 
 ### Behavioral Analytics Engine

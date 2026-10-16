@@ -85,6 +85,7 @@ class AlarmRes(BaseModel):
     challenge_id: Optional[int] = None
     challenge_type: Optional[str] = None
     difficulty: Optional[str] = None
+    question_count: Optional[int] = None
     recurrence: Optional[str] = None
     time: Optional[str] = None  # wake-up time HH:MM in the user's timezone
     times_snoozed: int = 0

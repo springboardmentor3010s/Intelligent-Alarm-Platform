@@ -77,6 +77,7 @@ class Alarm(Base):
     next_trigger = Column(DateTime(timezone=True))
     is_enabled = Column(Boolean, default=True)
     challenge_id = Column(Integer, ForeignKey("challenges.id", ondelete="CASCADE"), nullable=True)
+    question_count = Column(Integer, nullable=True)  # per-alarm challenge length override (1-5)
     times_snoozed = Column(Integer, default=0)
     recurrence = Column(String(100), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

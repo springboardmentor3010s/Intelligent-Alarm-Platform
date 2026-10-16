@@ -111,9 +111,9 @@ This document covers:
 | Requirement ID | Requirement Text | Priority | Notes |
 |---|---|---|---|
 | FR-WV-001 | The system shall require challenge completion before alarm can be dismissed. | High | ✅ Implemented: attempt snapshot created at `/next`; dismiss only after `completed = true` + all-correct + user-owned (smoke_m2 verified 400/404 paths). |
-| FR-WV-002 | The system shall support multi-step challenges (3-5 questions) for deeper wake-up verification. | Medium | Configurable per alarm type; default is single challenge with configurable question count. |
-| FR-WV-003 | The system shall track consecutive correct answers as a verification metric. | Medium | Stored in `challenge_attempts`; used by adaptive difficulty engine. |
-| FR-WV-004 | The system shall support time-based challenges (user must complete within N seconds). | Medium | Time limit configurable per challenge type; default thresholds: Math 60s, Logic 90s, Memory 45s. |
+| FR-WV-002 | The system shall support multi-step challenges (3-5 questions) for deeper wake-up verification. | Medium | ✅ Implemented: question count is persisted per alarm (`question_count`, migration `a7d3e5f1b9c2`) and honored at ring time via `/challenges/next?question_count=`; defaults scale by difficulty (1–5, Expert `(3,5)`). |
+| FR-WV-003 | The system shall track consecutive correct answers as a verification metric. | Medium | ✅ Implemented: consecutive-correct streak derived from ordered attempt history in `ChallengeService._adaptive_difficulty` and the `rule_based_v2` `streak_length` signal (`ai_engine/difficulty.py`). |
+| FR-WV-004 | The system shall support time-based challenges (user must complete within N seconds). | Medium | ✅ Implemented: per-type budget `ChallengeService.TIMEOUTS` (Math 60s, Logic 90s, Memory 45s, Word 90s, Pattern 60s, Riddle 90s, QuickQuiz 60s); `expires_at` + `AttemptExpired` (410) reject late submissions; `timeout_seconds` is returned in the puzzle payload and the client enforces the countdown. |
 | FR-WV-005 | The system shall record `start_time` and `end_time` for each challenge attempt. | High | Timestamps stored in `challenge_attempts`; used to compute `time_taken_seconds`. |
 
 ### 2.6 Behavioral Analytics Engine
