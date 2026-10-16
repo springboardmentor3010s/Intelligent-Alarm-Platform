@@ -96,3 +96,80 @@ def send_test_notification(
     summary is returned verbatim so callers can see sent/failed counts.
     """
     return NotificationService.send_test(db, current_user)
+
+
+class TriggerReq(BaseModel):
+    """Generic trigger notification request."""
+    title: str | None = Field(None, description="Optional notification title")
+    body: str | None = Field(None, description="Optional notification body")
+    data: dict | None = Field(None, description="Extra data payload")
+
+
+class ChallengeTriggerReq(TriggerReq):
+    challenge_id: int | None = Field(None)
+
+
+class HabitTriggerReq(TriggerReq):
+    habit_id: int | None = Field(None)
+
+
+@router.post("/triggers/bedtime", response_model=dict)
+def trigger_bedtime(
+    payload: TriggerReq,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return NotificationService.send_bedtime_reminder(
+        db,
+        current_user,
+        title=payload.title,
+        body=payload.body,
+        data=payload.data,
+    )
+
+
+@router.post("/triggers/challenge", response_model=dict)
+def trigger_challenge(
+    payload: ChallengeTriggerReq,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return NotificationService.send_challenge_reminder(
+        db,
+        current_user,
+        challenge_id=payload.challenge_id,
+        title=payload.title,
+        body=payload.body,
+        data=payload.data,
+    )
+
+
+@router.post("/triggers/habit", response_model=dict)
+def trigger_habit(
+    payload: HabitTriggerReq,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return NotificationService.send_habit_alert(
+        db,
+        current_user,
+        habit_id=payload.habit_id,
+        title=payload.title,
+        body=payload.body,
+        data=payload.data,
+    )
+
+
+@router.post("/triggers/progress", response_model=dict)
+def trigger_progress(
+    payload: TriggerReq,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return NotificationService.send_progress_notification(
+        db,
+        current_user,
+        title=payload.title,
+        body=payload.body,
+        data=payload.data,
+    )

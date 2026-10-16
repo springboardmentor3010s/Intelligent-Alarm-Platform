@@ -249,3 +249,90 @@ class NotificationService:
             "Notifications are working on this device.",
             {"type": "test"},
         )
+
+    # ------------------------------------------------------------------
+    # Trigger-style notifications (Module 11)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def send_bedtime_reminder(
+        db: Session,
+        user: User,
+        title: str | None = None,
+        body: str | None = None,
+        data: dict | None = None,
+    ) -> dict:
+        title = title or "Bedtime reminder"
+        body = body or "Wind down for the night. Stay consistent with your schedule."
+        payload = (data or {}).copy()
+        payload.setdefault("type", "bedtime_reminder")
+        dedupe_key = f"bedtime_reminder:{user.id}:{payload.get('context','default')}"
+        return NotificationService.deliver_to_user(
+            db, user, title, body, payload, dedupe_key=dedupe_key
+        )
+
+    @staticmethod
+    def send_challenge_reminder(
+        db: Session,
+        user: User,
+        challenge_id: int | None = None,
+        title: str | None = None,
+        body: str | None = None,
+        data: dict | None = None,
+    ) -> dict:
+        title = title or "Challenge reminder"
+        body = body or "Your cognitive challenge is due. Keep your streak going."
+        payload = (data or {}).copy()
+        payload.setdefault("type", "challenge_reminder")
+        if challenge_id is not None:
+            payload.setdefault("challenge_id", challenge_id)
+        dedupe_key = (
+            f"challenge_reminder:{user.id}:{challenge_id}"
+            if challenge_id is not None
+            else f"challenge_reminder:{user.id}:general"
+        )
+        return NotificationService.deliver_to_user(
+            db, user, title, body, payload, dedupe_key=dedupe_key
+        )
+
+    @staticmethod
+    def send_habit_alert(
+        db: Session,
+        user: User,
+        habit_id: int | None = None,
+        title: str | None = None,
+        body: str | None = None,
+        data: dict | None = None,
+    ) -> dict:
+        title = title or "Habit alert"
+        body = body or "Don't break your habit streak. Take a small action today."
+        payload = (data or {}).copy()
+        payload.setdefault("type", "habit_alert")
+        if habit_id is not None:
+            payload.setdefault("habit_id", habit_id)
+        dedupe_key = (
+            f"habit_alert:{user.id}:{habit_id}"
+            if habit_id is not None
+            else f"habit_alert:{user.id}:general"
+        )
+        return NotificationService.deliver_to_user(
+            db, user, title, body, payload, dedupe_key=dedupe_key
+        )
+
+    @staticmethod
+    def send_progress_notification(
+        db: Session,
+        user: User,
+        title: str | None = None,
+        body: str | None = None,
+        data: dict | None = None,
+    ) -> dict:
+        title = title or "Progress update"
+        body = body or "You're making solid progress. Keep it up!"
+        payload = (data or {}).copy()
+        payload.setdefault("type", "progress_notification")
+        # Use a context key if provided to allow targeted deduplication
+        dedupe_key = f"progress_notification:{user.id}:{payload.get('context','default')}"
+        return NotificationService.deliver_to_user(
+            db, user, title, body, payload, dedupe_key=dedupe_key
+        )
