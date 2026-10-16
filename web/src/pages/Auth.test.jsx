@@ -1,7 +1,7 @@
 // CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 import React from 'react';
-import { beforeEach, describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Auth from './Auth';
 
@@ -95,5 +95,50 @@ describe('Auth login/register UI', () => {
     fireEvent.click(toggle);
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
     expect(screen.getByRole('button', { name: 'Switch to dark theme' })).toBeInTheDocument();
+  });
+
+  it('renders the Google sign-in button', () => {
+    renderAuth();
+    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument();
+  });
+
+  it('google sign-in requests the backend consent URL', async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 503,
+        json: () => Promise.resolve({ detail: 'Google OAuth is not configured on this server' }),
+      }),
+    );
+    renderAuth();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue with Google' }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/v1/auth/oauth/google/login');
+    expect(await screen.findByText(/not configured/i)).toBeInTheDocument();
+  });
+
+  it('completes the Google callback and calls onAuth', async () => {
+    window.history.pushState({}, '', '/auth?code=abc&state=xyz');
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ access_token: 'tok', user: { id: 1, email: 'g@test.io' } }),
+      }),
+    );
+    const onAuth = vi.fn();
+    render(
+      <MemoryRouter>
+        <Auth onAuth={onAuth} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(onAuth).toHaveBeenCalled());
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v1/auth/oauth/google/callback',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    window.history.pushState({}, '', '/');
   });
 });

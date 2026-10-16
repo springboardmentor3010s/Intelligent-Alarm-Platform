@@ -32,7 +32,11 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(254), unique=True, index=True, nullable=False)
     full_name = Column(String(100), nullable=True)
-    hashed_password = Column(String(256), nullable=False)
+    # Nullable: OAuth-only accounts (Google) have no local password.
+    hashed_password = Column(String(256), nullable=True)
+    # External identity link (OAuth2 login). Both NULL for password accounts.
+    oauth_provider = Column(String(30), nullable=True)
+    oauth_subject = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
@@ -55,7 +59,10 @@ class User(Base):
     push_tokens = relationship("PushToken", back_populates="user", cascade="all, delete-orphan")
     # Relationship to refresh / password-reset / email-verification tokens
     auth_tokens = relationship("AuthToken", back_populates="user", cascade="all, delete-orphan")
-    __table_args__ = (Index("ix_users_email_lower", func.lower(email)),)
+    __table_args__ = (
+        Index("ix_users_email_lower", func.lower(email)),
+        UniqueConstraint("oauth_provider", "oauth_subject", name="uq_users_oauth_identity"),
+    )
 
 
 class UserRole(Base):

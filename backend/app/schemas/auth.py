@@ -72,3 +72,25 @@ class RoleUpdateReq(BaseModel):
     """Request body for PUT /dashboard/users/{user_id}/role (admin-only)."""
     role: str = Field(..., pattern=r"^(User|Wellness Coach|Administrator)$",
                       description="New role name (User / Wellness Coach / Administrator)")
+
+
+# ============================================================
+# OAUTH2 LOGIN SCHEMAS (Module 1)
+# ============================================================
+
+class OAuthLoginRes(BaseModel):
+    """Response for GET /auth/oauth/google/login (start the consent flow)."""
+    authorization_url: str = Field(description="Google consent URL to redirect the browser to")
+    state: str = Field(description="Opaque CSRF state that must be echoed back on callback")
+
+
+class OAuthCallbackReq(BaseModel):
+    """Request body for POST /auth/oauth/google/callback."""
+    code: str = Field(..., min_length=1, description="Authorization code returned by Google")
+    redirect_uri: str = Field(..., min_length=1, description="Must match the redirect_uri used at login")
+    state: str = Field(..., min_length=1, description="The state value returned by Google (CSRF check)")
+
+
+class OAuthMobileReq(BaseModel):
+    """Request body for POST /auth/oauth/google/mobile (native PKCE flow)."""
+    id_token: str = Field(..., min_length=1, description="OIDC id_token from the Google PKCE flow")

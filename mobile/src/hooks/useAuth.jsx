@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch, parseApiError, describeFetchError, authHeaders, onAuthExpired } from '../utils/api';
 import { isExpoGo } from '../utils/env';
 import { getExpoPushToken, registerPushToken } from '../notifications/registerPush';
+import { requestGoogleIdToken } from '../auth/googleAuth';
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -89,6 +90,35 @@ export function useAuth() {
     }
   };
 
+  const loginWithGoogle = async () => {
+    const google = await requestGoogleIdToken();
+    if (!google.success) {
+      return { success: false, error: google.error };
+    }
+
+    try {
+      const response = await apiFetch('/api/v1/auth/oauth/google/mobile', {
+        method: 'POST',
+        body: JSON.stringify({ id_token: google.idToken }),
+      });
+      if (!response.ok) {
+        return { success: false, error: await parseApiError(response) };
+      }
+
+      const data = await response.json();
+      setToken(data.access_token);
+      setUser(data.user);
+      await AsyncStorage.setItem('cerebro_token', data.access_token);
+      await AsyncStorage.setItem('cerebro_user', JSON.stringify(data.user));
+      setIsLoggedIn(true);
+
+      await registerForPushNotifications(data.access_token);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: describeFetchError(error) };
+    }
+  };
+
   const logout = async () => {
     setToken(null);
     setUser(null);
@@ -150,6 +180,7 @@ export function useAuth() {
     token,
     isLoggedIn,
     login,
+    loginWithGoogle,
     logout,
     updateUser,
     refreshProfile,

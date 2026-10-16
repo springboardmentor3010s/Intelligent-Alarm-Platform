@@ -138,3 +138,47 @@ def get_mongodb_uri() -> str:
 def get_mongodb_db_name() -> str:
     """Return the database the event log writes to (default ``cerebrokognit_events``)."""
     return os.getenv("MONGODB_DB", "cerebrokognit_events").strip() or "cerebrokognit_events"
+
+
+# ---------------------------------------------------------------------------
+# Google OAuth2 login (Module 1)
+# ---------------------------------------------------------------------------
+
+
+def get_google_client_id() -> str:
+    """Return the Google OAuth client id (empty = OAuth login disabled)."""
+    return os.getenv("GOOGLE_CLIENT_ID", "").strip()
+
+
+def get_google_client_secret() -> str:
+    """Return the Google OAuth client secret (empty = OAuth login disabled)."""
+    return os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
+
+
+def get_google_redirect_uri() -> str:
+    """Return the default OAuth redirect URI (optional server-side default)."""
+    return os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+
+
+def get_google_mobile_client_id() -> str:
+    """Return the public (iOS/Android) OAuth client id used by the native app.
+
+    The native app proves identity with a PKCE flow and posts the resulting
+    OIDC id_token; the backend only needs to verify its audience, so no secret
+    is involved. Falls back to the web client id when unset.
+    """
+    return os.getenv("GOOGLE_MOBILE_CLIENT_ID", "").strip()
+
+
+def get_google_id_token_audiences() -> List[str]:
+    """Return the accepted id_token audiences (web + mobile client ids)."""
+    return [cid for cid in (get_google_client_id(), get_google_mobile_client_id()) if cid]
+
+
+def is_google_oauth_enabled() -> bool:
+    """True when both Google OAuth credentials are configured.
+
+    Config-gated: with no credentials the OAuth endpoints return 503, so the
+    app runs (and is testable) without a Google Cloud project.
+    """
+    return bool(get_google_client_id() and get_google_client_secret())

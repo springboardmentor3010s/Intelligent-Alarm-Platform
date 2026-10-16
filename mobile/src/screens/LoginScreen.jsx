@@ -4,17 +4,19 @@ import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert, Acti
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
+import { isGoogleSignInConfigured } from '../auth/googleAuth';
 
 const LOGO_DARK = require('../../assets/logos/WideDark.webp');
 const LOGO_LIGHT = require('../../assets/logos/WideLight.webp');
 
 export default function LoginScreen() {
-  const { login } = useAuthContext();
+  const { login, loginWithGoogle } = useAuthContext();
   const { colors, resolved, ui, fonts } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const passwordRef = useRef(null);
 
   const handleLogin = async () => {
@@ -30,6 +32,15 @@ export default function LoginScreen() {
 
     if (!result.success) {
       Alert.alert('Sign in failed', result.error || 'Invalid credentials');
+    }
+  };
+
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    const result = await loginWithGoogle();
+    setGoogleLoading(false);
+    if (!result.success) {
+      Alert.alert('Google sign-in', result.error || 'Could not sign in with Google');
     }
   };
 
@@ -99,6 +110,34 @@ export default function LoginScreen() {
           <TouchableOpacity style={ui.btnPrimary} onPress={handleLogin} disabled={loading} accessibilityRole="button">
             {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={ui.btnPrimaryText}>Log in</Text>}
           </TouchableOpacity>
+
+          {isGoogleSignInConfigured() && (
+            <>
+              <View style={styles.dividerRow}>
+                <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+                <Text style={[styles.dividerText, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>OR</Text>
+                <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+              </View>
+              <TouchableOpacity
+                style={[styles.googleBtn, { borderColor: colors.border }]}
+                onPress={handleGoogle}
+                disabled={googleLoading || loading}
+                accessibilityRole="button"
+                accessibilityLabel="Continue with Google"
+              >
+                {googleLoading ? (
+                  <ActivityIndicator color={colors.violet} />
+                ) : (
+                  <>
+                    <Ionicons name="logo-google" size={20} color={colors.text} />
+                    <Text style={[styles.googleBtnText, { color: colors.text, fontFamily: fonts.bodyMedium }]}>
+                      Continue with Google
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
         <Text style={[styles.foot, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>
@@ -127,4 +166,17 @@ const styles = StyleSheet.create({
   foot: { fontSize: 12, textAlign: 'center', marginTop: 28 },
   footAccent: { fontWeight: '600' },
   credit: { fontSize: 11, textAlign: 'center', marginTop: 14 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { fontSize: 11, letterSpacing: 2 },
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  googleBtnText: { fontSize: 15, fontWeight: '600' },
 });

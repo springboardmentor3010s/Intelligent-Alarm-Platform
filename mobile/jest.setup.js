@@ -50,3 +50,30 @@ jest.mock('expo-font', () => {
   const isLoading = () => false;
   return { useFonts, loadAsync, isLoaded, isLoading };
 });
+
+// Google OAuth native modules have no JS-only implementation under jest; stub
+// them so screens importing the sign-in helper still render in tests.
+jest.mock('expo-web-browser', () => ({
+  maybeCompleteAuthSession: jest.fn(),
+  openAuthSessionAsync: jest.fn(),
+}));
+
+jest.mock('expo-auth-session', () => {
+  class AuthRequest {
+    constructor() {
+      this.codeVerifier = 'test-verifier';
+    }
+    makeAuthUrlAsync() {
+      return Promise.resolve('https://accounts.google.com/o/oauth2/v2/auth');
+    }
+    promptAsync() {
+      return Promise.resolve({ type: 'dismiss' });
+    }
+  }
+  return {
+    AuthRequest,
+    ResponseType: { Code: 'code' },
+    makeRedirectUri: jest.fn(() => 'cerebrokognit://oauth'),
+    exchangeCodeAsync: jest.fn(() => Promise.resolve({ idToken: 'test-id-token' })),
+  };
+});

@@ -1,5 +1,5 @@
 // CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AuthLayout,
   AuthBranding,
@@ -37,6 +37,40 @@ timezone: browserTimeZone(),
   const [touched, setTouched] = useState({});
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState(false);
+
+  // Complete a Google OAuth2 redirect: /auth?code=...&state=...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+    if (!code || !state) return;
+
+    setLoading(true);
+    (async () => {
+      try {
+        const redirect_uri = `${window.location.origin}/auth`;
+        const res = await fetch('/api/v1/auth/oauth/google/callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, redirect_uri, state }),
+        });
+        const data = await res.json().catch(() => ({}));
+        window.history.replaceState({}, '', '/auth');
+        if (!res.ok) {
+          setMessage({ type: 'error', text: data.detail || 'Google sign-in failed.' });
+          setLoading(false);
+          return;
+        }
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        onAuth(data);
+      } catch (err) {
+        setMessage({ type: 'error', text: `Backend unreachable: ${err.message}` });
+        setLoading(false);
+      }
+    })();
+  }, [onAuth]);
 
   const validateField = (field) => {
     const value = form[field];
@@ -165,8 +199,32 @@ timezone: browserTimeZone(),
     }
   };
 
-  const head = mode === 'login' ? LOGIN_HEAD : SIGNUP_HEAD;
+  const googleLogin = async () => {
+    setMessage(null);
+    setErrors({});
+    setOauthBusy(true);
+    try {
+      const redirect_uri = `${window.location.origin}/auth`;
+      const res = await fetch(
+        `/api/v1/auth/oauth/google/login?redirect_uri=${encodeURIComponent(redirect_uri)}`,
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.authorization_url) {
+        setMessage({
+          type: 'error',
+          text: data.detail || 'Google sign-in is not configured on this server.',
+        });
+        setOauthBusy(false);
+        return;
+      }
+      window.location.href = data.authorization_url;
+    } catch (err) {
+      setMessage({ type: 'error', text: `Backend unreachable: ${err.message}` });
+      setOauthBusy(false);
+    }
+  };
 
+  const head = mode === 'login' ? LOGIN_HEAD : SIGNUP_HEAD;
   const hero = (
     <>
       <AuthBranding />
@@ -314,6 +372,17 @@ timezone: browserTimeZone(),
 
       <Button variant="secondary" onClick={demoLogin} loading={loading} type="button">
         {loading ? 'Signing in…' : 'Login with Demo Account'}
+      </Button>
+
+      <Button
+        variant="secondary"
+        onClick={googleLogin}
+        loading={oauthBusy}
+        disabled={loading || oauthBusy}
+        type="button"
+        data-testid="google-login"
+      >
+        {oauthBusy ? 'Redirecting…' : 'Continue with Google'}
       </Button>
     </div>
   );
