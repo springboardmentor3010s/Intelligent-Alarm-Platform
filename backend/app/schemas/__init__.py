@@ -35,6 +35,12 @@ class SettingsUpdateReq(BaseModel):
 # ALARM SCHEMAS
 # ============================================================
 
+# Canonical alarm types (FR-AS-001). Validated at the API boundary; the DB
+# column stays a plain string so legacy rows are never broken by a migration.
+ALARM_TYPES = ("Daily", "Weekday", "Weekend", "One-Time", "Smart Adaptive")
+_ALARM_TYPE_BY_KEY = {t.lower(): t for t in ALARM_TYPES}
+
+
 class AlarmCreateReq(BaseModel):
     """Request schema for creating an alarm."""
     title: str = Field(..., min_length=1, max_length=200, description="Alarm title/label")
@@ -47,6 +53,17 @@ class AlarmCreateReq(BaseModel):
         None, ge=1, le=5, description="Override the number of questions for this alarm's challenge"
     )
     next_trigger: Optional[datetime] = Field(None, description="Override computed next trigger")
+
+    @field_validator("type")
+    @classmethod
+    def _validate_type(cls, value: str) -> str:
+        """Normalize and reject unknown alarm types (FR-AS-001)."""
+        canonical = _ALARM_TYPE_BY_KEY.get((value or "").strip().lower())
+        if canonical is None:
+            raise ValueError(
+                f"unsupported alarm type {value!r}; expected one of {', '.join(ALARM_TYPES)}"
+            )
+        return canonical
 
 
 class AlarmDismissReq(BaseModel):

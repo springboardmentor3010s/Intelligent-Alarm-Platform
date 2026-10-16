@@ -73,3 +73,25 @@ def test_snooze_caps_at_five(client, user_headers):
 def test_invalid_alarm_payload_rejected(client, user_headers):
     r = client.post("/api/v1/alarms", headers=user_headers, json={"title": ""})
     assert r.status_code in (400, 422)
+
+
+def test_alarm_type_validated_and_normalized(client, user_headers):
+    """FR-AS-001: the 5 canonical types are accepted; case/whitespace is normalized."""
+    ok = client.post("/api/v1/alarms", headers=user_headers, json={
+        "title": "Smart", "type": "Smart Adaptive", "time": "06:30",
+    })
+    assert ok.status_code == 200, ok.text
+    assert ok.json()["alarm_type"] == "Smart Adaptive"
+
+    norm = client.post("/api/v1/alarms", headers=user_headers, json={
+        "title": "Lower", "type": "  weekday ", "time": "06:30",
+    })
+    assert norm.status_code == 200, norm.text
+    assert norm.json()["alarm_type"] == "Weekday"
+
+
+def test_unknown_alarm_type_rejected(client, user_headers):
+    r = client.post("/api/v1/alarms", headers=user_headers, json={
+        "title": "Bad", "type": "Whenever", "time": "06:30",
+    })
+    assert r.status_code in (400, 422)
