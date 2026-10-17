@@ -12,6 +12,9 @@ class AuthRegisterReq(BaseModel):
     full_name: Optional[str] = Field(None, description="Optional full name")
     timezone: str = Field("UTC", description="IANA time zone name, e.g. America/Los_Angeles")
     difficulty_preference: str = Field("Medium", description="Difficulty preference: Beginner/Easy/Medium/Hard/Expert")
+    role: str = Field("User", pattern=r"^(User|Wellness Coach)$",
+                      description="Self-selected role at signup (User / Wellness Coach; "
+                                  "Administrator is provisioned by developers, never self-assigned)")
 
 
 class AuthLoginReq(BaseModel):

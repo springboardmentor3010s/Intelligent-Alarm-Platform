@@ -84,8 +84,11 @@ async def register(
     db.commit()
     db.refresh(user)
 
-    # Assign default "User" role (role based access control)
-    user_role = get_or_create_role(db, "User", "Standard registered user")
+    # Assign the self-selected role (User / Wellness Coach). Administrator is
+    # never accepted here — the schema pattern rejects it.
+    # shortcut: signup grants coach scope directly, so any visitor can demo the
+    # cohort view; switch to admin-approved coach invitations before production.
+    user_role = get_or_create_role(db, payload.role, f"{payload.role} role")
     db.add(UserRole(user_id=user.id, role_id=user_role.id))
 
     return _issue_auth_response(db, user)

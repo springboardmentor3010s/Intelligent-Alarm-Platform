@@ -7,7 +7,6 @@ import {
   AuthDivider,
   TextInput,
   PasswordInput,
-  SelectInput,
   Button,
   FormField,
   BenefitList,
@@ -19,7 +18,7 @@ import { browserTimeZone } from '../utils/timezones';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const DIFFICULTIES = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
+const SIGNUP_ROLES = ['User', 'Wellness Coach'];
 
 const SIGNUP_HEAD = { title: 'Create your account', sub: 'Set up your cognitive wake protocol in under a minute.' };
 const LOGIN_HEAD = { title: 'Welcome back', sub: 'Sign in to stay sharp every morning.' };
@@ -38,7 +37,7 @@ export default function Auth({ onAuth }) {
     password: '',
     full_name: '',
 timezone: browserTimeZone(),
-    difficulty_preference: 'Medium',
+    role: 'User',
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -333,18 +332,22 @@ timezone: browserTimeZone(),
 
           {mode === 'register' && (
             <>
-              <SelectInput
-                id="difficulty_preference"
-                label="Preferred difficulty"
-                value={form.difficulty_preference}
-                onChange={update('difficulty_preference')}
-                disabled={loading}
-                error={errors.difficulty_preference}
-              >
-                {DIFFICULTIES.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </SelectInput>
+              <FormField id="role" label="I am a">
+                <div className="segmented" id="role" role="group" aria-label="Account type">
+                  {SIGNUP_ROLES.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      className={form.role === r ? 'is-active' : ''}
+                      aria-pressed={form.role === r}
+                      disabled={loading}
+                      onClick={() => setForm(prev => ({ ...prev, role: r }))}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
               <FormField id="timezone" label="Timezone" error={errors.timezone}>
                 <TimezonePicker
                   id="timezone"

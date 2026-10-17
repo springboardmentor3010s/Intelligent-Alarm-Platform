@@ -47,8 +47,8 @@ describe('Auth login/register UI', () => {
   it('switching to Register reveals all five fields', () => {
     renderAuth();
     fireEvent.click(screen.getByRole('tab', { name: 'Register' }));
-    expect(screen.getByLabelText('Full name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Preferred difficulty')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'User' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Wellness Coach' })).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getByLabelText('Timezone')).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
@@ -142,5 +142,27 @@ describe('Auth login/register UI', () => {
       expect.objectContaining({ method: 'POST' }),
     );
     window.history.pushState({}, '', '/');
+  });
+
+  it('register sends the selected account type', async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ access_token: 't', user: { id: 1, email: 'c@test.io' } }),
+      }),
+    );
+    renderAuth();
+    fireEvent.click(screen.getByRole('tab', { name: 'Register' }));
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Coach Person' } });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'c@test.io' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Wellness Coach' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create Account' }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, opts] = global.fetch.mock.calls[0];
+    expect(url).toBe('/api/v1/auth/register');
+    expect(JSON.parse(opts.body).role).toBe('Wellness Coach');
   });
 });

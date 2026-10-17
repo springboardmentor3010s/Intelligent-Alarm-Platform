@@ -80,6 +80,16 @@ The sidebar adapts to the signed-in role:
 Everything else (Dashboard, Analytics, Alarms, Challenges, History, Profile,
 Settings) is shared by all three roles and shows only the signed-in user's data.
 
+### Sign-up: choose User or Wellness Coach
+
+On the **Sign up** tab you pick the account type, **User** or **Wellness Coach**,
+before creating the account. The normal Login tab then signs in any role.
+
+- **Administrator is never offered at sign-up** - admin accounts are provisioned
+  by the developers (the seeded `admin@gmail.com` is one).
+- The register form no longer asks for a preferred difficulty; new accounts start
+  at **Medium** and you can change it any time under Profile.
+
 ## 7. Mobile app notes
 
 - Works offline for cached alarms/scores and syncs when reconnected.

@@ -67,3 +67,22 @@ def test_me_reflects_promoted_admin(client, admin_headers):
     me = client.get("/api/v1/auth/me", headers=admin_headers)
     assert me.status_code == 200
     assert me.json()["role"] == "Administrator"
+
+
+def test_register_self_selects_wellness_coach(client):
+    email = f"coach_{uuid.uuid4().hex[:8]}@test.io"
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={"email": email, "password": "password123", "timezone": "UTC", "role": "Wellness Coach"},
+    )
+    assert reg.status_code == 200
+    assert reg.json()["user"]["role"] == "Wellness Coach"
+
+
+def test_register_rejects_administrator_self_signup(client):
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={"email": f"adm_{uuid.uuid4().hex[:8]}@test.io", "password": "password123",
+              "timezone": "UTC", "role": "Administrator"},
+    )
+    assert reg.status_code == 422
