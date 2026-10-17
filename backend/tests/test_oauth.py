@@ -5,6 +5,7 @@ Google's network boundary is monkeypatched, so these run offline and assert the
 local link-or-create + token issuance behavior.
 """
 
+import pytest
 from fastapi import HTTPException
 
 from app.services.oauth_service import GoogleOAuthService
@@ -168,4 +169,25 @@ def test_mobile_rejects_invalid_token(client, monkeypatch):
 
     monkeypatch.setattr(GoogleOAuthService, "_verify_id_token", _reject)
     r = client.post("/api/v1/auth/oauth/google/mobile", json={"id_token": "bad"})
+    assert r.status_code == 401, r.text
+
+
+# ----------------------------------------------------------------------
+# Dependency guards — the real verifier must fail closed, never ImportError
+#
+# `_verify_id_token` imports ``google.auth.transport.requests``, which needs the
+# ``requests`` package (declared in requirements.txt / requirements-runtime.txt).
+# These tests do NOT monkeypatch the verifier: if that dependency is ever dropped
+# the import raises ImportError -> HTTP 500 instead of a graceful 401.
+# ----------------------------------------------------------------------
+
+def test_id_token_verifier_fails_closed_without_raising_importerror():
+    with pytest.raises(HTTPException) as exc:
+        GoogleOAuthService._verify_id_token("dummy")
+    assert exc.value.status_code == 401
+
+
+def test_mobile_malformed_token_is_401_not_500(client, monkeypatch):
+    _enable_google(monkeypatch)
+    r = client.post("/api/v1/auth/oauth/google/mobile", json={"id_token": "not-a-jwt"})
     assert r.status_code == 401, r.text

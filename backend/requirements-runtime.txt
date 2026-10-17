@@ -23,3 +23,4 @@ sentry-sdk==2.41.0
 httpx==0.28.1  # ExpoPushProvider transport (PUSH_PROVIDER=expo); absent -> pushes fail silently
 pymongo[srv]==4.19.0  # MongoDB event log (MONGODB_URI); [srv] enables Atlas SRV strings
 google-auth==2.35.0  # Google OAuth2 ID-token verification (Module 1); endpoints 503 when unset
+requests==2.34.2  # google.auth.transport.requests transport for ID-token verification; absent -> 500

@@ -24,6 +24,7 @@ email-validator>=2.1.0  # for JWT email validation
 aioredis>=2.0.0  # optional Redis for caching
 pymongo[srv]>=4.19.0  # optional MongoDB event log (MONGODB_URI); default is a silent no-op
 google-auth>=2.35.0  # Google OAuth2 login (Module 1); endpoints 503 until credentials are set
+requests>=2.31.0  # google.auth.transport.requests needs it to verify the Google ID token
 alembic>=1.13.0  # database migrations
 
 # Testing
