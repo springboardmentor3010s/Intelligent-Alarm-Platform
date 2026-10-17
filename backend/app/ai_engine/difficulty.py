@@ -418,6 +418,15 @@ def recommend_difficulty(db: Any, user_id: int, anchor: str = "Medium") -> Tuple
         wake_up_consistency=wake,
         snooze_frequency=snooze_frequency,
     )
+
+    # Optional RL bandit blend (Phase D). Off by default so the deterministic
+    # rule/ML recommendation stays reproducible; when enabled the bandit may
+    # override the recommendation using recent per-arm outcomes.
+    bandit_arm = _bandit_blend(anchor, predicted, ended, success_rate, avg_time, streak)
+    if bandit_arm is not None and bandit_arm != predicted:
+        method = f"{method}+bandit"
+        predicted = bandit_arm
+
     explanation = explain_difficulty(
         success_rate,
         anchor,
@@ -429,3 +438,39 @@ def recommend_difficulty(db: Any, user_id: int, anchor: str = "Medium") -> Tuple
         wake_up_consistency=wake,
     )
     return predicted, method, explanation
+
+
+def _bandit_blend(
+    anchor: str,
+    predicted: str,
+    attempts: List[Any],
+    success_rate: float,
+    avg_time: float,
+    streak: int,
+) -> Optional[str]:
+    """Return a bandit-chosen difficulty, or None when blending is disabled."""
+    from ..core import config as _config
+
+    if not _config.is_rl_bandit_enabled():
+        return None
+
+    from .rl_policy import Context, ContextualBandit
+
+    bandit = ContextualBandit()
+    # Neutral prior on every arm so unseen difficulties aren't auto-explored.
+    for arm in bandit.arms:
+        bandit.count[arm] = 1.0
+        bandit.mean[arm] = 0.5
+    # Seed each arm from real recent attempts: completing an arm = reward 1.
+    for attempt in attempts:
+        challenge = getattr(attempt, "challenge", None)
+        arm = getattr(challenge, "difficulty", None)
+        if arm in bandit.arms:
+            bandit.update(arm, 1.0 if attempt.completed else 0.0)
+    ctx = Context(
+        success_rate=success_rate,
+        avg_time_sec=avg_time,
+        attempts_recent=streak,
+        preferred=anchor,
+    )
+    return bandit.blend(predicted, ctx, blend_ratio=_config.get_rl_blend_ratio())

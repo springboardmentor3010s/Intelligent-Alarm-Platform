@@ -286,3 +286,54 @@ def test_recommendations_carry_reason_and_source(client, registered_user):
     for rec in recs:
         assert rec["reason"], rec
         assert rec["source_metric"] and rec["source_metric"].get("key"), rec
+
+
+# ------------------------------------------------------------------
+# RL contextual bandit (Phase D)
+# ------------------------------------------------------------------
+
+def test_bandit_explores_then_exploits_best_arm(monkeypatch):
+    from app.ai_engine.rl_policy import Context, ContextualBandit
+
+    monkeypatch.setattr("random.random", lambda: 0.99)  # never exploit preference
+    bandit = ContextualBandit()
+    ctx = Context(success_rate=0.9, avg_time_sec=10.0, attempts_recent=5)
+    # Pull every arm with zero reward, then reward only "Medium" heavily: UCB
+    # should settle on the profitable arm once the others are well sampled.
+    for arm in bandit.arms:
+        if arm != "Medium":
+            for _ in range(50):
+                bandit.update(arm, 0.0)
+    for _ in range(200):
+        bandit.update("Medium", 1.0)
+    assert bandit.choose(ctx) == "Medium"
+    assert bandit.mean["Medium"] > max(bandit.mean[a] for a in bandit.arms if a != "Medium")
+
+
+def test_bandit_blend_respects_ratio():
+    from app.ai_engine.rl_policy import Context, ContextualBandit
+
+    bandit = ContextualBandit()
+    ctx = Context(success_rate=0.5, avg_time_sec=40.0, attempts_recent=3)
+    assert bandit.blend("Easy", ctx, blend_ratio=0.0) == "Easy"
+    assert bandit.blend("Easy", ctx, blend_ratio=1.0) in bandit.arms
+
+
+def test_recommend_difficulty_bandit_blend_opt_in(client, registered_user, monkeypatch):
+    _, _, user_id, _ = registered_user
+    _seed_attempts(user_id, [(True, 2, 2, 18)] * 5)
+
+    monkeypatch.setenv("RL_BANDIT_ENABLED", "1")
+    monkeypatch.setenv("RL_BLEND_RATIO", "1.0")
+    monkeypatch.setattr("random.random", lambda: 0.99)
+
+    from app.ai_engine.difficulty import recommend_difficulty
+
+    session = TestingSession()
+    try:
+        predicted, method, explanation = recommend_difficulty(session, user_id, "Easy")
+    finally:
+        session.close()
+    assert predicted in engine.DIFFICULTY_LABELS
+    assert "+bandit" in method
+    assert explanation

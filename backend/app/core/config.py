@@ -182,3 +182,27 @@ def is_google_oauth_enabled() -> bool:
     app runs (and is testable) without a Google Cloud project.
     """
     return bool(get_google_client_id() and get_google_client_secret())
+
+
+# ---------------------------------------------------------------------------
+# Adaptive difficulty RL bandit (Phase D)
+# ---------------------------------------------------------------------------
+
+
+def is_rl_bandit_enabled() -> bool:
+    """True when the contextual bandit may blend into difficulty decisions.
+
+    Config-gated (default off) so the deterministic rule/ML path is the
+    default and tests stay stable; set ``RL_BANDIT_ENABLED=1`` to opt in.
+    """
+    return os.getenv("RL_BANDIT_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def get_rl_blend_ratio() -> float:
+    """Fraction of recommendations the bandit may override (0..1, default 0.3)."""
+    raw = os.getenv("RL_BLEND_RATIO", "").strip()
+    try:
+        value = float(raw) if raw else 0.3
+    except ValueError:
+        return 0.3
+    return max(0.0, min(1.0, value))

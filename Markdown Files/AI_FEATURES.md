@@ -91,6 +91,27 @@
 | Evaluation metric | Gate tests; synthetic-series unit tests (rising → improving, flat → stable, falling → declining); slope math verified against closed form |
 | Current status | Implemented **(baseline)** — explicitly not a trained model |
 
+## 7. Adaptive difficulty RL bandit (Phase D, config-gated)
+
+| Field | Value |
+|---|---|
+| Feature name | `rl_bandit` (`app/ai_engine/rl_policy.py`), blended inside `difficulty.recommend_difficulty` |
+| Business purpose | Let real per-user outcomes nudge the difficulty recommendation beyond the fixed rule/ML vote |
+| Input features | Arm per difficulty (Beginner…Expert); context = recent success rate, avg solve time, streak, anchor preference |
+| Output | A blended difficulty arm, or the rule/ML result when the bandit is disabled |
+| Algorithm | UCB1 with decaying counts (α=1.0, decay=0.99). Arms seeded from real recent `ChallengeAttempt` rows (completed → reward 1, else 0); neutral 0.5 prior on unseen arms so they are not auto-explored |
+| Fallback | The whole feature is opt-in: `RL_BANDIT_ENABLED=0` (default) keeps the deterministic rule/ML path. `RL_BLEND_RATIO` (default 0.3) caps how often the bandit may override |
+| Evaluation metric | `test_ai_engine.py::test_bandit_*` — exploration→exploitation convergence and blend-ratio honoring, plus opt-in integration test |
+| Current status | Implemented and tested; **off by default**, one advisory input alongside the rule/ML vote |
+
+## Specification substitutions (documented, not silent)
+
+| Spec says | This project uses | Why |
+|---|---|---|
+| TensorFlow | **PyTorch** (`difficulty.py`, weights `difficulty_model.pt`) | Same capability (a small feedforward net); PyTorch chosen for a lighter CPU-only install. No TensorFlow code or claim exists anywhere in the repo. |
+| Tailwind CSS | **Custom CSS** (`web/src/index.css`, `STYLE.md`) | Tailwind was never wired; a small set of utility classes is defined by hand. See `CONTEXT.md` stack table (removed 2026-09-19). |
+| Plotly | **Chart.js / react-chartjs-2** | SRS §NF-PERF-003 lists "Chart.js/Plotly" (either/or); Chart.js is the implemented, tested library for every chart. Adding Plotly would duplicate a ~3 MB dependency for no capability gain. |
+
 ## Limitations (applies to all six)
 
 1. The difficulty weights are synthetic-trained (seed 42, 20k rows, val acc ~0.937 at train time). They encode the hand-built skill rule, **not** real user behavior. Do not retrain-claim, personalization-claim, or production-learning-claim them.
