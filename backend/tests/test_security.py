@@ -642,3 +642,63 @@ class TestApiCompatibility:
         assert data["error_code"] == "ERR_401"
         assert "timestamp" in data
         assert data["status_code"] == 401
+
+
+# ─── 12. Coach cohort scope (assigned users only) ────────────────
+
+class TestCoachScope:
+    @staticmethod
+    def _register(client, prefix):
+        reg = client.post("/api/v1/auth/register", json={
+            "email": f"{prefix}_{uuid.uuid4().hex[:8]}@test.io", "password": "password123"})
+        return reg.json()["user"]["id"]
+
+    @staticmethod
+    def _coach(client, db):
+        """Register a user, promote to Wellness Coach, return (coach_id, headers)."""
+        reg = client.post("/api/v1/auth/register", json={
+            "email": f"coach_{uuid.uuid4().hex[:8]}@test.io", "password": "password123"})
+        coach_id = reg.json()["user"]["id"]
+        from app.api.deps import get_or_create_role
+        from app.Models import UserRole
+        role = get_or_create_role(db, "Wellness Coach")
+        db.add(UserRole(user_id=coach_id, role_id=role.id))
+        db.commit()
+        return coach_id, {"Authorization": f"Bearer {reg.json()['access_token']}"}
+
+    def test_roster_contains_only_assigned_users(self, client, db):
+        """The coach roster lists the assigned user and excludes everyone else."""
+        from app.Models import CoachAssignment
+        coach_id, headers = self._coach(client, db)
+        assigned_id = self._register(client, "ca")
+        other_id = self._register(client, "cb")
+        db.add(CoachAssignment(coach_id=coach_id, user_id=assigned_id))
+        db.commit()
+
+        r = client.get("/api/v1/dashboard/coach/users", headers=headers)
+        assert r.status_code == 200
+        ids = {u["id"] for u in r.json()}
+        assert assigned_id in ids and other_id not in ids
+
+    def test_detail_for_unassigned_user_is_403(self, client, db):
+        """Reading a user outside the cohort is forbidden (backend, not just UI)."""
+        _, headers = self._coach(client, db)
+        other_id = self._register(client, "cc")
+        r = client.get(f"/api/v1/dashboard/coach/users/{other_id}", headers=headers)
+        assert r.status_code == 403
+
+    def test_detail_for_assigned_user_ok(self, client, db):
+        """Reading an assigned user succeeds."""
+        from app.Models import CoachAssignment
+        coach_id, headers = self._coach(client, db)
+        assigned_id = self._register(client, "cd")
+        db.add(CoachAssignment(coach_id=coach_id, user_id=assigned_id))
+        db.commit()
+        r = client.get(f"/api/v1/dashboard/coach/users/{assigned_id}", headers=headers)
+        assert r.status_code == 200
+
+    def test_plain_user_cannot_list_cohort(self, client, user_headers):
+        """A normal User cannot reach the staff cohort endpoint."""
+        r = client.get("/api/v1/dashboard/coach/users", headers=user_headers)
+        assert r.status_code == 403
+

@@ -14,6 +14,7 @@ import {
  * Application navigation hierarchy used by the sidebar and mobile drawer:
  * Overview (Dashboard · Analytics) · Wake (Alarms · Challenges) ·
  * Insights (History) · Account (Profile · Settings) · Administration (Admin).
+ * The Administration section is shown to Administrators only (see sectionsForRole).
  */
 export const NAV_SECTIONS = [
   {
@@ -44,24 +45,44 @@ export const NAV_SECTIONS = [
   {
     label: 'Account',
     links: [
-      { to: '/profile', label: 'Profile', icon: UserIcon, title: 'Identity & personal information' },
-      { to: '/settings', label: 'Settings', icon: SlidersIcon, title: 'Application behavior & preferences' },
+      { to: '/profile', label: 'Profile', icon: UserIcon, title: 'Identity · personal information' },
+      { to: '/settings', label: 'Settings', icon: SlidersIcon, title: 'Application behavior · preferences' },
     ],
   },
   {
     label: 'Administration',
     links: [
-      { to: '/admin', label: 'Admin', icon: ShieldIcon, title: 'Users · Reports · Configuration (staff)' },
+      { to: '/admin', label: 'Admin', icon: ShieldIcon, title: 'Platform oversight · users · roles' },
     ],
   },
 ];
 
 /**
- * Nav sections visible to a role. `Administration` is Administrator-only;
- * Users and Wellness Coaches never see it (the `/admin` route is guarded the
- * same way in `App.jsx`).
+ * Coach-only section. Wellness Coaches get a dedicated cohort dashboard on
+ * `/coach` instead of the Administrator-only Administration entry.
+ */
+export const COACH_SECTIONS = [
+  {
+    label: 'Coaching',
+    links: [
+      {
+        to: '/coach',
+        label: 'Cohort',
+        icon: UserIcon,
+        title: 'Assigned users · adherence · sleep trends · progress',
+      },
+    ],
+  },
+];
+
+/**
+ * Nav sections visible to a role. Mirror of the route guards in App.jsx:
+ * Administrators get Administration; Wellness Coaches get Coaching; everyone
+ * else gets the personal sections only.
  */
 export function sectionsForRole(role) {
   if (role === 'Administrator') return NAV_SECTIONS;
-  return NAV_SECTIONS.filter(s => s.label !== 'Administration');
+  const personal = NAV_SECTIONS.filter(s => s.label !== 'Administration');
+  if (role === 'Wellness Coach') return [...personal, ...COACH_SECTIONS];
+  return personal;
 }

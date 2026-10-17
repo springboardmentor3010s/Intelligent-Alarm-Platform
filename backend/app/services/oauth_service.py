@@ -176,12 +176,19 @@ class GoogleOAuthService:
         if user is not None:
             return user
 
-        # 2) Existing password account with the same email -> link it
+        # 2) Existing local account with the same email -> link it. Only when
+        # Google asserts the address is verified; an unverified claim must never
+        # be able to take over an existing password account, and an account
+        # already bound to a different Google identity is left untouched.
+        if not claims.get("email_verified"):
+            raise HTTPException(status_code=403, detail="Google email is not verified")
         user = db.query(User).filter(User.email == email).first()
         if user is not None:
+            if user.oauth_provider and user.oauth_subject and user.oauth_subject != subject:
+                raise HTTPException(status_code=409, detail="Account already linked to another identity")
             user.oauth_provider = PROVIDER
             user.oauth_subject = subject
-            if claims.get("email_verified") and not user.is_verified:
+            if not user.is_verified:
                 user.is_verified = True
             db.flush()
             return user

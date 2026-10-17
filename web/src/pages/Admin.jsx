@@ -23,7 +23,7 @@ async function getJSON(path) {
 
 const ROLE_TONE = { Administrator: 'brand', 'Wellness Coach': 'warm' };
 
-export default function Admin() {
+export default function Admin({ mode } = {}) {
   const [analytics, setAnalytics] = useState(null);
   const [users, setUsers] = useState(null);
   const [roster, setRoster] = useState(null);
@@ -36,6 +36,17 @@ export default function Admin() {
     setLoadState('loading');
     setDetail(null);
     setSelectedId(null);
+    // Coach route (/coach): skip the admin-only calls and load the cohort directly.
+    if (mode === 'coach') {
+      getJSON('/dashboard/coach/users')
+        .then(({ status, body }) => {
+          if (status === 200) { setRoster(body); setLoadState('coach'); }
+          else if (status === 403) setLoadState('denied');
+          else setLoadState('error');
+        })
+        .catch(() => setLoadState('error'));
+      return;
+    }
     Promise.all([getJSON('/dashboard/analytics'), getJSON('/dashboard/users')])
       .then(async ([a, u]) => {
         if (u.status === 403) {

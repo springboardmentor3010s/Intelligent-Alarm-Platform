@@ -24,6 +24,7 @@ const SIGNUP_HEAD = { title: 'Create your account', sub: 'Set up your cognitive 
 const LOGIN_HEAD = { title: 'Welcome back', sub: 'Sign in to stay sharp every morning.' };
 
 // Seeded demo logins (backend bootstrap seeds one account per role).
+// Rendered in development only — never ship real credentials in a prod bundle.
 const QUICK_ACCOUNTS = [
   { email: 'user@gmail.com', password: 'User@123', label: 'User' },
   { email: 'coach@gmail.com', password: 'Coach@123', label: 'Wellness Coach' },
@@ -371,20 +372,24 @@ timezone: browserTimeZone(),
 
       <AuthDivider />
 
-      <p className="text-xs text-muted-600" style={{ margin: '0.25rem 0', textAlign: 'center' }}>
-        Demo sign-in
-      </p>
-      {QUICK_ACCOUNTS.map(a => (
-        <Button
-          key={a.email}
-          variant="secondary"
-          onClick={() => quickLogin(a.email, a.password)}
-          disabled={loading || oauthBusy}
-          type="button"
-        >
-          {`Sign in as ${a.label}`}
-        </Button>
-      ))}
+      {import.meta.env.DEV && (
+        <>
+          <p className="text-xs text-muted-600" style={{ margin: '0.25rem 0', textAlign: 'center' }}>
+            Demo sign-in
+          </p>
+          {QUICK_ACCOUNTS.map(a => (
+            <Button
+              key={a.email}
+              variant="secondary"
+              onClick={() => quickLogin(a.email, a.password)}
+              disabled={loading || oauthBusy}
+              type="button"
+            >
+              {`Sign in as ${a.label}`}
+            </Button>
+          ))}
+        </>
+      )}
 
       <Button
         variant="secondary"

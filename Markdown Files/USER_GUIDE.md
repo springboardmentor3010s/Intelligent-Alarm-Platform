@@ -76,10 +76,13 @@ The sidebar adapts to the signed-in role:
 
 - **Users** see the personal sections only (no **Administration** entry); all
   data is their own and cross-user URLs are rejected.
-- **Wellness Coaches** see the same personal sections as Users; the
-  **Administration** entry is not shown (it is admin-only).
-- **Administrators** see an **Admin** entry: platform telemetry, the full user
-  directory, and role management (they cannot change their own role).
+- **Wellness Coaches** see the personal sections plus a **Coaching** entry
+  (`/coach`) listing only their assigned cohort: per-user profile, adherence,
+  sleep trends, challenge performance and progress. Users outside the
+  assignment return 403 from the backend.
+- **Administrators** see an **Admin** entry (Administration section): platform
+  telemetry, the full user directory, and role management (they cannot change
+  their own role).
 
 Everything else (Dashboard, Analytics, Alarms, Challenges, History, Profile,
 Settings) is shared by all three roles and shows only the signed-in user's data.
