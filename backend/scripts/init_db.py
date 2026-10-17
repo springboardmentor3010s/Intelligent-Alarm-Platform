@@ -24,6 +24,7 @@ from app.Models import (  # noqa: E402
     User,
     UserRole,
 )
+from app.services.bootstrap import seed_demo_data  # noqa: E402
 
 DEFAULT_ROLES = [
     ("User", "Standard registered user with alarm and challenge access"),
@@ -132,8 +133,10 @@ def main():
         seed_roles(db)
         seed_challenges(db)
         seed_accounts(db)
+        seed_demo_data(db)
         print("Roles seeded: User, Wellness Coach, Administrator")
         print("Challenges seeded: full 7-type x 5-difficulty grid")
+        print("Demo history seeded for each account (alarms, habit scores, attempts)")
         print("Accounts seeded:")
         for email, password, _full_name, role_name in SEED_ACCOUNTS:
             print(f"  {role_name:<15} {email} / {password}")

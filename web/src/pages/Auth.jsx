@@ -332,8 +332,8 @@ timezone: browserTimeZone(),
 
           {mode === 'register' && (
             <>
-              <FormField id="role" label="I am a">
-                <div className="segmented" id="role" role="group" aria-label="Account type">
+        <FormField id="role" label="Account type">
+          <div className="segmented" id="role" role="group" aria-label="Account type">
                   {SIGNUP_ROLES.map((r) => (
                     <button
                       key={r}

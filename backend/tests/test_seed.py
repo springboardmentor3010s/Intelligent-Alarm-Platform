@@ -3,7 +3,17 @@
 
 import uuid
 
-from app.Models import CoachAssignment, Role, User, UserRole
+from app.Models import (
+    Alarm,
+    Announcement,
+    ChallengeAttempt,
+    CoachAssignment,
+    HabitScore,
+    ProductivityLog,
+    Role,
+    User,
+    UserRole,
+)
 from app.services import bootstrap
 
 
@@ -47,6 +57,23 @@ def test_seed_accounts_removes_legacy_demo(db):
 
     assert db.query(User).filter(User.email == "demo@cerebro.com").first() is None
     assert db.query(UserRole).filter(UserRole.user_id == demo.id).first() is None
+
+
+def test_seed_demo_data_is_idempotent_and_complete(db):
+    bootstrap._seed_roles(db)
+    bootstrap._seed_challenges(db)
+    bootstrap._seed_accounts(db)
+    bootstrap.seed_demo_data(db)
+    bootstrap.seed_demo_data(db)  # idempotent: must not duplicate or crash
+
+    user = db.query(User).filter(User.email == "user@gmail.com").first()
+    assert db.query(Alarm).filter(Alarm.user_id == user.id).count() == 3
+    assert db.query(HabitScore).filter(HabitScore.user_id == user.id).count() == bootstrap.DEMO_HISTORY_DAYS
+    assert db.query(ChallengeAttempt).filter(ChallengeAttempt.user_id == user.id).count() == (
+        bootstrap.DEMO_HISTORY_DAYS
+    )
+    assert db.query(ProductivityLog).filter(ProductivityLog.user_id == user.id).count() == 5
+    assert db.query(Announcement).count() == 2
 
 
 def test_me_exposes_default_user_role(client):

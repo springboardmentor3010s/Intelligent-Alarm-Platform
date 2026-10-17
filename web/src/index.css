@@ -5874,6 +5874,29 @@ html[data-theme='dark'] .auth-visual__travel {
   box-shadow: 0 1px 6px -1px rgba(104, 68, 253, 0.45);
 }
 
+/* Account-type picker on register: match the Login/Register pill segmented tabs. */
+.auth-form .segmented {
+  display: flex;
+  width: 100%;
+  gap: 0.25rem;
+  padding: 0.3rem;
+  border-radius: var(--radius-full);
+}
+
+.auth-form .segmented button {
+  flex: 1;
+  height: 40px;
+  justify-content: center;
+  font-size: 0.9rem;
+  border-radius: var(--radius-full);
+}
+
+.auth-form .segmented button.is-active {
+  background: var(--grad-primary);
+  color: #ffffff;
+  box-shadow: 0 1px 6px -1px rgba(104, 68, 253, 0.45);
+}
+
 .auth-divider {
   display: flex;
   align-items: center;

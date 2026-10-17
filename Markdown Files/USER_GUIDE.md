@@ -67,6 +67,11 @@ also has one-click **"Sign in as ..."** buttons for each.
 | Wellness Coach | `coach@gmail.com` | `Coach@123` |
 | Administrator | `admin@gmail.com` | `Admin@123` |
 
+Each seeded account also ships with sample history so no screen is blank on a
+first run: three demo alarms, ten days of habit scores, a daily challenge
+attempt, five productivity logs, and two platform announcements. Seeding fills
+only missing days, so it never duplicates what you have already recorded.
+
 The sidebar adapts to the signed-in role:
 
 - **Users** see the personal sections only (no **Administration** entry); all
