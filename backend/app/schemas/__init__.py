@@ -363,3 +363,36 @@ class FeedbackRes(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class AnnouncementCreateReq(BaseModel):
+    title: str = Field(..., min_length=1)
+    body: str = Field(..., min_length=1)
+    is_active: bool = True
+    priority: int = 0
+    starts_at: Optional[datetime] = None
+    ends_at: Optional[datetime] = None
+
+
+class AnnouncementUpdateReq(BaseModel):
+    title: Optional[str] = Field(None, min_length=1)
+    body: Optional[str] = Field(None, min_length=1)
+    is_active: Optional[bool] = None
+    priority: Optional[int] = None
+    starts_at: Optional[datetime] = None
+    ends_at: Optional[datetime] = None
+
+
+class AnnouncementOut(BaseModel):
+    id: int
+    title: str
+    body: str
+    is_active: bool
+    priority: int
+    starts_at: Optional[datetime] = None
+    ends_at: Optional[datetime] = None
+    published_at: datetime
+    created_by: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
+    model_config = {"from_attributes": True}

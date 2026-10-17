@@ -289,3 +289,25 @@ class AuditLog(Base):
         Index("ix_audit_logs_event", "event"),
         Index("ix_audit_logs_created_at", "created_at"),
     )
+
+
+class Announcement(Base):
+    """Platform-wide announcements (admin-managed)."""
+
+    __tablename__ = "announcements"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    body = Column(Text, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    priority = Column(Integer, default=0, nullable=False)
+    starts_at = Column(DateTime(timezone=True), nullable=True)
+    ends_at = Column(DateTime(timezone=True), nullable=True)
+    published_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    creator = relationship("User", foreign_keys=[created_by])
+    __table_args__ = (
+        Index("ix_announcements_active_published", "is_active", "published_at"),
+        Index("ix_announcements_priority", "priority"),
+    )
