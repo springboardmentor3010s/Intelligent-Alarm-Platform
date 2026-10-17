@@ -77,3 +77,12 @@ jest.mock('expo-auth-session', () => {
     exchangeCodeAsync: jest.fn(() => Promise.resolve({ idToken: 'test-id-token' })),
   };
 });
+
+// Expo SDK 58 lazily loads a native JS logger. TurboModuleRegistry is undefined in
+// this Jest environment, so expo-modules-core hits its catch and console.warn()s -
+// sometimes after the test file has finished. jest-runner turns any console call
+// after teardown into process exit code 1, failing CI even though all tests pass.
+// Stub the native module so requireOptionalNativeModule returns early, no warn.
+if (globalThis.expo?.modules) {
+  globalThis.expo.modules.ExpoModulesCoreJSLogger = { addListener: () => {} };
+}
