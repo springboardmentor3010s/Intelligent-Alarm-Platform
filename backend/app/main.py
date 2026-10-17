@@ -18,8 +18,10 @@ from .api.sync import router as sync_router
 from .api.dashboard import router as dashboard_router
 from .api.analytics import router as analytics_router
 from .api.users import router as users_router
+from .api.notifications import router as notifications_router
 from .api.feedback import router as feedback_router
 from .api.productivity import router as productivity_router
+from .api.announcements import router as announcements_router
 from .gateway import GatewayMiddleware, SecurityHeadersMiddleware, configure_logging
 from .services.bootstrap import bootstrap_local_db
 from .core.config import get_cors_origins
@@ -109,8 +111,10 @@ app.include_router(sync_router, prefix="/api/v1", tags=["sync"])
 app.include_router(dashboard_router, prefix="/api/v1", tags=["dashboard"])
 app.include_router(analytics_router, prefix="/api/v1", tags=["analytics"])
 app.include_router(users_router, prefix="/api/v1", tags=["users"])
+app.include_router(notifications_router, prefix="/api/v1", tags=["notifications"])
 app.include_router(feedback_router, prefix="/api/v1", tags=["feedback"])
 app.include_router(productivity_router, prefix="/api/v1", tags=["productivity"])
+app.include_router(announcements_router, prefix="/api/v1", tags=["announcements"])
 
 # ---------------------------------------------------------------------------
 # Structured error envelope (Level 8): {detail, error_code, timestamp}
