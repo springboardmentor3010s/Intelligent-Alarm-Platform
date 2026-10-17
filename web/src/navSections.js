@@ -57,16 +57,11 @@ export const NAV_SECTIONS = [
 ];
 
 /**
- * Nav sections visible to a role. `Administration` is staff-only and is
- * relabelled "Coaching" for Wellness Coaches (their view is the cohort, not
- * platform admin). Users never see the section at all.
+ * Nav sections visible to a role. `Administration` is Administrator-only;
+ * Users and Wellness Coaches never see it (the `/admin` route is guarded the
+ * same way in `App.jsx`).
  */
 export function sectionsForRole(role) {
   if (role === 'Administrator') return NAV_SECTIONS;
-  if (role === 'Wellness Coach') {
-    return NAV_SECTIONS.map(s =>
-      s.label === 'Administration' ? { ...s, label: 'Coaching' } : s
-    );
-  }
   return NAV_SECTIONS.filter(s => s.label !== 'Administration');
 }

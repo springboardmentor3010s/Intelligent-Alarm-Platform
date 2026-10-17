@@ -172,7 +172,7 @@ function App() {
   const email = user.email || '';
   const initials = initialsOf(user);
   const sections = sectionsForRole(user.role);
-  const isStaff = user.role === 'Administrator' || user.role === 'Wellness Coach';
+  const isAdmin = user.role === 'Administrator';
 
   const shellClass = [
     'app-shell',
@@ -219,7 +219,7 @@ function App() {
               <Route path="/reports" element={<Reports />} />
               <Route
                 path="/admin"
-                element={isStaff ? <Admin /> : <Navigate to="/" replace />}
+                element={isAdmin ? <Admin /> : <Navigate to="/" replace />}
               />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />

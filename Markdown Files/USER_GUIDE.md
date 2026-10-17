@@ -76,9 +76,8 @@ The sidebar adapts to the signed-in role:
 
 - **Users** see the personal sections only (no **Administration** entry); all
   data is their own and cross-user URLs are rejected.
-- **Wellness Coaches** see a **Coaching** entry (staff view): their assigned
-  cohort only, with per-user profile, adherence, alarm, challenge, sleep, and
-  progress detail. An empty cohort shows guidance instead of data.
+- **Wellness Coaches** see the same personal sections as Users; the
+  **Administration** entry is not shown (it is admin-only).
 - **Administrators** see an **Admin** entry: platform telemetry, the full user
   directory, and role management (they cannot change their own role).
 

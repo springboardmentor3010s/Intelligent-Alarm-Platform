@@ -72,6 +72,19 @@ describe('App navigation (§21 grouping)', () => {
     expect(screen.queryByRole('link', { name: 'Admin' })).toBeNull();
   });
 
+  it('hides the Administration section for a Wellness Coach', async () => {
+    mockFetch({
+      '/api/v1/habits/score': habitScore,
+      '/api/v1/auth/me': { user: { email: 'coach@test.io', full_name: 'Coach', role: 'Wellness Coach' } },
+    });
+    render(<App />);
+
+    await waitFor(() => expect(screen.getAllByText('Account').length).toBeGreaterThan(0));
+    expect(screen.queryAllByText('Administration').length).toBe(0);
+    expect(screen.queryAllByText('Coaching').length).toBe(0);
+    expect(screen.queryByRole('link', { name: 'Admin' })).toBeNull();
+  });
+
   it('home loads today progress once data arrives', async () => {
     mockFetch({
       '/api/v1/habits/score': habitScore,
