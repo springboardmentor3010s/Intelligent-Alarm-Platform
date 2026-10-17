@@ -6861,7 +6861,7 @@ html[data-theme='dark'] .sim-rand-btn:hover {
   gap: 1.15rem;
 }
 
-/* ---- Analytics bento (12-col: score 4 / telemetry 4 / recs 4, pillars 2x2) ---- */
+/* ---- Analytics bento (12-col: row 1 score 6 + telemetry 6, row 2 recs 12, pillars 2x2) ---- */
 .analytics-bento {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -6874,11 +6874,11 @@ html[data-theme='dark'] .sim-rand-btn:hover {
 }
 
 .bento-score {
-  grid-column: span 4;
+  grid-column: span 6;
 }
 
 .bento-tele {
-  grid-column: span 4;
+  grid-column: span 6;
 }
 
 .bento-score,
@@ -6956,7 +6956,7 @@ html[data-theme='dark'] .sim-rand-btn:hover {
 }
 
 .bento-recs {
-  grid-column: span 4;
+  grid-column: span 12;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -6964,14 +6964,6 @@ html[data-theme='dark'] .sim-rand-btn:hover {
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-}
-
-.bento-recs .grid-cards--3 {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.bento-recs .rec-card {
-  margin-bottom: 0.75rem;
 }
 
 /* ---- Responsive ---- */
