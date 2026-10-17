@@ -212,8 +212,12 @@ PORT=8000
 
 # DATABASE_URL takes precedence; default local dev: sqlite:///./cerebrokognit.db
 # → Fully-local mode: with no DATABASE_URL the API runs self-contained on SQLite.
-#   On first startup it auto-creates tables + seeds roles / 7x5 challenges / demo user
-#   (demo@cerebro.com / password123). No DB server, no Docker, no cloud. Disable with AUTO_INIT=0.
+#   On first startup it auto-creates tables + seeds roles / 7x5 challenges / three
+#   role accounts:
+#     admin@gmail.com / Admin@123  (Administrator)
+#     coach@gmail.com / Coach@123  (Wellness Coach)
+#     user@gmail.com  / User@123   (User)
+#   No DB server, no Docker, no cloud. Disable with AUTO_INIT=0.
 POSTGRES_SERVER=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=cerebro_kognit

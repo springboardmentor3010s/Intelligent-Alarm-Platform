@@ -141,7 +141,7 @@ export default function LoginScreen() {
         </View>
 
         <Text style={[styles.foot, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>
-          Demo session: <Text style={[styles.footAccent, { color: colors.violet }]}>demo@cerebro.com</Text>
+          Demo session: <Text style={[styles.footAccent, { color: colors.violet }]}>user@gmail.com</Text>
         </Text>
         <Text style={[styles.credit, { color: colors.textFaint, fontFamily: fonts.monoMedium }]}>Built by Pawan Simha R · Infosys Internship 7.0</Text>
       </ScrollView>

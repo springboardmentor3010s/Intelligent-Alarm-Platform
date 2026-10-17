@@ -12,7 +12,7 @@ import Auth from './pages/Auth';
 import Admin from './pages/Admin';
 import Landing from './pages/Landing';
 import Sidebar from './components/layout/Sidebar';
-import { NAV_SECTIONS } from './navSections';
+import { NAV_SECTIONS, sectionsForRole } from './navSections';
 import { MenuIcon, LiveClock } from './components/ui';
 import ThemeToggle from './components/auth/ThemeToggle';
 
@@ -24,8 +24,8 @@ function initialsOf(user) {
 }
 
 /** Resolve the current route to the matching nav section & page label. */
-function resolveBreadcrumb(pathname) {
-  for (const section of NAV_SECTIONS) {
+function resolveBreadcrumb(pathname, sections = NAV_SECTIONS) {
+  for (const section of sections) {
     const match = section.links.find(l =>
       l.to === '/' ? pathname === '/' : pathname.startsWith(l.to)
     );
@@ -37,9 +37,9 @@ function resolveBreadcrumb(pathname) {
 }
 
 /** Google Workspace-style topbar: breadcrumb tag + live clock + theme toggle. */
-function Topbar({ onMenuToggle, mobileNavOpen }) {
+function Topbar({ onMenuToggle, mobileNavOpen, sections }) {
   const { pathname } = useLocation();
-  const crumb = resolveBreadcrumb(pathname);
+  const crumb = resolveBreadcrumb(pathname, sections);
   return (
     <header className="app-topbar">
       <div className="app-topbar__left">
@@ -171,6 +171,8 @@ function App() {
   const name = user.full_name || user.email?.split('@')[0] || 'User';
   const email = user.email || '';
   const initials = initialsOf(user);
+  const sections = sectionsForRole(user.role);
+  const isStaff = user.role === 'Administrator' || user.role === 'Wellness Coach';
 
   const shellClass = [
     'app-shell',
@@ -186,6 +188,7 @@ function App() {
           email={email}
           initials={initials}
           collapsed={collapsed}
+          sections={sections}
           onToggleCollapsed={toggleCollapsed}
           onNavigate={() => setMobileNavOpen(false)}
           onLogout={handleLogout}
@@ -204,6 +207,7 @@ function App() {
           <Topbar
             onMenuToggle={() => setMobileNavOpen(v => !v)}
             mobileNavOpen={mobileNavOpen}
+            sections={sections}
           />
 
           <main className="app-content">
@@ -213,7 +217,10 @@ function App() {
               <Route path="/alarms" element={<Alarms />} />
               <Route path="/challenges" element={<Challenges />} />
               <Route path="/reports" element={<Reports />} />
-              <Route path="/admin" element={<Admin />} />
+              <Route
+                path="/admin"
+                element={isStaff ? <Admin /> : <Navigate to="/" replace />}
+              />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" />} />

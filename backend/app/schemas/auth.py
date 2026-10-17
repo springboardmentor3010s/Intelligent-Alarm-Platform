@@ -29,6 +29,7 @@ class UserProfileRes(BaseModel):
     difficulty_preference: str
     is_active: bool
     is_verified: bool
+    role: str = "User"  # most-privileged role: User / Wellness Coach / Administrator
     created_at: str  # datetime ISO format
 
     model_config = {"from_attributes": True}

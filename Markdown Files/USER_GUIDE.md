@@ -58,12 +58,27 @@ prove higher output. Productivity exports contain only logged days.
 
 ## 6. Roles: User, Wellness Coach, Administrator
 
-- **Users** see only their own data; cross-user URLs are rejected.
-- **Wellness Coaches** (assigned by an admin) see a **Coaching Cohort** page:
-  assigned users only, with per-user profile, adherence, alarm, challenge,
-  sleep, and progress detail. An empty cohort shows guidance instead of data.
-- **Administrators** see platform telemetry, the user directory, and role
-  management (they cannot change their own role).
+Three demo accounts are seeded on a local (SQLite) database. The web login page
+also has one-click **"Sign in as ..."** buttons for each.
+
+| Role | Email | Password |
+|---|---|---|
+| User | `user@gmail.com` | `User@123` |
+| Wellness Coach | `coach@gmail.com` | `Coach@123` |
+| Administrator | `admin@gmail.com` | `Admin@123` |
+
+The sidebar adapts to the signed-in role:
+
+- **Users** see the personal sections only (no **Administration** entry); all
+  data is their own and cross-user URLs are rejected.
+- **Wellness Coaches** see a **Coaching** entry (staff view): their assigned
+  cohort only, with per-user profile, adherence, alarm, challenge, sleep, and
+  progress detail. An empty cohort shows guidance instead of data.
+- **Administrators** see an **Admin** entry: platform telemetry, the full user
+  directory, and role management (they cannot change their own role).
+
+Everything else (Dashboard, Analytics, Alarms, Challenges, History, Profile,
+Settings) is shared by all three roles and shows only the signed-in user's data.
 
 ## 7. Mobile app notes
 

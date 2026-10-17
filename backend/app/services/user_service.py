@@ -15,7 +15,7 @@ from uuid import uuid4
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from ..Models import User
+from ..Models import Role, User, UserRole
 from ..schemas.auth import UserProfileRes
 from ..schemas import UserProfileUpdateReq, SettingsUpdateReq
 from ..core.config import get_secret_key
@@ -79,8 +79,25 @@ class AuthService:
 
 _SETTING_KEYS = {"notifications", "auto_dismiss", "vibrate", "time_format"}
 
+_ROLE_PRIORITY = ("Administrator", "Wellness Coach", "User")
 
-def to_profile(user: User) -> UserProfileRes:
+
+def primary_role(db: Session, user_id: int) -> str:
+    """Most-privileged role name held by a user (defaults to 'User')."""
+    names = {
+        name
+        for (name,) in db.query(Role.name)
+        .join(UserRole, UserRole.role_id == Role.id)
+        .filter(UserRole.user_id == user_id)
+        .all()
+    }
+    for role in _ROLE_PRIORITY:
+        if role in names:
+            return role
+    return "User"
+
+
+def to_profile(user: User, role: str = "User") -> UserProfileRes:
     """Serialize a User ORM row to the API profile shape."""
     return UserProfileRes(
         id=user.id,
@@ -90,6 +107,7 @@ def to_profile(user: User) -> UserProfileRes:
         difficulty_preference=user.difficulty_preference or "Medium",
         is_active=user.is_active,
         is_verified=user.is_verified,
+        role=role,
         created_at=user.created_at.isoformat() if user.created_at else "",
     )
 
@@ -107,7 +125,7 @@ def update_profile(
 
     db.commit()
     db.refresh(user)
-    return to_profile(user)
+    return to_profile(user, primary_role(db, user.id))
 
 
 def get_user_settings(user: User) -> Dict[str, object]:

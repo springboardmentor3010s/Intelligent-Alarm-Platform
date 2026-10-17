@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..core import config
 from ..services.auth import AuthService
-from ..services.user_service import to_profile
+from ..services.user_service import to_profile, primary_role
 from ..services.token_service import (
     create_auth_token,
     verify_auth_token,
@@ -53,7 +53,7 @@ def _issue_auth_response(db: Session, user: User) -> AuthRes:
         refresh_token=refresh_token,
         token_type="bearer",
         expires_in=3600,
-        user=to_profile(user),
+        user=to_profile(user, primary_role(db, user.id)),
     )
 
 
@@ -133,6 +133,7 @@ async def login(
 
 @router.get("/me", response_model=UserProfileRes)
 async def me(
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Get current user profile."""
@@ -144,6 +145,7 @@ async def me(
         difficulty_preference=current_user.difficulty_preference or "Medium",
         is_active=current_user.is_active,
         is_verified=current_user.is_verified,
+        role=primary_role(db, current_user.id),
         created_at=current_user.created_at.isoformat() if current_user.created_at else "",
     )
 

@@ -19,10 +19,13 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get("/profile", response_model=UserProfileRes)
 def get_profile(
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Get the current user's profile."""
-    return user_service.to_profile(current_user)
+    return user_service.to_profile(
+        current_user, user_service.primary_role(db, current_user.id)
+    )
 
 
 @router.put("/profile", response_model=UserProfileRes)

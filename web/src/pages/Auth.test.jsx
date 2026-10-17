@@ -25,7 +25,9 @@ describe('Auth login/register UI', () => {
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Login with Demo Account' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign in as User' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign in as Wellness Coach' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign in as Administrator' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /back to home/i })).toHaveAttribute('href', '/');
     // Benefits preserved
     expect(screen.getByText('Adaptive difficulty, personalized to you')).toBeInTheDocument();

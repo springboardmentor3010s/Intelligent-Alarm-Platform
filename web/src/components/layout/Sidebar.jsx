@@ -20,8 +20,8 @@ import {
  * - onLogout: preserves the existing logout behaviour
  */
 /** Matches App.jsx breadcrumb logic: which nav section owns the current route. */
-function activeSectionLabel(pathname) {
-  for (const section of NAV_SECTIONS) {
+function activeSectionLabel(pathname, sections) {
+  for (const section of sections) {
     const hit = section.links.some(l =>
       l.to === '/' ? pathname === '/' : pathname.startsWith(l.to)
     );
@@ -35,13 +35,13 @@ export default function Sidebar({
   email = '',
   initials = 'U',
   collapsed = false,
+  sections = NAV_SECTIONS,
   onToggleCollapsed,
   onNavigate,
   onLogout,
 }) {
   const { pathname } = useLocation();
-  const activeSection = activeSectionLabel(pathname);
-
+  const activeSection = activeSectionLabel(pathname, sections);
   return (
     <aside className="app-sidebar">
       <div className="sidebar-head">
@@ -78,7 +78,7 @@ export default function Sidebar({
       </div>
 
       <nav className="sidebar-nav" aria-label="Primary navigation">
-        {NAV_SECTIONS.map(section => (
+        {sections.map(section => (
           <div className="sidebar-section" key={section.label}>
             <span
               className={`sidebar-section__label${section.label === activeSection ? ' is-active' : ''}`}

@@ -1,8 +1,8 @@
 # CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Local (SQLite-only) bootstrap: zero-setup, fully-local operation.
 
-On startup the app creates tables and seeds roles/challenges/demo user ONLY when
-backed by a local SQLite database (the default when DATABASE_URL is not set).
+On startup the app creates tables and seeds roles/challenges/role accounts ONLY
+when backed by a local SQLite database (the default when DATABASE_URL is not set).
 Postgres (Docker/cloud) deployments are never touched — they keep using
 `alembic upgrade head` via the container entrypoint.
 
@@ -14,7 +14,7 @@ import os
 import bcrypt
 
 from ..database import SessionLocal, engine
-from ..Models import Base, Challenge, Role, User, UserRole
+from ..Models import Base, Challenge, CoachAssignment, Role, User, UserRole
 
 DEFAULT_ROLES = [
     ("User", "Standard registered user with alarm and challenge access"),
@@ -25,8 +25,20 @@ DEFAULT_ROLES = [
 CHALLENGE_TYPES = ["Math", "Logic", "Memory", "Word", "Pattern", "Riddle", "QuickQuiz"]
 CHALLENGE_DIFFICULTIES = ["Beginner", "Easy", "Medium", "Hard", "Expert"]
 
-DEMO_EMAIL = "demo@cerebro.com"
-DEMO_PASSWORD = "password123"
+# (email, password, full_name, role) — seeded so every role can be demoed.
+# Registration always grants "User", so an Administrator must exist up front
+# before the admin-only role-change endpoint can promote anyone.
+SEED_ACCOUNTS = [
+    ("admin@gmail.com", "Admin@123", "Platform Administrator", "Administrator"),
+    ("coach@gmail.com", "Coach@123", "Wellness Coach", "Wellness Coach"),
+    ("user@gmail.com", "User@123", "Demo User", "User"),
+]
+
+# (coach_email, member_email): one cohort assignment so the coach view has data.
+SEED_COHORT = ("coach@gmail.com", "user@gmail.com")
+
+# Pre-seed account from older builds; removed on sight so it stops lingering.
+LEGACY_DEMO_EMAIL = "demo@cerebro.com"
 
 
 def _is_local_sqlite() -> bool:
@@ -61,23 +73,45 @@ def _seed_challenges(db):
     db.commit()
 
 
-def _seed_demo_user(db):
-    user = db.query(User).filter(User.email == DEMO_EMAIL).first()
-    if user is None:
-        hashed = bcrypt.hashpw(DEMO_PASSWORD.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-        user = User(
-            email=DEMO_EMAIL,
-            hashed_password=hashed,
-            full_name="Demo User",
-            timezone="UTC",
-            difficulty_preference="Medium",
-        )
-        db.add(user)
-        db.flush()
-        role = db.query(Role).filter(Role.name == "User").first()
-        if role is not None:
+def _seed_accounts(db):
+    """Create the three role accounts, link the User into the Coach's cohort,
+    and delete the legacy demo account if it is still present."""
+    accounts = {}
+    for email, password, full_name, role_name in SEED_ACCOUNTS:
+        user = db.query(User).filter(User.email == email).first()
+        if user is None:
+            hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+            user = User(
+                email=email,
+                hashed_password=hashed,
+                full_name=full_name,
+                timezone="UTC",
+                difficulty_preference="Medium",
+            )
+            db.add(user)
+            db.flush()
+        accounts[email] = user
+
+        role = db.query(Role).filter(Role.name == role_name).first()
+        if role is not None and not db.query(UserRole).filter(
+            UserRole.user_id == user.id, UserRole.role_id == role.id
+        ).first():
             db.add(UserRole(user_id=user.id, role_id=role.id))
-        db.commit()
+
+    coach = accounts.get(SEED_COHORT[0])
+    member = accounts.get(SEED_COHORT[1])
+    if coach is not None and member is not None and not db.query(CoachAssignment).filter(
+        CoachAssignment.coach_id == coach.id,
+        CoachAssignment.user_id == member.id,
+    ).first():
+        db.add(CoachAssignment(coach_id=coach.id, user_id=member.id))
+
+    legacy = db.query(User).filter(User.email == LEGACY_DEMO_EMAIL).first()
+    if legacy is not None:
+        db.query(UserRole).filter(UserRole.user_id == legacy.id).delete()
+        db.delete(legacy)
+
+    db.commit()
 
 
 def bootstrap_local_db():
@@ -92,6 +126,6 @@ def bootstrap_local_db():
     try:
         _seed_roles(db)
         _seed_challenges(db)
-        _seed_demo_user(db)
+        _seed_accounts(db)
     finally:
         db.close()

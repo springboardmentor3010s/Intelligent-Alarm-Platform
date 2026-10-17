@@ -1,7 +1,8 @@
 # CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
 """Database initialization and seed script for CerebroKognit.
 
-Creates all tables and seeds default roles plus a demo user.
+Creates all tables and seeds default roles plus the three role accounts
+(User / Wellness Coach / Administrator).
 Usage (from backend/):
     python scripts/init_db.py            # create tables + seed
     python scripts/init_db.py --reset    # drop all tables first, then recreate + seed
@@ -18,6 +19,7 @@ from app.database import SessionLocal, engine  # noqa: E402
 from app.Models import (  # noqa: E402
     Base,
     Challenge,
+    CoachAssignment,
     Role,
     User,
     UserRole,
@@ -29,8 +31,18 @@ DEFAULT_ROLES = [
     ("Administrator", "Full platform access: users, analytics, reports"),
 ]
 
-DEMO_EMAIL = "demo@cerebro.com"
-DEMO_PASSWORD = "password123"
+# (email, password, full_name, role) — seeded so every role can be demoed.
+SEED_ACCOUNTS = [
+    ("admin@gmail.com", "Admin@123", "Platform Administrator", "Administrator"),
+    ("coach@gmail.com", "Coach@123", "Wellness Coach", "Wellness Coach"),
+    ("user@gmail.com", "User@123", "Demo User", "User"),
+]
+
+# (coach_email, member_email): one cohort assignment so the coach view has data.
+SEED_COHORT = ("coach@gmail.com", "user@gmail.com")
+
+# Pre-seed account from older builds; removed on sight so it stops lingering.
+LEGACY_DEMO_EMAIL = "demo@cerebro.com"
 
 
 def seed_roles(db):
@@ -65,23 +77,45 @@ def seed_challenges(db):
     db.commit()
 
 
-def seed_demo_user(db):
-    user = db.query(User).filter(User.email == DEMO_EMAIL).first()
-    if user is None:
-        hashed = bcrypt.hashpw(DEMO_PASSWORD.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-        user = User(
-            email=DEMO_EMAIL,
-            hashed_password=hashed,
-            full_name="Demo User",
-            timezone="UTC",
-            difficulty_preference="Medium",
-        )
-        db.add(user)
-        db.flush()
-        role = db.query(Role).filter(Role.name == "User").first()
-        if role:
+def seed_accounts(db):
+    """Create the three role accounts, link the User into the Coach's cohort,
+    and delete the legacy demo account if it is still present."""
+    accounts = {}
+    for email, password, full_name, role_name in SEED_ACCOUNTS:
+        user = db.query(User).filter(User.email == email).first()
+        if user is None:
+            hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+            user = User(
+                email=email,
+                hashed_password=hashed,
+                full_name=full_name,
+                timezone="UTC",
+                difficulty_preference="Medium",
+            )
+            db.add(user)
+            db.flush()
+        accounts[email] = user
+
+        role = db.query(Role).filter(Role.name == role_name).first()
+        if role and not db.query(UserRole).filter(
+            UserRole.user_id == user.id, UserRole.role_id == role.id
+        ).first():
             db.add(UserRole(user_id=user.id, role_id=role.id))
-        db.commit()
+
+    coach = accounts.get(SEED_COHORT[0])
+    member = accounts.get(SEED_COHORT[1])
+    if coach is not None and member is not None and not db.query(CoachAssignment).filter(
+        CoachAssignment.coach_id == coach.id,
+        CoachAssignment.user_id == member.id,
+    ).first():
+        db.add(CoachAssignment(coach_id=coach.id, user_id=member.id))
+
+    legacy = db.query(User).filter(User.email == LEGACY_DEMO_EMAIL).first()
+    if legacy is not None:
+        db.query(UserRole).filter(UserRole.user_id == legacy.id).delete()
+        db.delete(legacy)
+
+    db.commit()
 
 
 def main():
@@ -97,10 +131,12 @@ def main():
     try:
         seed_roles(db)
         seed_challenges(db)
-        seed_demo_user(db)
+        seed_accounts(db)
         print("Roles seeded: User, Wellness Coach, Administrator")
-        print("Challenges seeded: 7 types x 5 difficulties")
-        print(f"Demo user ready: {DEMO_EMAIL} / {DEMO_PASSWORD}")
+        print("Challenges seeded: full 7-type x 5-difficulty grid")
+        print("Accounts seeded:")
+        for email, password, _full_name, role_name in SEED_ACCOUNTS:
+            print(f"  {role_name:<15} {email} / {password}")
     finally:
         db.close()
 

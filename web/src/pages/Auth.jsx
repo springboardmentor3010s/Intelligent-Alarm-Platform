@@ -24,6 +24,13 @@ const DIFFICULTIES = ['Beginner', 'Easy', 'Medium', 'Hard', 'Expert'];
 const SIGNUP_HEAD = { title: 'Create your account', sub: 'Set up your cognitive wake protocol in under a minute.' };
 const LOGIN_HEAD = { title: 'Welcome back', sub: 'Sign in to stay sharp every morning.' };
 
+// Seeded demo logins (backend bootstrap seeds one account per role).
+const QUICK_ACCOUNTS = [
+  { email: 'user@gmail.com', password: 'User@123', label: 'User' },
+  { email: 'coach@gmail.com', password: 'Coach@123', label: 'Wellness Coach' },
+  { email: 'admin@gmail.com', password: 'Admin@123', label: 'Administrator' },
+];
+
 export default function Auth({ onAuth }) {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({
@@ -168,25 +175,16 @@ timezone: browserTimeZone(),
     }
   };
 
-  const demoLogin = async () => {
+  const quickLogin = async (email, password) => {
     setMessage(null);
     setErrors({});
     setLoading(true);
-    const email = 'demo@cerebro.com';
-    const password = 'password123';
     try {
-      let res = await fetch('/api/v1/auth/login', {
+      const res = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      if (res.status === 401) {
-        res = await fetch('/api/v1/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, full_name: 'Demo User', timezone: 'UTC', difficulty_preference: 'Medium' }),
-        });
-      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'login failed');
       localStorage.setItem('token', data.access_token);
@@ -194,7 +192,7 @@ timezone: browserTimeZone(),
       onAuth(data);
       setLoading(false);
     } catch (err) {
-      setMessage({ type: 'error', text: `Demo login failed: ${err.message}` });
+      setMessage({ type: 'error', text: `Quick login failed: ${err.message}` });
       setLoading(false);
     }
   };
@@ -370,9 +368,20 @@ timezone: browserTimeZone(),
 
       <AuthDivider />
 
-      <Button variant="secondary" onClick={demoLogin} loading={loading} type="button">
-        {loading ? 'Signing in…' : 'Login with Demo Account'}
-      </Button>
+      <p className="text-xs text-muted-600" style={{ margin: '0.25rem 0', textAlign: 'center' }}>
+        Demo sign-in
+      </p>
+      {QUICK_ACCOUNTS.map(a => (
+        <Button
+          key={a.email}
+          variant="secondary"
+          onClick={() => quickLogin(a.email, a.password)}
+          disabled={loading || oauthBusy}
+          type="button"
+        >
+          {`Sign in as ${a.label}`}
+        </Button>
+      ))}
 
       <Button
         variant="secondary"

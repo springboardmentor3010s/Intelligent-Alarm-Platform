@@ -45,7 +45,10 @@ describe('App navigation (§21 grouping)', () => {
   });
 
   it('renders Overview / Wake / Account groups with all destinations', async () => {
-    mockFetch({ '/api/v1/habits/score': habitScore });
+    mockFetch({
+      '/api/v1/habits/score': habitScore,
+      '/api/v1/auth/me': { user: { email: 'admin@test.io', full_name: 'Admin', role: 'Administrator' } },
+    });
     render(<App />);
 
     await waitFor(() => expect(screen.getAllByText('Overview').length).toBeGreaterThan(0));
@@ -55,6 +58,18 @@ describe('App navigation (§21 grouping)', () => {
     for (const label of ['Dashboard', 'Analytics', 'Alarms', 'Challenges', 'History', 'Profile', 'Admin']) {
       expect(screen.getAllByRole('link', { name: label }).length).toBeGreaterThan(0);
     }
+  });
+
+  it('hides the Administration section for a plain User', async () => {
+    mockFetch({
+      '/api/v1/habits/score': habitScore,
+      '/api/v1/auth/me': { user: { email: 'user@test.io', full_name: 'User', role: 'User' } },
+    });
+    render(<App />);
+
+    await waitFor(() => expect(screen.getAllByText('Account').length).toBeGreaterThan(0));
+    expect(screen.queryAllByText('Administration').length).toBe(0);
+    expect(screen.queryByRole('link', { name: 'Admin' })).toBeNull();
   });
 
   it('home loads today progress once data arrives', async () => {
