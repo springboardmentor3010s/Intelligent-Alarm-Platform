@@ -5,7 +5,6 @@ Google's network boundary is monkeypatched, so these run offline and assert the
 local link-or-create + token issuance behavior.
 """
 
-import pytest
 from fastapi import HTTPException
 
 from app.services.oauth_service import GoogleOAuthService

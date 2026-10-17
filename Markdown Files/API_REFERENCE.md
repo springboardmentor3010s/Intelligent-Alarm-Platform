@@ -1,4 +1,4 @@
-# API Reference — CerebroKognit (Phase 9)
+# API Reference — CerebroKognit (Phase A–D)
 
 **Project**: CerebroKognit — Intelligent Cognitive Alarm Platform  
 **Developer**: Pawan Simha R  
@@ -58,5 +58,56 @@ consumed, 410 expired.
 | GET `/analytics/anomalies` | gated baseline; `available:false` under 5 scored days |
 | GET `/analytics/forecast` | gated baseline trend; `available:false` under 4 scored days |
 | POST `/productivity/log` (201) | `{score 0-100, date?, note?}`; same-day upsert; `source: user-entered` |
-| GET `/productivity/log|/history|/trend|/correlation` | owner only; trend/correl
-...[truncated 911 chars]
+| GET `/productivity/log|/history|/trend|/correlation` | owner only; trend gated under 2 logs; correlation gated under 4 paired days (association-only message) |
+
+## Reports & dashboard (`/dashboard`)
+| Method & Path | Auth | Notes |
+|---|---|---|
+| GET `/dashboard/reports/productivity` | Bearer | user-entered logs; `format=csv\|json\|pdf\|excel` |
+| GET `/dashboard/reports/habits` | Bearer | `format=csv\|json\|pdf\|excel`; `?async=1` returns a job id |
+| GET `/dashboard/reports/wake-up` | Bearer | tz-aware ordered builder |
+| GET `/dashboard/reports/challenges` | Bearer | per-type breakdown |
+| GET `/dashboard/reports/status/{job_id}` | Bearer | `queued\|running\|completed\|failed` |
+| GET `/dashboard/users` | Bearer (staff+) | admin: all; coach: assigned cohort only |
+| PUT `/dashboard/users/{user_id}/role` | Bearer (Admin) | `RoleUpdateReq`; can't change own; audited |
+| GET `/dashboard/analytics` | Bearer (Admin) | platform metrics; measured uptime via `system_status` |
+| POST `/dashboard/coach/assignments` | Bearer (Admin) | assign user to cohort; 201; 409 duplicate |
+| DELETE `/dashboard/coach/assignments` | Bearer (Admin) | `?coach_id=&user_id=` |
+| GET `/dashboard/coach/users` | Bearer (staff+) | cohort roster (coach: assigned; admin: all) |
+| GET `/dashboard/coach/users/{user_id}` | Bearer (staff+) | scoped detail; 403 outside cohort |
+
+## Notifications (`/notifications`)
+| Method & Path | Notes |
+|---|---|
+| POST `/notifications/register` | register push token (idempotent; reassigns on ownership change) |
+| DELETE `/notifications/register` | deregister push token |
+| GET `/notifications/tokens` | list caller's push tokens |
+| GET `/notifications/status` | push provider + configured + registered-token count |
+| POST `/notifications/test` | send a test push to the caller's tokens |
+| POST `/notifications/triggers/bedtime` | server-computed bedtime-reminder payload (device schedules locally) |
+| POST `/notifications/triggers/challenge` | server-computed challenge-reminder payload |
+| POST `/notifications/triggers/habit` | server-computed habit-alert payload |
+| POST `/notifications/triggers/progress` | server-computed progress-notification payload |
+
+## Announcements (`/announcements`)
+| Method & Path | Auth | Notes |
+|---|---|---|
+| GET `/announcements/public` | — | active feed (window-filtered, priority-ordered) |
+| GET `/announcements` | Administrator | list all |
+| POST `/announcements` | Administrator | create (201) |
+| GET `/announcements/{id}` | Administrator | fetch one (404 if missing) |
+| PUT `/announcements/{id}` | Administrator | update |
+| DELETE `/announcements/{id}` | Administrator | delete (204) |
+
+## OAuth2
+| Method & Path | Auth | Notes |
+|---|---|---|
+| GET `/auth/oauth/google/login` | — | returns consent `url` + signed CSRF `state`; 503 when unconfigured |
+| POST `/auth/oauth/google/callback` | — | exchange code, verify `id_token`, link-or-create user, issue `AuthRes` |
+| POST `/auth/oauth/google/mobile` | — | native PKCE: verify mobile `id_token`, issue `AuthRes` |
+
+## Sync (`/sync`)
+| Method & Path | Notes |
+|---|---|
+| POST `/sync/pending` | upload offline changes (idempotent upsert) |
+| GET `/sync/pull` (`?since=`) | download changes since timestamp |

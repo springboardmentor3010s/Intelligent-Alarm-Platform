@@ -24,7 +24,7 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | Alembic | 1.19.2 | >=1.13.0 (added M1) | Migrations regenerated & verified |
 | | reportlab | 5.0.1 | >=4.0.0 (added M4) | PDF report export |
 | | openpyxl | 3.1.5 | >=3.1.0 (added M4) | Excel report export |
-| | pytest | 9.1.1 | >=8.0.0 (added M4) | Test suite (`backend/tests/`, 187 tests; coverage 88%) |
+| | pytest | 9.1.1 | >=8.0.0 (added M4) | Test suite (`backend/tests/`, 219 tests; coverage 87%) |
 | | ruff | 0.16.6 | >=0.8.0 (added M4) | Linter (`backend/pyproject.toml`, E/F/W) |
 | | PyTorch | present | >=2.3.x | ML / adaptive difficulty; **trained `backend/ml_models/difficulty_model.pt` (M3)** |
 | | scikit-learn | present | >=1.4.x | Unused in code |
@@ -43,7 +43,7 @@ Persistent session memory. If LLM session context resets or runs out of tokens, 
 | | MongoDB | — | 7.x | ⚠️ **Not implemented** — referenced in architecture only |
 | **DevOps** | Docker | Compose v2 | latest | Containerization |
 | | Git & GitHub | — | Latest | Version control; `main` synced with `origin` (HEAD `57db2cb`, 2026-09-19) |
-| | GitHub Actions | — | Latest | ✅ **Implemented (M4)** — `.github/workflows/ci.yml`: ruff + pytest + smokes + web test (Vitest 55) + web build + mobile jest (77) |
+| | GitHub Actions | — | Latest | ✅ **Implemented (M4)** — `.github/workflows/ci.yml`: ruff + pytest + smokes + web test (Vitest 58) + web build + mobile jest (84) |
 | **Mobile** | Expo | SDK ~57.0.15 | Latest | React Native framework |
 | | Firebase Cloud Messaging | — | Latest | ✅ **Delivery wired (Phase 3, 2026-09-17)** — Expo Push Service provider (`ExpoPushProvider`, covers FCM+APNs) behind `PUSH_PROVIDER=noop\|expo`; dead-token pruning + dedupe; on-device **expo-notifications** local scheduling (channel `cerebrokognit-alarms`) is the time-critical path |
 | | Android Alarm Manager | — | Native | ⚠️ **Backlog** — on-device local alarm scheduling (Levels 12/16) |
@@ -250,6 +250,9 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 | `/api/v1/auth/password-reset/confirm` | POST | Confirm reset token, set new password | None | `PasswordResetConfirmReq` | `{"message": str}` | ✅ Phase 2 |
 | `/api/v1/auth/verify-email/request` | POST | Send email-verification link (idempotent) | Bearer | None | `{"message": str}` | ✅ Phase 2 |
 | `/api/v1/auth/verify-email/confirm` | POST | Confirm verification token, mark user verified | None | `EmailVerifyConfirmReq` | `{"message": str, "is_verified": bool}` | ✅ Phase 2 |
+| `/api/v1/auth/oauth/google/login` | GET | Begin Google OAuth2 — returns consent `url` + signed CSRF `state` (503 if unconfigured) | None | `redirect_uri` query | `OAuthLoginRes` | ✅ Phase A |
+| `/api/v1/auth/oauth/google/callback` | POST | Exchange code, verify id_token, link-or-create user by provider+subject→email, issue tokens | None | `OAuthCallbackReq` | `AuthRes` | ✅ Phase A |
+| `/api/v1/auth/oauth/google/mobile` | POST | Native PKCE flow: verify mobile id_token, link-or-create, issue tokens | None | `OAuthMobileReq` | `AuthRes` | ✅ Phase A |
 | `/api/v1/users/profile` | GET | Current user profile (users router) | Bearer | — | `UserProfileRes` | ✅ Working (M1) |
 | `/api/v1/users/profile` | PUT | Update profile | Bearer | `UserProfileUpdateReq` | `UserProfileRes` | ✅ Working (M1) |
 | `/api/v1/users/settings` | GET | Get user settings | Bearer | — | `UserSettingsRes` | ✅ Working (M1) |
@@ -308,8 +311,22 @@ All endpoints defined in `SRS.md` Section 7. Must match FastAPI `app.py` + Pydan
 | `/api/v1/notifications/status` | GET | Push provider + configured + registered-token count | ✅ Working (Phase 3) |
 | `/api/v1/notifications/test` | POST | Send a test push to the caller's tokens | ✅ Working (Phase 3) |
 | `/api/v1/alarms/{id}/notify` | POST | Deliver the alarm-due notification (ownership checked) | ✅ Working (Phase 3) |
+| `/api/v1/notifications/triggers/bedtime` | POST | Server-computes bedtime reminder payload; device schedules locally (Module 11, no Celery) | ✅ Phase B |
+| `/api/v1/notifications/triggers/challenge` | POST | Server-computed challenge reminder payload | ✅ Phase B |
+| `/api/v1/notifications/triggers/habit` | POST | Server-computed habit-alert payload | ✅ Phase B |
+| `/api/v1/notifications/triggers/progress` | POST | Server-computed progress-notification payload | ✅ Phase B |
 | `/api/v1/auth/register` | GET | Verification stub for email loop (diagnostic) | ✅ Working (P1) |
 | `/api/v1/auth/login` | GET | Token inspector (diagnostic; leaks no secret) | ✅ Working (P1) |
+
+### Platform Announcements Endpoints (Phase C, Module 11)
+| Path | Method | Description | Auth | Status |
+|---|---|---|---|---|
+| `/api/v1/announcements/public` | GET | Active announcement feed (window-filtered `start`/`end`, priority-ordered) | None | ✅ Phase C |
+| `/api/v1/announcements` | GET | List all announcements (admin) | Administrator | ✅ Phase C |
+| `/api/v1/announcements` | POST | Create announcement (201) | Administrator | ✅ Phase C |
+| `/api/v1/announcements/{id}` | GET | Fetch one announcement (404 if missing) | Administrator | ✅ Phase C |
+| `/api/v1/announcements/{id}` | PUT | Update announcement | Administrator | ✅ Phase C |
+| `/api/v1/announcements/{id}` | DELETE | Delete announcement (204) | Administrator | ✅ Phase C |
 
 ### Missing Endpoints (called by mobile, don't exist)
 | Path | Method | Called From | Issue |
@@ -524,6 +541,8 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 | 2026-09-17 | architect | **Phase 8: Full Integration & E2E Testing**: executable journey suite `backend/tests/test_e2e_workflows.py` (9 tests, W01–W20: register/login, roles, profile, alarm create/recurring, snooze+cap, challenge wrong/correct/incomplete, dismissal+replay-gate, habit/analytics/recommendations downstream, report↔dashboard equality, push-token registration, coach/admin dashboards, cross-user fencing); all green. `E2E_TEST_REPORT.md` (20 workflows with preconditions/actions/expected/actual/evidence; W17 server-path PASS via mocked-transport tests, real-device leg explicitly MANUAL per `REAL_DEVICE_CHECKLIST.md`; no Playwright — no browser harness in repo/CI, web covered by 56 Vitest tests). Gates: pytest 186, Vitest 56, jest 75, ruff clean, smokes 22+25, build clean (339 total). | Success 2026-09-17 | `backend/tests/test_e2e_workflows.py`, `E2E_TEST_REPORT.md`, `SRS.md`, `TEST_STATUS.md`, `context.md` |
 | 2026-09-17 | architect | **Phase 9: Docker/Cloud/Monitoring/Docs (local prod validation; NO public-cloud deploy)**: **Builds** — `ml_models/.gitkeep` (fresh-clone COPY fix), exact-pinned `requirements-runtime.txt`, hardened `backend/Dockerfile` (non-root `appuser`, `PYTHONUNBUFFERED`), new `web/Dockerfile` (node build → nginx SPA) + `web/.dockerignore`; both images build. **Compose** — env-driven `docker-compose.yml` + `docker-compose.prod.yml` (required secrets via `:?` guards, `ENVIRONMENT=production`, `DEBUG=false`, unpublished DB port). **Hardening** — guarded Sentry hook (no-op without DSN), **boot-time prod secret guard** in lifespan (container crash-loops on placeholder; was lazy 500 before) + lifespan test. **Validated live** — fresh up: alembic head `f2b1d8e4a903`, 15 tables, measured `/health`; E2E register→alarm→challenge→dismiss→habit(73); web 200 + SPA fallback; restart recovery (data persists); pg_dump→`down -v`→restore (0→1 alarm); logs; non-root user; prod env flags. **Docs** — `DEPLOYMENT_GUIDE/OPERATIONS_GUIDE/USER_GUIDE/API_REFERENCE/FINAL_VALIDATION_REPORT.md` (cloud rollout explicitly deferred with ship checklist). Gates: pytest 187, ruff clean, smokes 22+25, Vitest 56, jest 75, build clean (340 total). | Success 2026-09-17 | `docker-compose.yml`, `docker-compose.prod.yml`, `backend/{Dockerfile,requirements-runtime.txt,.env.example,ml_models/.gitkeep}`, `web/{Dockerfile,nginx.conf,.dockerignore}`, `backend/app/main.py`, `backend/tests/test_security.py`, `DEPLOYMENT_GUIDE.md`, `OPERATIONS_GUIDE.md`, `USER_GUIDE.md`, `API_REFERENCE.md`, `FINAL_VALIDATION_REPORT.md`, `SRS.md`, `context.md` |
 
+| 2026-10-17 | architect | **Phase A–D: Google OAuth2 + notification triggers + announcements + RL bandit**: **A — OAuth2 (Module 1)** — `services/oauth_service.py` (signed state, code→token exchange via httpx, id_token audience-aware verify, link-or-create user by provider+subject→email), config-gated `is_google_oauth_enabled()` (503 when unconfigured), endpoints `GET /auth/oauth/google/login`, `POST /auth/oauth/google/callback`, `POST /auth/oauth/google/mobile` (PKCE id_token); password login rejects password-less OAuth accounts (401); migration `d3f6a8b1c2e4` (oauth_provider/subject + `uq_users_oauth_identity`, restores `ix_users_email_lower` on SQLite); web `Auth.jsx` Continue-with-Google + callback handling; mobile `googleAuth.js` PKCE + config-gated button. **B — Notification triggers** — `notification_service` gains `send_bedtime/challenge/habit/progress`; `POST /notifications/triggers/{bedtime,challenge,habit,progress}` (Module 11: server computes, device schedules — no Celery). **C — Platform announcements (Module 11)** — `Announcement` model + migration `c339b9896c3a` (cleaned of autogenerate drift that wrongly dropped `alarm_roles`), public active-feed `GET /announcements/public` (window+priority) + admin CRUD under `require_roles('Administrator')`; original commits shipped a stub API + removed the notifications router — superseded by fix commit `a22d2de`. **D — RL bandit (light-real)** — `ai_engine/rl_policy.py` UCB1 `ContextualBandit` blended into `difficulty.recommend_difficulty` behind `RL_BANDIT_ENABLED` (off by default) + `RL_BLEND_RATIO`; docs TF→PyTorch / Tailwind→custom CSS / Plotly→Chart.js substitution table in `AI_FEATURES.md`. **Gates**: pytest **219** (209→+3 bandit +7 announcements), ruff clean, migration roundtrip 0→head→-1→head verified, web Vitest 58, mobile jest 84. Commits: `a22d2de` (announcements fix), `62ffdaa` (bandit). | Success 2026-10-17 | `backend/app/{api/announcements,api/auth,services/oauth_service,services/notification_service,ai_engine/rl_policy,ai_engine/difficulty,core/config}.py`, `migrations/versions/{d3f6a8b1c2e4,c339b9896c3a}_*.py`, `web/src/pages/Auth.jsx`, `mobile/src/auth/googleAuth.js`, `Markdown Files/{AI_FEATURES.md,TEST_STATUS.md}`, this file |
+
 ### Implementation Priority Order
 1. **Level 0 — Repository Foundation** — `.gitignore`, `.gitattributes`, cleanup, initial commit
 2. **Level 1 — Backend Security** — env-driven JWT secret, CORS config, EmailStr validation
@@ -539,8 +558,8 @@ All errors follow: `{ "detail": "human readable error", "error_code": "ERR_XXX",
 12. **Level 11 — Mobile Core Flow** — fix dismiss flow, challenge wiring, add registration/alarm-creation screens ✅ (M2) — screens exist; polish pending
 13. **Level 12 — Notifications** — server push-token API + mobile Expo-token registration ✅ DONE (P5 + 2026-09-07); **Phase 3 (2026-09-17): Expo Push Service delivery provider + on-device local scheduling + tap routing ✅ IMPLEMENTED** — on-device firing still needs the manual `REAL_DEVICE_CHECKLIST.md` pass
 14. **Level 13 — Offline Sync** — SQLite/AsyncStorage cache + sync engine + screen wiring ✅ DONE (2026-09-07, but on-device E2E pending; Alarms tab cache added Phase 3)
-15. **Level 14 — Testing** — pytest + httpx ✅ backend (**187** tests incl. boot-guard test; 3.11+3.14 verified); **web Vitest (55) + mobile jest-expo (77) ✅ added 2026-09-07, grown through Phase 9**; coverage: pytest-cov 88% / @vitest/coverage-v8 74.67% / jest 31.2%; Phase 8: `E2E_TEST_REPORT.md` (W01–W20, device leg manual); reminders: broader flow-level component coverage
-16. **Level 15 — Linting & CI/CD** — Ruff ✅ (pyproject pragmatic E/F/W config, `ruff check app tests scripts` clean); ESLint/mypy ⚠️; **GitHub Actions ✅ DONE (M4)** (`ci.yml`: ruff + pytest (187) + smokes + web test (55)/build + mobile jest (77))
+15. **Level 14 — Testing** — pytest + httpx ✅ backend (**219** tests incl. boot-guard test; 3.11+3.14 verified); **web Vitest (58) + mobile jest-expo (84) ✅ added 2026-09-07, grown through Phase A–D**; coverage: pytest-cov 87% / @vitest/coverage-v8 74.88% / jest 33.75%; Phase 8: `E2E_TEST_REPORT.md` (W01–W20, device leg manual); reminders: broader flow-level component coverage
+16. **Level 15 — Linting & CI/CD** — Ruff ✅ (pyproject pragmatic E/F/W config, `ruff check app tests scripts` clean); ESLint/mypy ⚠️; **GitHub Actions ✅ DONE (M4)** (`ci.yml`: ruff + pytest (219) + smokes + web test (58)/build + mobile jest (84))
 17. **Level 16 — Production Hardening** — monitoring, rate limiting, Sentry, performance fixes
 
 > Full detail for every level: see **`HierarchicalRemediationPlan.md`**.

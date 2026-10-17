@@ -412,7 +412,7 @@ Never use neon glow shadows or gradient drop-shadows.
 Before marking UI work done, run:
 
 ```
-npm test        # Vitest suite (currently 55 passing)
+npm test        # Vitest suite (currently 58 passing)
 npm run build   # must be clean (CSS + JS emitted)
 ```
 
@@ -423,7 +423,7 @@ desktop (>=1280px) widths, and check the live dev server refresh
 For mobile work, also run `./mobile` gates:
 
 ```
-npm test                     # jest-expo suite (currently 77 passing)
+npm test                     # jest-expo suite (currently 84 passing)
 npx expo export --platform android   # must bundle cleanly
 npx expo export --platform ios
 ```

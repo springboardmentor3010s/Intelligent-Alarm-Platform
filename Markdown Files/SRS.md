@@ -5,8 +5,8 @@
 **Project Guide & Mentor**: Shanmukha Priya  
 
 **System**: Intelligent Cognitive Alarm Platform  
-**Version**: 1.8  
-**Date**: 2026-09-17  
+**Version**: 1.14  
+**Date**: 2026-10-17  
 **Organization**: CerebroKognit Project  
 **Contact**: architect@cerebrokognit.local
 
@@ -923,6 +923,7 @@ FUNCTION sync_pending_records(records):
 | 1.11 | 2026-09-17 | architect | Phase 7 coach + productivity: web `Admin.jsx` coach mode (cohort roster from `/dashboard/coach/users`, empty-cohort state, per-user detail — profile/adherence/alarms/challenges/sleep/progress; partial-403 handling so coaches are no longer locked out) + `Admin.test.jsx` (4 tests); manual productivity tracking — `productivity_logs` table (migration `f2b1d8e4a903`, unique user+date, upsert), `productivity_service` (user-entered logs, gated trend, gated Pearson wake/productivity correlation with association-only message, `source` labels), owner-only `/productivity/*` routes, `GET /dashboard/reports/productivity` (real-data-only exports), web Reports log form + trend + correlation with provenance badges, mobile InsightsTab trend; `test_productivity.py` (9 tests); FR-BA-003/FR-REP-004 implemented; pytest **177**, Vitest **56** |
 | 1.12 | 2026-09-17 | architect | Phase 8 full integration & E2E: executable journey suite `tests/test_e2e_workflows.py` (9 tests covering W01–W20) + `E2E_TEST_REPORT.md` (20 workflows with preconditions/actions/expected/actual/evidence; W17 server-path PASS, real-device leg MANUAL per checklist; no Playwright — no browser harness in repo/CI); pytest **186** (339 total with Vitest 56 + jest 75) |
 | 1.13 | 2026-09-17 | architect | Phase 9 local prod validation (NO public-cloud deploy): `ml_models/.gitkeep` (fresh-clone COPY fix), exact-pinned `requirements-runtime.txt`, hardened `backend/Dockerfile` (non-root appuser), new `web/Dockerfile` (node→nginx SPA) + `.dockerignore`, env-driven compose + `docker-compose.prod.yml` (`:?` secret guards, production env, unpublished DB port), guarded Sentry hook, boot-time prod secret guard in lifespan + test; validated live — both images build, alembic head `f2b1d8e4a903` on fresh Postgres, container E2E (register→dismiss→habit 73), web 200 + SPA fallback, restart recovery, pg_dump→destroy→restore, logs, placeholder-secret boot refusal; new `DEPLOYMENT_GUIDE/OPERATIONS_GUIDE/USER_GUIDE/API_REFERENCE/FINAL_VALIDATION_REPORT.md`; pytest **187** |
+| 1.14 | 2026-10-17 | architect | Phase A–D: **Google OAuth2** (`GET /auth/oauth/google/login` returns consent URL + signed CSRF state, `POST /auth/oauth/google/callback`, `POST /auth/oauth/google/mobile` PKCE; `services/oauth_service.py` Google provider, id_token audience-aware verify, link-or-create by provider+subject→email; password login rejects password-less OAuth accounts; migration `d3f6a8b1c2e4` adds `oauth_provider`/`oauth_subject` + unique `uq_users_oauth_identity`; web Continue-with-Google + mobile PKCE button); **notification triggers** (`POST /notifications/triggers/{bedtime,challenge,habit,progress}` — server computes payload, device schedules; Module 11, no Celery); **platform announcements** (Module 11 — `Announcement` model + migration `c339b9896c3a`, public active window+priority feed `GET /announcements/public`, admin CRUD under Administrator); **RL bandit** (light-real — `ai_engine/rl_policy.py` UCB1 `ContextualBandit` blended into `difficulty.recommend_difficulty` behind config-gated `RL_BANDIT_ENABLED`/`RL_BLEND_RATIO`, off by default; `AI_FEATURES.md` documents TF→PyTorch / Tailwind→custom-CSS / Plotly→Chart.js substitutions); pytest **219**, web Vitest **58**, mobile jest **84**, ruff clean, migration roundtrip verified |
 
 ---
 
@@ -957,7 +958,7 @@ FUNCTION sync_pending_records(records):
 | ~~13~~ | 🟡 | ~~Web dashboard renders hardcoded mock chart data~~ | `web/src/utils/chartUtils.js` | **RESOLVED (M3):** Home/Dashboard/Reports wired to live `/habits/score/history` | — |
 | ~~14~~ | 🟡 | ~~Web silently substitutes fake scores (70) on API failure~~ | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | **RESOLVED (M3):** `'—'` fallback removed; real API data only | — |
 | ~~18~~ | 🟢 | ~~Triplicated divergent schema definitions~~ | `schemas/__init__.py`, `schemas/auth.py` | **RESOLVED (Level 2, 2026-09-19)** — `schemas/all.py` deleted; drift risk eliminated | — |
-| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + phases):** pytest (187), Vitest (55), jest-expo (77), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
+| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + phases):** pytest (219), Vitest (58), jest-expo (84), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
 
 ---
 
@@ -986,8 +987,8 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
 | Security Hardening | ✅ Complete (Phase 2, 2026-09-16) | Secret fail-fast (`ENVIRONMENT=production`), CORS allowlist, refresh-token rotation + hashed single-use tokens, password reset/email verification, audit log, security headers, deactivate + role-change | 90% |
 | Notification Delivery | ✅ Complete (Phase 3, 2026-09-17) | `ExpoPushProvider` behind `PUSH_PROVIDER`, dead-token pruning, dedupe, `/notifications/status` + `/notifications/test` + `/alarms/{id}/notify`; delivery config strict-raise by default | 85% |
-| Testing (pytest) | ✅ Complete (M4 + Phase 2/3/5/6/7/8/9) | **187 tests** (auth, alarms, challenges, analytics, coach cohort, productivity, feedback, notifications, security incl. boot guard, uptime, AI engine, E2E journeys); coverage **88%**; verified Python 3.11 + 3.14 | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 55) + mobile jest (77) | 90% |
+| Testing (pytest) | ✅ Complete (M4 + Phase 2/3/5/6/7/8/9/A–D) | **219 tests** (auth, alarms, challenges, analytics, coach cohort, productivity, feedback, notifications, security incl. boot guard, uptime, AI engine + RL bandit, OAuth2, announcements, E2E journeys); coverage **87%**; verified Python 3.11 + 3.14 | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 58) + mobile jest (84) | 90% |
 
 ### Web Dashboard
 
@@ -1022,8 +1023,8 @@ Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Bro
 | Module | Status | Evidence | Completion % |
 |---|---|---|---|
 | Docker | ✅ Complete (M4 + Phase 9) | Pinned lean image (non-root), env-driven compose + prod overlay (secret guards), web nginx image, Postgres migrations entrypoint; prod-container validated (migrate/E2E/restart/backup-restore/logs) — see FINAL_VALIDATION_REPORT.md | 95% |
-| Database Migrations | ✅ Complete | Migration at head (`f2b1d8e4a903` adds `productivity_logs`; `e7a2c4d6b810` added `coach_assignments`); `upgrade head` verified on fresh DB | 95% |
-| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (187) + smoke_m1 (22) + smoke_m2 (25) + web test (55)/build + mobile jest (77) | 90% |
-| Testing | ✅ Complete (M4-backlog + Phase 2/3/5/6/7/8/9) | pytest **187** + Vitest 55 + jest 77; smoke_m1 (22) + smoke_m2 (25) regression gates; `E2E_TEST_REPORT.md` (W01–W20); `FINAL_VALIDATION_REPORT.md` (prod-container evidence); coverage 88%/74.67%/31.2% (2026-09-19) | 95% |
+| Database Migrations | ✅ Complete | Migration at head (`c339b9896c3a` adds announcements; `d3f6a8b1c2e4` added OAuth identity; earlier `f2b1d8e4a903` productivity_logs, `e7a2c4d6b810` coach_assignments); `upgrade head` verified on fresh DB | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (219) + smoke_m1 (22) + smoke_m2 (25) + web test (58)/build + mobile jest (84) | 90% |
+| Testing | ✅ Complete (M4-backlog + Phase 2/3/5/6/7/8/9/A–D) | pytest **219** + Vitest 58 + jest 84; smoke_m1 (22) + smoke_m2 (25) regression gates; `E2E_TEST_REPORT.md` (W01–W20); `FINAL_VALIDATION_REPORT.md` (prod-container evidence); coverage 87%/74.88%/33.75% (2026-10-17) | 95% |
 | On-Device Verification | 🟡 Manual | `Markdown Files/REAL_DEVICE_CHECKLIST.md` written; firing must be confirmed on a physical device | 40% |
 | Environment Config | ✅ Complete (Phase 2) | Secrets/CORS from env with prod fail-fast; `AUTO_INIT` SQLite auto-init | 95% |

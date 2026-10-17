@@ -206,7 +206,7 @@ To build an AI-powered Intelligent Cognitive Alarm Platform that helps users dev
 | Mobile integration | 🟡 M2-wired + M4-backlog | Alarm-dismiss E2E matches backend contract (`/next` → `/submit` → `/dismiss`); profile/settings wired; **offline cache + sync + push registration wired (2026-09-07)**; shared-auth `AuthProvider` fixes login-stuck (2026-09-08); on-device E2E pending |
 | Error handling | ✅ Complete (M4) | Global envelope `{detail, error_code, timestamp, status_code}` |
 | Database | ✅ Good | 9 ORM tables (incl. `push_tokens` + `alarm_roles`); migration chain 0→head verified on fresh DB; SQLite local dev, PostgreSQL via Docker |
-| Testing | ✅ M4-backed | pytest (187) + smoke_m1 (22) + smoke_m2 (25) + **web Vitest (55) + mobile jest (77)** gates |
+| Testing | ✅ M4-backed | pytest (219) + smoke_m1 (22) + smoke_m2 (25) + **web Vitest (58) + mobile jest (84)** gates |
 | CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web test (Vitest) + web build + mobile jest; pushed to `origin/main` |
 
 ### Architecture alignment (P1–P7, approved `plan.md`, landed 2026-09-07)
@@ -224,7 +224,7 @@ Sidebar navigation (collapsible 248/76px) with §21 groups · global Light/Dark 
 1. **Analytics placeholders (M3)** — `sleep_duration_avg = 7.5` hardcoded; ✅ resolved — M3 analytics service returns real sleep/wake estimates + trends.
 2. **Web mock fallbacks (M3)** — Home page renders hardcoded chart data; ✅ resolved — M3 wired real data; 2026-09-07 pass removed remaining hardcoded series.
 3. **No trained ML model file (M3)** — ✅ resolved — `difficulty_model.pt` trained + loaded (`ml-status model_loaded=true`).
-4. **Zero tests and no CI/CD (M4)** — ✅ resolved — pytest 187 + Vitest 55 + jest 77 + GitHub Actions; coverage (2026-09-19) now at 88% / 74.67% / 31.2%.
+4. **Zero tests and no CI/CD (M4)** — ✅ resolved — pytest 219 + Vitest 58 + jest 84 + GitHub Actions; coverage (2026-10-17) now at 87% / 74.88% / 33.75%.
 5. **Docker container up-test pending (M4)** — ✅ resolved — compose up-tested end-to-end (Postgres + migrations + lean image, PDF/Excel verified in container).
 6. **Offline sync & notifications (M4)** — ✅ resolved 2026-09-07 — mobile sync engine + push-token registration wired and jest-tested.
 10. **Notifications & offline sync not wired (M4)** — ✅ resolved — see #6.
