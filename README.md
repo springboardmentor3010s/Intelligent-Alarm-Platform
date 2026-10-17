@@ -67,7 +67,7 @@ Full issue inventory: see **Section 9 (Known Issues)** in `Markdown Files/SRS.md
 
 **Backend** (FastAPI, SQLAlchemy 2.0, JWT auth): 43 HTTP endpoints under `/api/v1` — auth, users, alarms, challenges, habits, analytics, sync, dashboard, notifications.
 **Web** (React 18, Vite): SPA dashboard for auth, alarms, challenges, reports, habit scores; **5 nav sections (Overview/Wake/Insights/Account/Administration)** with a collapsible icon rail and a global circular theme toggle in the topbar.
-**Mobile** (Expo SDK 57 / React Native 0.86.3): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); **offline-first sync + Expo push-token registration wired & jest-tested**; **Phase 3: on-device local alarm scheduling (Android channel `cerebrokognit-alarms`), notification-tap → challenge-gate routing, offline alarm cache**; remote push delivery needs an Expo dev build.
+**Mobile** (Expo SDK 58 / React Native 0.88.0): auth + profile/settings wired; alarm-dismiss flow functional E2E (`/next` → `/submit` → `/dismiss`); **offline-first sync + Expo push-token registration wired & jest-tested**; **Phase 3: on-device local alarm scheduling (Android channel `cerebrokognit-alarms`), notification-tap → challenge-gate routing, offline alarm cache**; remote push delivery needs an Expo dev build.
 **Database**: PostgreSQL 15 (Docker) / SQLite (local dev). 9 ORM tables with performance indexes.
 
 ---
