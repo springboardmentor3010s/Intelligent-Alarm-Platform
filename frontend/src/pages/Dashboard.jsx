@@ -284,6 +284,15 @@ function Dashboard() {
           >
             📊 Analytics
           </a>
+                    <a
+            href="/notifications"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/notifications");
+            }}
+          >
+            🔔 Notifications
+          </a>
 
           {/* WELLNESS COACH */}
 

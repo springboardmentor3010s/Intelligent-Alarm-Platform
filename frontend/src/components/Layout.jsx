@@ -1,3 +1,4 @@
+﻿
 import { Outlet, Link, useLocation } from "react-router-dom";
 
 function Layout() {
@@ -7,18 +8,15 @@ function Layout() {
     localStorage.removeItem("token");
     localStorage.removeItem("email");
     localStorage.removeItem("role");
-
     window.location.href = "/login";
   };
 
   return (
     <div className="cognia-layout">
-
       {/* LEFT SIDEBAR */}
       <aside className="cognia-sidebar">
-
         <div className="sidebar-logo">
-          ?? COGNIA
+          🧠 COGNIA
         </div>
 
         <div className="sidebar-user">
@@ -26,7 +24,6 @@ function Layout() {
         </div>
 
         <nav className="cognia-nav">
-
           <Link
             to="/dashboard"
             className={
@@ -35,7 +32,7 @@ function Layout() {
                 : "cognia-nav-link"
             }
           >
-            ?? Dashboard
+            🏠 Dashboard
           </Link>
 
           <Link
@@ -46,7 +43,7 @@ function Layout() {
                 : "cognia-nav-link"
             }
           >
-            ? Alarms
+            ⏰ Alarms
           </Link>
 
           <Link
@@ -57,7 +54,7 @@ function Layout() {
                 : "cognia-nav-link"
             }
           >
-            ?? Habits
+            🎯 Habits
           </Link>
 
           <Link
@@ -68,7 +65,7 @@ function Layout() {
                 : "cognia-nav-link"
             }
           >
-            ?? Challenges
+            🧩 Challenges
           </Link>
 
           <Link
@@ -79,7 +76,18 @@ function Layout() {
                 : "cognia-nav-link"
             }
           >
-            ?? Analytics
+            📊 Analytics
+          </Link>
+
+          <Link
+            to="/notifications"
+            className={
+              location.pathname === "/notifications"
+                ? "cognia-nav-link active"
+                : "cognia-nav-link"
+            }
+          >
+            🔔 Notifications
           </Link>
 
           <Link
@@ -90,28 +98,21 @@ function Layout() {
                 : "cognia-nav-link"
             }
           >
-            ?? Profile
+            👤 Profile
           </Link>
-
         </nav>
 
-        <button
-          className="cognia-logout"
-          onClick={logout}
-        >
-          ?? Logout
+        <button className="cognia-logout" onClick={logout}>
+          🚪 Logout
         </button>
-
       </aside>
 
       {/* RIGHT SIDE CONTENT */}
       <main className="cognia-main">
         <Outlet />
       </main>
-
     </div>
   );
 }
 
 export default Layout;
-

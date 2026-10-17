@@ -1,3 +1,4 @@
+
 import {
   BrowserRouter,
   Routes,
@@ -13,6 +14,7 @@ import Habits from "./pages/Habits";
 import Challenges from "./pages/Challenges";
 import Analytics from "./pages/Analytics";
 import Coach from "./pages/Coach";
+import Notifications from "./pages/Notifications";
 
 import AlarmTrigger from "./components/AlarmTrigger";
 
@@ -28,12 +30,7 @@ function App() {
         {/* Starting page */}
         <Route
           path="/"
-          element={
-            <Navigate
-              to="/login"
-              replace
-            />
-          }
+          element={<Navigate to="/login" replace />}
         />
 
         {/* Authentication */}
@@ -72,20 +69,22 @@ function App() {
           path="/analytics"
           element={<Analytics />}
         />
+
         <Route
-  path="/coach"
-  element={<Coach />}
-/>
+          path="/coach"
+          element={<Coach />}
+        />
+
+        {/* Notifications */}
+        <Route
+          path="/notifications"
+          element={<Notifications />}
+        />
 
         {/* Unknown URL */}
         <Route
           path="*"
-          element={
-            <Navigate
-              to="/login"
-              replace
-            />
-          }
+          element={<Navigate to="/login" replace />}
         />
 
       </Routes>
@@ -95,4 +94,3 @@ function App() {
 }
 
 export default App;
-
