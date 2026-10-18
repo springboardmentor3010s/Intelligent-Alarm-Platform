@@ -1,0 +1,22 @@
+{
+    "low": {
+        "easy": 1.7487,
+        "medium": 0.0,
+        "hard": -1.0
+    },
+    "moderate": {
+        "easy": 0.2,
+        "medium": 1.0,
+        "hard": 0.22
+    },
+    "good": {
+        "easy": 0.0,
+        "medium": 0.7,
+        "hard": 1.19
+    },
+    "excellent": {
+        "easy": -0.5,
+        "medium": 1.1406,
+        "hard": 4.7379
+    }
+}
