@@ -1,0 +1,35 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Firebase private credentials
+firebase_service_account.json
+*service-account*.json
+firebase-adminsdk*.json
+
+# Python generated files
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+.pytest_cache/
+
+# Frontend generated files
+node_modules/
+dist/
+.vite/
+
+# IDE files
+.idea/
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
