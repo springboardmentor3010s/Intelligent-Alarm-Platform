@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 function Habits() {
-  const API_URL = "http://localhost:8000";
+  const API_URL = "http://localhost:8001";
 
   const email =
     localStorage.getItem("email") ||

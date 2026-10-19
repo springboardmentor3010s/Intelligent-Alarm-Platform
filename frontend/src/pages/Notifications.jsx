@@ -19,7 +19,7 @@ function Notifications() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/notifications/${encodeURIComponent(email)}`
+        `http://localhost:8001/notifications/${encodeURIComponent(email)}`
       );
 
       if (!response.ok) {
@@ -44,7 +44,7 @@ function Notifications() {
   const markAsRead = async (id) => {
     try {
       const response = await fetch(
-        `http://localhost:8000/notifications/${id}/read`,
+        `http://localhost:8001/notifications/${id}/read`,
         { method: "PUT" }
       );
 

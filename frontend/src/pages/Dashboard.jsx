@@ -29,7 +29,7 @@ function Dashboard() {
 
         // Dashboard
         const dashboardResponse = await fetch(
-          `http://localhost:8000/dashboard/${encodeURIComponent(email)}`
+          `http://localhost:8001/dashboard/${encodeURIComponent(email)}`
         );
 
         if (!dashboardResponse.ok) {
@@ -42,7 +42,7 @@ function Dashboard() {
         // Adaptive Intelligence
         try {
           const adaptiveResponse = await fetch(
-            `http://localhost:8000/adaptive-difficulty/${encodeURIComponent(
+            `http://localhost:8001/adaptive-difficulty/${encodeURIComponent(
               email
             )}`
           );
@@ -58,7 +58,7 @@ function Dashboard() {
         // Analytics
         try {
           const analyticsResponse = await fetch(
-            `http://localhost:8000/analytics/dashboard/${encodeURIComponent(
+            `http://localhost:8001/analytics/dashboard/${encodeURIComponent(
               email
             )}`
           );
@@ -296,15 +296,7 @@ function Dashboard() {
 
           {/* WELLNESS COACH */}
 
-          <a
-            href="/coach"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("/coach");
-            }}
-          >
-            👩‍🏫 Wellness Coach
-          </a>
+          
 
           <a
             href="/profile"
@@ -968,87 +960,6 @@ function Dashboard() {
 
         </div>
 
-        {/* =====================================================
-            WELLNESS COACH
-        ===================================================== */}
-
-        <div
-          style={{
-            marginTop: "30px",
-            padding: "25px",
-            borderRadius: "16px",
-            background:
-              "linear-gradient(135deg, #eef4ff, #ffffff)",
-            border: "1px solid #dbe5ff",
-            boxShadow:
-              "0 6px 20px rgba(0, 0, 0, 0.08)",
-          }}
-        >
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "20px",
-              flexWrap: "wrap",
-            }}
-          >
-
-            <div>
-
-              <p
-                style={{
-                  margin: "0 0 6px",
-                  color: "#2563eb",
-                  fontWeight: "600",
-                  fontSize: "13px",
-                  textTransform: "uppercase",
-                }}
-              >
-                Wellness & Monitoring
-              </p>
-
-              <h2
-                style={{
-                  margin: "0 0 8px",
-                  color: "#1e3a8a",
-                }}
-              >
-                👩‍🏫 Wellness Coach
-              </h2>
-
-              <p
-                style={{
-                  margin: 0,
-                  color: "#475569",
-                  fontSize: "15px",
-                }}
-              >
-                Monitor wake-up habits, cognitive performance,
-                sleep patterns and wellness progress.
-              </p>
-
-            </div>
-
-            <button
-              onClick={() => navigate("/coach")}
-              style={{
-                padding: "12px 20px",
-                border: "none",
-                borderRadius: "10px",
-                background: "#2563eb",
-                color: "#ffffff",
-                fontWeight: "600",
-                cursor: "pointer",
-              }}
-            >
-              Open Wellness Coach →
-            </button>
-
-          </div>
-
-        </div>
 
                 {/* =====================================================
             MILESTONE 4 STATUS

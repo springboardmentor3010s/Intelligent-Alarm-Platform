@@ -16,24 +16,25 @@ import Analytics from "./pages/Analytics";
 import Coach from "./pages/Coach";
 import Notifications from "./pages/Notifications";
 
+// Separate Wellness Coach Login
+import CoachLogin from "./CoachLogin";
+
 import AlarmTrigger from "./components/AlarmTrigger";
 
 function App() {
   return (
     <BrowserRouter>
-
       {/* GLOBAL COGNIA ALARM */}
       <AlarmTrigger />
 
       <Routes>
-
         {/* Starting page */}
         <Route
           path="/"
           element={<Navigate to="/login" replace />}
         />
 
-        {/* Authentication */}
+        {/* User Authentication */}
         <Route
           path="/login"
           element={<Login />}
@@ -44,7 +45,13 @@ function App() {
           element={<Register />}
         />
 
-        {/* Main COGNIA pages */}
+        {/* Separate Wellness Coach Login */}
+        <Route
+          path="/coach-login"
+          element={<CoachLogin />}
+        />
+
+        {/* Main COGNIA Pages */}
         <Route
           path="/dashboard"
           element={<Dashboard />}
@@ -70,6 +77,7 @@ function App() {
           element={<Analytics />}
         />
 
+        {/* Existing Coach Page */}
         <Route
           path="/coach"
           element={<Coach />}
@@ -86,9 +94,7 @@ function App() {
           path="*"
           element={<Navigate to="/login" replace />}
         />
-
       </Routes>
-
     </BrowserRouter>
   );
 }

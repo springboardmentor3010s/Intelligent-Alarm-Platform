@@ -27,7 +27,7 @@ ChartJS.register(
   Legend
 );
 
-const API_URL = "http://localhost:8000";
+const API_URL = "http://localhost:8001";
 
 function Analytics() {
   const email =

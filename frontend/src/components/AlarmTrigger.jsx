@@ -407,7 +407,7 @@ function AlarmTrigger() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/alarms/${encodeURIComponent(email)}`
+        `http://localhost:8001/alarms/${encodeURIComponent(email)}`
       );
 
       if (!response.ok) return;
@@ -505,7 +505,7 @@ function AlarmTrigger() {
     try {
       // Step 1: Verify the challenge with the backend.
       const verifyResponse = await fetch(
-        "http://localhost:8000/wake-up/verify",
+        "http://localhost:8001/wake-up/verify",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -530,7 +530,7 @@ function AlarmTrigger() {
 
       // Step 2: Save the successful wake-up to history.
       const historyResponse = await fetch(
-        "http://localhost:8000/wake-up/history",
+        "http://localhost:8001/wake-up/history",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

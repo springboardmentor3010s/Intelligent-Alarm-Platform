@@ -252,6 +252,9 @@ def home():
         "status":
             "active"
     }
+@app.get("/check-login-code")
+def check_login_code():
+    return {"message": "Updated backend is running"}
 
 
 # =========================================================
@@ -366,83 +369,64 @@ def register(data: dict):
 # LOGIN
 # =========================================================
 
+
 @app.post("/login")
 def login(data: dict):
+    email = str(data.get("email", "")).strip().lower()
+    password = str(data.get("password", ""))
 
-    if "email" not in data:
-
+    if not email:
         raise HTTPException(
             status_code=400,
             detail="Email is required"
         )
 
-    if "password" not in data:
-
+    if not password:
         raise HTTPException(
             status_code=400,
             detail="Password is required"
         )
 
-    email = str(
-        data["email"]
-    ).strip().lower()
+    # Check all records for this email
+    matching_users = list(users.find({"email": email}))
 
-    password = str(
-        data["password"]
-    )
+    print("LOGIN ATTEMPT")
+    print("DATABASE:", db.name)
+    print("USERS FOUND:", len(matching_users))
 
-    user = users.find_one({
-        "email": email
-    })
+    matched_user = None
 
-    if not user:
+    for user in matching_users:
+        stored_password = str(user.get("password", ""))
 
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid email or password"
-        )
+        # Support existing plain-text and hashed passwords
+        password_valid = (password == stored_password)
 
-    stored_password = str(
-        user.get(
-            "password",
-            ""
-        )
-    )
+        if not password_valid:
+            try:
+                password_valid = verify_password(
+                    password,
+                    stored_password
+                )
+            except Exception:
+                password_valid = False
 
-    password_valid = verify_password(
-        password,
-        stored_password
-    )
+        if password_valid:
+            matched_user = user
+            break
 
-    if not password_valid:
+    print("PASSWORD MATCH:", matched_user is not None)
 
-        password_valid = (
-            password
-            ==
-            stored_password
-        )
-
-    if not password_valid:
-
+    if matched_user is None:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
 
     token_data = {
-
         "email": email,
-
-        "role":
-            user.get(
-                "role",
-                "User"
-            ),
-
-        "exp":
-            datetime.utcnow()
-            +
-            timedelta(hours=1)
+        "role": matched_user.get("role", "User"),
+        "exp": datetime.utcnow() + timedelta(hours=1)
     }
 
     token = jwt.encode(
@@ -452,30 +436,12 @@ def login(data: dict):
     )
 
     return {
-
-        "message":
-            "Login successful",
-
-        "access_token":
-            token,
-
-        "token_type":
-            "bearer",
-
-        "role":
-            user.get(
-                "role",
-                "User"
-            ),
-
-        "email":
-            email,
-
-        "name":
-            user.get(
-                "name",
-                ""
-            )
+        "message": "Login successful",
+        "access_token": token,
+        "token_type": "bearer",
+        "role": matched_user.get("role", "User"),
+        "email": email,
+        "name": matched_user.get("name", "")
     }
 
 
@@ -2133,17 +2099,12 @@ def adaptive_difficulty(email: str):
         previous_difficulty = "Easy"
 
     ml_result = predict_difficulty(
-
-        accuracy=accuracy,
-
-        completion_rate=completion_rate,
-
-        snooze_count=total_snoozes,
-
-        wake_consistency=wake_consistency,
-
-        previous_difficulty=previous_difficulty
-    )
+    accuracy=accuracy,
+    completion_rate=completion_rate,
+    snooze_count=total_snoozes,
+    wake_consistency=wake_consistency,
+    previous_difficulty=previous_difficulty
+)
 
     predicted_difficulty = str(
         ml_result["difficulty"]
@@ -2201,11 +2162,9 @@ def adaptive_difficulty(email: str):
         "next_difficulty":
             predicted_difficulty,
 
-        "accuracy":
-            accuracy,
-
-        "completion_rate":
-            completion_rate,
+        "accuracy": accuracy,
+        "accuracy_scope": "Latest 10 challenge attempts (maximum)",
+        "completion_rate": completion_rate,
 
         "snooze_count":
             total_snoozes,
@@ -2617,41 +2576,22 @@ def get_recommendations(email: str):
 
             "Maintain a consistent sleep and wake-up schedule."
         )
-
     return {
-
-        "email":
-            email,
-
-        "recommendations":
-            recommendations,
-
-        "challenge_accuracy":
-            round(
-                accuracy,
-                2
-            ),
-
-        "recommended_difficulty":
-            next_difficulty,
-
-        "ml_confidence":
-            confidence,
-
-        "model":
-            "Decision Tree Classifier",
-
-        "sleep_adherence":
-            sleep_adherence,
-
-        "average_sleep_hours":
-            sleep_data.get(
-                "average_sleep_hours",
-                0
-            )
+        "email": email,
+        "recommendations": recommendations,
+        "challenge_accuracy": round(accuracy, 2),
+        "challenge_accuracy_scope": ml_result.get(
+            "accuracy_scope",
+            "Recent challenge attempts"
+        ),
+        "recommended_difficulty": next_difficulty,
+        "ml_confidence": confidence,
+        "model": "Decision Tree Classifier",
+        "sleep_adherence": sleep_adherence,
+        "average_sleep_hours": sleep_data.get(
+            "average_sleep_hours", 0
+        )
     }
-
-
 # =========================================================
 # GENERAL ANALYTICS
 # =========================================================
