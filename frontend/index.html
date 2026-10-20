@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cognitive Alarm Platform</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-color: #f0fdf4; color: #14532d; }
+        .eco-card { background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(21, 128, 61, 0.1); border: 1px solid #dcfce7; }
+        .alarm-screen { background: rgba(22, 101, 52, 0.95); backdrop-filter: blur(10px); }
+        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 relative">
+    <div id="root"></div>
+    <script type="text/babel">
+        function App() {
+            const [token, setToken] = React.useState('');
+            const [role, setRole] = React.useState('');
+            const [username, setUsername] = React.useState('');
+            const [data, setData] = React.useState(null);
+            
+            const [isLogin, setIsLogin] = React.useState(true);
+            const [formUser, setFormUser] = React.useState('');
+            const [formPass, setFormPass] = React.useState('');
+            const [formRole, setFormRole] = React.useState('user');
+            
+            const [alarmTime, setAlarmTime] = React.useState('');
+            const [puzzlePref, setPuzzlePref] = React.useState('Math Problem');
+            const [diffPref, setDiffPref] = React.useState('easy');
+            
+            const [isRinging, setIsRinging] = React.useState(false);
+            const [activeChallenge, setActiveChallenge] = React.useState(null);
+            const [userAnswer, setUserAnswer] = React.useState('');
+            const [alarmMessage, setAlarmMessage] = React.useState('');
+            
+            const [notification, setNotification] = React.useState(null);
+            const [activeTab, setActiveTab] = React.useState('overview');
+            
+            const notify = (msg, type = 'success') => {
+                setNotification({ msg, type });
+                setTimeout(() => setNotification(null), 4000);
+            };
+            
+            const alarmAudio = React.useRef(new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3'));
+            alarmAudio.current.loop = true;
+
+            const authFetch = (url, opts = {}) => fetch(url, {...opts, headers: {'Authorization': `Bearer ${token}`}}).then(r=>r.json());
+
+            const handleAuth = async (e) => {
+                e.preventDefault();
+                if (!isLogin) {
+                    await fetch(`/api/auth/register?username=${formUser}&password=${formPass}&role=${formRole}`, {method: 'POST'});
+                    notify("Account created successfully! You can now log in.", "success");
+                    setIsLogin(true);
+                    return;
+                }
+                const fd = new URLSearchParams(); fd.append('username', formUser); fd.append('password', formPass);
+                const res = await fetch('/api/auth/login', {method: 'POST', body: fd});
+                const auth = await res.json();
+                if(auth.access_token) {
+                    setToken(auth.access_token); setRole(auth.role); setUsername(formUser); setActiveTab('overview');
+                    notify("Logged in successfully.", "success");
+                } else {
+                    notify(auth.detail || "Authentication failed.", "error");
+                }
+            };
+
+            const loadData = () => {
+                if(token) {
+                    authFetch('/api/dashboard').then(d => {
+                        setData(d); 
+                        if(d.role === 'user') {
+                            setPuzzlePref(d.puzzle_preference); setDiffPref(d.difficulty.toLowerCase());
+                        }
+                    });
+                }
+            };
+
+            React.useEffect(() => { loadData(); }, [token]);
+
+            React.useEffect(() => {
+                if (activeTab === 'analytics' && data && data.metrics) {
+                    setTimeout(() => {
+                        const ctx = document.getElementById('analyticsChart');
+                        if(ctx) {
+                            let chartStatus = Chart.getChart("analyticsChart"); 
+                            if (chartStatus) chartStatus.destroy();
+                            new Chart(ctx, {
+                                type: 'bar',
+                                data: { labels: Object.keys(data.metrics), datasets: [{ label: 'Your Progress (%)', data: Object.values(data.metrics), backgroundColor: '#22c55e', borderRadius: 8 }] },
+                                options: { scales: { y: { max: 100, min: 0 } } }
+                            });
+                        }
+                    }, 100);
+                }
+            }, [activeTab, data]);
+
+            React.useEffect(() => {
+                const timer = setInterval(() => {
+                    if (data && data.alarms) {
+                        const now = new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'});
+                        const matchedAlarm = data.alarms.find(a => a.time === now);
+                        if (matchedAlarm && !isRinging) startAlarm(matchedAlarm.id);
+                    }
+                }, 1000);
+                return () => clearInterval(timer);
+            }, [data, isRinging]);
+
+            const savePreferences = async () => {
+                await fetch(`/api/users/preferences?puzzle=${puzzlePref}&difficulty=${diffPref}`, {method:'POST', headers:{'Authorization': `Bearer ${token}`}});
+                if(alarmTime) await fetch(`/api/alarms?time=${alarmTime}`, {method:'POST', headers:{'Authorization': `Bearer ${token}`}});
+                loadData();
+                notify("Your new alarm and settings have been saved!", "success");
+            };
+
+            const startAlarm = async (alarmId) => {
+                setIsRinging(true);
+                alarmAudio.current.play();
+                const chal = await authFetch('/api/challenge');
+                let promptText = ""; let correctAnswer = ""; const diff = chal.difficulty.toLowerCase();
+                if (chal.type === 'Logic Puzzle') {
+                    promptText = "What number comes next? 2, 4, 8, 16, ?"; correctAnswer = "32";
+                    if (diff === 'hard' || diff === 'expert') { promptText = "If it takes 5 machines 5 minutes to make 5 widgets, how many minutes for 100 machines?"; correctAnswer = "5"; } 
+                } else if (chal.type === 'Pattern Recognition') {
+                    promptText = "Type the missing letter: A, C, E, G, ?"; correctAnswer = "I";
+                    if (diff === 'expert') { promptText = "Reverse this word perfectly: Xy8B2z"; correctAnswer = "z2B8yX"; } 
+                } else { 
+                    let n1 = Math.floor(Math.random() * 10) + 1; let n2 = Math.floor(Math.random() * 10) + 1;
+                    promptText = `Solve: ${n1} + ${n2}`; correctAnswer = (n1 + n2).toString();
+                    if (diff === 'hard') { n1 = Math.floor(Math.random() * 50) + 20; promptText = `Solve: ${n1} - ${n2}`; correctAnswer = (n1 - n2).toString(); }
+                }
+                setActiveChallenge({ id: alarmId, prompt: promptText, answer: correctAnswer, type: chal.type, difficulty: chal.difficulty, startTime: Date.now(), attempts: 0 });
+            };
+
+            const submitChallenge = async (e) => {
+                e.preventDefault();
+                if (userAnswer.toLowerCase().trim() === 'snooze') {
+                    setAlarmMessage("You snoozed! Your score will go down.");
+                    setActiveChallenge({...activeChallenge, attempts: activeChallenge.attempts + 1});
+                    setUserAnswer(''); return;
+                }
+                if (userAnswer.trim().toLowerCase() === activeChallenge.answer.toLowerCase()) {
+                    const timeTaken = Math.floor((Date.now() - activeChallenge.startTime) / 1000);
+                    await authFetch(`/api/verify?alarm_id=${activeChallenge.id}&time_taken=${timeTaken}&attempts=${activeChallenge.attempts + 1}`, {method:'POST'});
+                    alarmAudio.current.pause(); alarmAudio.current.currentTime = 0;
+                    setIsRinging(false); setUserAnswer(''); setAlarmMessage(''); loadData();
+                    notify("Alarm dismissed successfully. Metrics updated.", "success");
+                } else {
+                    setAlarmMessage("That is not correct. Please try again!");
+                    setActiveChallenge({...activeChallenge, attempts: activeChallenge.attempts + 1}); setUserAnswer('');
+                }
+            };
+
+            return (
+                <div class="max-w-5xl mx-auto">
+                    {notification && (
+                        <div class={`fixed top-6 right-6 p-4 rounded-xl shadow-2xl z-[100] text-white font-bold toast-enter ${notification.type === 'error' ? 'bg-red-500' : 'bg-green-600'}`}>
+                            {notification.msg}
+                        </div>
+                    )}
+
+                    {!token ? (
+                        <div class="max-w-md mx-auto mt-20 eco-card p-10 text-center">
+                            <h1 class="text-3xl font-bold text-green-700 mb-2">⏰ Cognitive Alarm</h1>
+                            <p class="text-green-600 mb-8">Wake up smarter every day.</p>
+                            
+                            <form onSubmit={handleAuth} class="space-y-4 text-left">
+                                <div><label class="text-sm font-bold text-green-800">Username</label><input type="text" required class="w-full mt-1 p-3 bg-green-50 border border-green-200 rounded-lg text-green-900 focus:outline-none focus:border-green-500" value={formUser} onChange={e=>setFormUser(e.target.value)} /></div>
+                                {!isLogin && (
+                                    <div class="space-y-4">
+                                        <div><label class="text-sm font-bold text-green-800">Email Address</label><input type="email" required class="w-full mt-1 p-3 bg-green-50 border border-green-200 rounded-lg text-green-900 focus:outline-none focus:border-green-500" /></div>
+                                        <div><label class="text-sm font-bold text-green-800">Account Type</label><select class="w-full mt-1 p-3 bg-green-50 border border-green-200 rounded-lg text-green-900 focus:outline-none focus:border-green-500" value={formRole} onChange={e=>setFormRole(e.target.value)}><option value="user">User</option><option value="wellness coach">Wellness Coach</option><option value="administrator">Administrator</option></select></div>
+                                    </div>
+                                )}
+                                <div><label class="text-sm font-bold text-green-800">Password</label><input type="password" required class="w-full mt-1 p-3 bg-green-50 border border-green-200 rounded-lg text-green-900 focus:outline-none focus:border-green-500" value={formPass} onChange={e=>setFormPass(e.target.value)} /></div>
+                                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg font-bold transition-colors mt-4 shadow-lg">{isLogin ? 'Log In' : 'Sign Up'}</button>
+                            </form>
+                            <p class="mt-6 text-green-600 text-sm cursor-pointer hover:text-green-800 font-bold" onClick={() => setIsLogin(!isLogin)}>{isLogin ? "Don't have an account? Sign Up." : "Already have an account? Log In."}</p>
+                        </div>
+                    ) : (
+                        <div>
+                            {isRinging && activeChallenge && (
+                                <div class="fixed inset-0 alarm-screen z-50 flex items-center justify-center p-4">
+                                    <div class="bg-white p-10 rounded-2xl max-w-lg w-full text-center shadow-2xl">
+                                        <h1 class="text-4xl font-bold text-green-700 mb-2">⏰ Time to Wake Up!</h1>
+                                        <p class="text-green-600 font-bold mb-6">Puzzle: {activeChallenge.type} | Level: {activeChallenge.difficulty}</p>
+                                        <div class="bg-green-50 border border-green-200 p-6 rounded-xl mb-6"><p class="text-2xl text-green-900 font-bold">{activeChallenge.prompt}</p></div>
+                                        <form onSubmit={submitChallenge}>
+                                            <input type="text" class="w-full p-4 text-center bg-white border-2 border-green-300 rounded-xl text-xl mb-4 focus:outline-none focus:border-green-500" placeholder="Type your answer here" value={userAnswer} onChange={e => setUserAnswer(e.target.value)} autoFocus />
+                                            {alarmMessage && <p class="text-red-500 font-bold mb-4">{alarmMessage}</p>}
+                                            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white p-4 rounded-xl font-bold text-xl shadow-lg">Turn Off Alarm</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-green-100">
+                                <div class="flex items-center gap-3"><span class="text-3xl">⏰</span><h1 class="text-2xl font-bold text-green-800">Cognitive Alarm Platform</h1></div>
+                                <div class="flex items-center gap-4">
+                                    <p class="text-green-700 font-bold text-sm">Hello, {username}!</p>
+                                    <button onClick={()=>setToken('')} class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-bold transition-colors">Log Out</button>
+                                </div>
+                            </div>
+                            
+                            {role !== 'user' ? (
+                                <div class="eco-card p-8">
+                                    <h2 class="text-xl font-bold mb-6 text-green-800 border-b border-green-100 pb-4">📊 {role === 'administrator' ? 'Admin' : 'Wellness Coach'} Global Telemetry</h2>
+                                    <pre class="text-green-900 text-sm overflow-auto p-6 bg-green-50 rounded-xl border border-green-200 shadow-inner max-h-[600px]">{JSON.stringify(data.users, null, 2)}</pre>
+                                </div>
+                            ) : data && (
+                                <div>
+                                    {/* Tab Navigation Menu */}
+                                    <div class="flex space-x-2 md:space-x-8 mb-6 border-b-2 border-green-100 pb-2">
+                                        <button onClick={()=>setActiveTab('overview')} class={`pb-2 px-2 transition-colors ${activeTab === 'overview' ? 'text-green-800 font-bold border-b-4 border-green-600' : 'text-green-500 hover:text-green-700'}`}>Daily Overview</button>
+                                        <button onClick={()=>setActiveTab('analytics')} class={`pb-2 px-2 transition-colors ${activeTab === 'analytics' ? 'text-green-800 font-bold border-b-4 border-green-600' : 'text-green-500 hover:text-green-700'}`}>Deep Analytics</button>
+                                        <button onClick={()=>setActiveTab('settings')} class={`pb-2 px-2 transition-colors ${activeTab === 'settings' ? 'text-green-800 font-bold border-b-4 border-green-600' : 'text-green-500 hover:text-green-700'}`}>Alarm Settings</button>
+                                    </div>
+
+                                    {/* Page 1: Overview */}
+                                    {activeTab === 'overview' && (
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div class="eco-card p-6 text-center"><span class="text-3xl block mb-2">📊</span><h2 class="text-green-600 text-sm font-bold mb-1">Habit Score</h2><p class="text-4xl font-bold text-green-800">{data.habit_score}</p></div>
+                                                <div class="eco-card p-6 text-center"><span class="text-3xl block mb-2">🧠</span><h2 class="text-green-600 text-sm font-bold mb-1">AI Difficulty</h2><p class="text-3xl font-bold text-green-800 capitalize mt-2">{data.difficulty}</p></div>
+                                                <div class="eco-card p-4 text-center"><span class="text-2xl block mb-1">⏰</span><h2 class="text-green-600 text-xs font-bold">Total Alarms Created</h2><p class="text-2xl font-bold text-green-800">{data.total_alarms}</p></div>
+                                                <div class="eco-card p-4 text-center"><span class="text-2xl block mb-1">✨</span><h2 class="text-green-600 text-xs font-bold">Puzzles Solved</h2><p class="text-2xl font-bold text-green-800">{data.puzzles_solved}</p></div>
+                                            </div>
+                                            <div class="eco-card p-6 h-full flex flex-col justify-center">
+                                                <h3 class="text-green-800 font-bold mb-4 flex items-center gap-2 text-xl">💡 AI Recommendations</h3>
+                                                <ul class="list-disc pl-5 space-y-4 text-green-700 text-lg">
+                                                    {data.recommendations.map((rec, i) => <li key={i}>{rec}</li>)}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Page 2: Deep Analytics */}
+                                    {activeTab === 'analytics' && (
+                                        <div class="eco-card p-8">
+                                            <h3 class="text-green-800 font-bold mb-6 text-2xl border-b border-green-100 pb-2">Your Progress Chart</h3>
+                                            <p class="text-green-700 mb-8">This chart shows your detailed TensorFlow machine learning metrics over time. Keep these bars as close to 100% as possible to improve your Daily Habit Score.</p>
+                                            <div class="bg-green-50 p-6 rounded-xl border border-green-100">
+                                                <canvas id="analyticsChart" height="120"></canvas>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Page 3: Alarm Settings */}
+                                    {activeTab === 'settings' && (
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div class="eco-card p-8">
+                                                <h3 class="font-bold mb-6 text-green-800 text-xl border-b border-green-100 pb-2">⏰ Set Your Alarm</h3>
+                                                <input type="time" class="w-full p-4 mb-5 bg-green-50 border border-green-200 text-green-900 rounded-lg text-xl focus:border-green-500 focus:outline-none" onChange={e => setAlarmTime(e.target.value)} />
+                                                
+                                                <label class="block text-sm font-bold text-green-700 mb-2">Choose your puzzle type</label>
+                                                <select class="w-full p-3 mb-5 bg-green-50 border border-green-200 text-green-900 rounded-lg focus:border-green-500 focus:outline-none" value={puzzlePref} onChange={e => setPuzzlePref(e.target.value)}>
+                                                    <option>Math Problem</option><option>Logic Puzzle</option><option>Pattern Recognition</option>
+                                                </select>
+
+                                                <label class="block text-sm font-bold text-green-700 mb-2">Starting Difficulty</label>
+                                                <select class="w-full p-3 mb-6 bg-green-50 border border-green-200 text-green-900 rounded-lg focus:border-green-500 focus:outline-none" value={diffPref} onChange={e => setDiffPref(e.target.value)}>
+                                                    <option value="beginner">Beginner</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option><option value="expert">Expert</option>
+                                                </select>
+
+                                                <button onClick={savePreferences} class="w-full bg-green-600 hover:bg-green-700 p-4 rounded-lg text-white font-bold transition-colors shadow-lg">Save Settings</button>
+                                            </div>
+                                            <div class="space-y-6">
+                                                <div class="eco-card p-8">
+                                                    <h3 class="font-bold mb-4 text-green-800 text-xl border-b border-green-100 pb-2">📋 Active Alarms</h3>
+                                                    {data.alarms.length > 0 ? (
+                                                        <ul class="space-y-2">
+                                                            {data.alarms.map(a => <li key={a.id} class="bg-green-50 p-4 rounded-lg border border-green-200 text-green-800 font-bold text-xl text-center shadow-sm">{a.time}</li>)}
+                                                        </ul>
+                                                    ) : (
+                                                        <p class="text-green-600 italic">No alarms are currently set.</p>
+                                                    )}
+                                                </div>
+                                                <button class="w-full bg-white hover:bg-green-50 text-green-700 p-6 rounded-2xl font-bold text-lg border-2 border-green-200 transition-all shadow-md" onClick={() => startAlarm(0)}>
+                                                    Test Alarm Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
