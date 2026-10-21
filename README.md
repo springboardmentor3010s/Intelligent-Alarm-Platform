@@ -82,23 +82,23 @@ Feature availability depends on the implementation, configuration, and completio
 
 
 
-| Category          | Technologies            |
+| Category          | Technologies            |
 
 | ----------------- | ----------------------- |
 
-| Frontend          | React, JavaScript, Vite |
+| Frontend          | React, JavaScript, Vite |
 
-| Backend           | Python, FastAPI         |
+| Backend           | Python, FastAPI         |
 
-| ORM               | SQLAlchemy              |
+| ORM               | SQLAlchemy              |
 
-| Database          | PostgreSQL              |
+| Database          | PostgreSQL              |
 
-| API documentation | FastAPI / Swagger UI    |
+| API documentation | FastAPI / Swagger UI    |
 
-| Containerization  | Docker, Docker Compose  |
+| Containerization  | Docker, Docker Compose  |
 
-| Development tools | Git, GitHub, VS Code    |
+| Development tools | Git, GitHub, VS Code    |
 
 
 
@@ -110,44 +110,79 @@ Additional machine-learning and data-processing dependencies are defined in the 
 
 
 
-┌─────────────────────────────────────────┐
-│              User / Browser             │
-└────────────────────┬────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────┤
-│         React + Vite Frontend           │
-│                                         │
-│  • User Interface                       │
-│  • Alarm Management                     │
-│  • Cognitive Challenge Screens          │
-│  • Habit and Analytics Views            │
-└────────────────────┬────────────────────┘
-                     │
-                     │ HTTP / REST API
-                     ▼
-┌─────────────────────────────────────────┐
-│             FastAPI Backend             │
-│                                         │
-│  • Authentication and User APIs         │
-│  • Alarm and Habit APIs                 │
-│  • Challenge Workflows                  │
-│  • Analytics and Recommendations        │
-└────────────────────┬────────────────────┘
-                     │
-                     │ SQLAlchemy
-                     ▼
-┌─────────────────────────────────────────┐
-│               PostgreSQL                │
-│                                         │
-│  • User and Profile Data                │
-│  • Alarm Data                           │
-│  • Challenge and Attempt Data           │
-│  • Habit and Behavioral Data            │
-└─────────────────────────────────────────┘
-                     │
-                     │ 
-  Docker Compose manages frontend and backend
+┌─────────────────────────────────────┐
+
+│             User / Browser          │
+
+└──────────────────┬──────────────────┘
+
+                       │
+
+                       ▼
+
+┌─────────────────────────────────────┐
+
+│         React + Vite Frontend       │
+
+│                                     │
+
+│  • User Interface                   │
+
+│  • Alarm Management                 │
+
+│  • Cognitive Challenge Screens      │
+
+│  • Habit and Analytics Views        │
+
+└──────────────────┬──────────────────┘
+
+                   │ 
+                
+                   │ HTTP / REST API
+
+                   ▼
+
+┌─────────────────────────────────────┐
+
+│           FastAPI Backend           │
+
+│                                     │
+
+│  • Authentication and User APIs     │
+
+│  • Alarm and Habit APIs             │
+
+│  • Challenge Workflows              │
+
+│  • Analytics and Recommendations    │
+
+└──────────────────┬──────────────────┘
+
+                   │ 
+               
+                   │ SQLAlchemy
+
+                   ▼
+
+┌─────────────────────────────────────┐
+
+│             PostgreSQL              │
+
+│                                     │
+
+│  • User and Profile Data            │
+
+│  • Alarm Data                       │
+
+│  • Challenge and Attempt Data       │
+
+│  • Habit and Behavioral Data        │
+
+└─────────────────────────────────────┘
+
+                  │
+
+           Docker Compose manages frontend and backend
 
 
 
@@ -156,31 +191,57 @@ This diagram represents the intended high-level architecture. The exact data flo
 <h2>📂 Repository Structure </h2>
 
 Intelligent-Alarm-Platform/
+
 │
+
 ├── backend/
-│   ├── main.py
-│   ├── database.py
-│   ├── auth.py
-│   ├── routers/
-│   ├── Models/
-│   ├── services/
-│   ├── ml/
-│   ├── requirements.txt
-│   └── Dockerfile
+
+│   ├── main.py
+
+│   ├── database.py
+
+│   ├── auth.py
+
+│   ├── routers/
+
+│   ├── Models/
+
+│   ├── services/
+
+│   ├── ml/
+
+│   ├── requirements.txt
+
+│   └── Dockerfile
+
 │
+
 ├── frontend/
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── Dockerfile
+
+│   ├── src/
+
+│   ├── public/
+
+│   ├── package.json
+
+│   └── Dockerfile
+
 │
+
 ├── docs/
-│   ├── Intelligent_Cognitive_Alarm_Platform_Presentation.pptx
-│   └── Intelligent_Cognitive_Alarm_Platform_Project_Report.docx
+
+│   ├── Intelligent_Cognitive_Alarm_Platform_Presentation.pptx
+
+│   └── Intelligent_Cognitive_Alarm_Platform_Project_Report.docx
+
 │
+
 ├── .env.example
+
 ├── .gitignore
+
 ├── docker-compose.yml
+
 └── README.md
 
 The structure above describes the intended repository layout. Some files may be added, renamed, or reorganized as the project evolves.
@@ -257,15 +318,15 @@ Access the Application
 
 When running with the default port mappings:
 
-| Service                        | URL                        |
+| Service                        | URL                        |
 
-| -----------------------------  | -------------------------- |
+| -----------------------------  | -------------------------- |
 
-| Frontend                       | http://localhost:5173      |
+| Frontend                       | http://localhost:5173      |
 
-| Backend                        | http://localhost:8000      |
+| Backend                        | http://localhost:8000      |
 
-| Interactive API documentation  | http://localhost:8000/docs |
+| Interactive API documentation  | http://localhost:8000/docs |
 
 These addresses are for local development, not a public internet deployment.
 
@@ -295,13 +356,13 @@ The exact API capabilities are determined by the routers registered in the backe
 
 Project documentation is available in the docs/ directory.
 
-| Document                                                                            | Description                                     |
+| Document                                                                            | Description                                     |
 
 | ----------------------------------------------------------------------------------- | ----------------------------------------------- |
 
-| Project Presentation                                                                | PowerPoint presentation introducing the project |
+| Project Presentation                                                                | PowerPoint presentation introducing the project |
 
-| Project Report                                                                      | Project report and supporting documentation     |
+| Project Report                                                                      | Project report and supporting documentation     |
 
 🔐 Security and Configuration
 
