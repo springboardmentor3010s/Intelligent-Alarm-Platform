@@ -1,6 +1,6 @@
 <div align="center">
 
-🧠 Intelligent Cognitive Alarm Platform
+<h1>🧠 Intelligent Cognitive Alarm Platform
 
 Build Better Wake-Up Habits Through Cognitive Challenges
 
@@ -20,7 +20,7 @@ Features · Architecture · Installation · Documentation
 
 </div>
 
-##📌 Overview
+<h2>📌 Overview
 
 The Intelligent Cognitive Alarm Platform is designed to make waking up more interactive by combining traditional alarm functionality with cognitive exercises and habit-related insights.
 
@@ -28,7 +28,7 @@ Instead of relying only on dismissing an alarm, the platform can use cognitive c
 
 The application uses a React frontend, a FastAPI backend, and PostgreSQL for data persistence. Docker Compose simplifies running the application locally.
 
-🎯 Project Objectives
+<h2>🎯 Project Objectives
 
 Provide a centralized interface for managing alarms and wake-up routines.
 
@@ -42,7 +42,7 @@ Provide a foundation for adaptive challenge difficulty and personalized recommen
 
 Deliver a modular web application that can be developed and deployed using Docker.
 
-✨ Key Features
+<h2>✨ Key Features
 
 ⏰ Alarm Management
 
@@ -78,7 +78,9 @@ Run the frontend and backend in containers using Docker Compose.
 
 Feature availability depends on the implementation, configuration, and completion status of the corresponding workflows.
 
-🛠️ Technology Stack
+<h2>🛠️ Technology Stack
+
+
 
 | Category          | Technologies            |
 
@@ -98,9 +100,15 @@ Feature availability depends on the implementation, configuration, and completio
 
 | Development tools | Git, GitHub, VS Code    |
 
+
+
 Additional machine-learning and data-processing dependencies are defined in the backend requirements file.
 
-🏗️ System Architecture
+
+
+<h2>🏗️ System Architecture
+
+
 
 
 ┌─────────────────────────────────────┐
@@ -170,14 +178,18 @@ Additional machine-learning and data-processing dependencies are defined in the 
 └─────────────────────────────────────┘
 
 
-       Docker Compose
 
-   manages frontend and backend
+      Docker Compose
+
+  manages frontend and backend
+
+
 
 
 This diagram represents the intended high-level architecture. The exact data flow depends on the implemented endpoints and database models.
 
-📂 Repository Structure
+
+<h2>📂 Repository Structure
 
 
 Intelligent-Alarm-Platform/
@@ -369,9 +381,9 @@ Project documentation is available in the docs/ directory.
 
 | ----------------------------------------------------------------------------------- | ----------------------------------------------- |
 
-| Project Presentation | PowerPoint presentation introducing the project |
+| Project Presentation                                                                | PowerPoint presentation introducing the project |
 
-| Project Report     | Project report and supporting documentation     |
+| Project Report                                                                      | Project report and supporting documentation     |
 
 🔐 Security and Configuration
 
@@ -387,33 +399,14 @@ Use a unique database password and rotate credentials that have been exposed.
 
 Review database schema initialization and migration behavior before deploying to a production database.
 
-🧪 Testing and Validation
+<h2>🧪 Testing and Validation
 
 The backend repository includes test and verification scripts related to alarm workflows, adaptive difficulty, analytics, recommendations, and other application functionality.
 
 Run tests only after configuring the required dependencies and test database. Verify each workflow in your own environment before treating it as production-ready.
 
-🔮 Future Enhancements
 
-Potential areas for further development include:
-
-Expanded behavioral analytics and progress visualization.
-
-More cognitive challenge types and difficulty levels.
-
-Improved personalization based on user performance.
-
-Automated testing of end-to-end alarm workflows.
-
-Production deployment with HTTPS and secure secret management.
-
-Monitoring, logging, and reliability improvements.
-
-Responsive UI and accessibility refinements.
-
-These are potential enhancements, not claims that the features are already implemented.
-
-🤝 Contributing
+<h2>🤝 Contributing
 
 Contributions, bug reports, and suggestions are welcome.
 
@@ -427,7 +420,7 @@ Test your changes locally.
 
 Submit a pull request describing the changes.
 
-📜 License
+<h2>📜 License
 
 See the LICENSE file in the repository for the applicable license terms.
 
