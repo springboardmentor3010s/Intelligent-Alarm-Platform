@@ -1,10 +1,14 @@
 <div align="center">
 
-🧠 Intelligent Cognitive Alarm Platform
+<h1>🧠 Intelligent Cognitive Alarm Platform</h1>
 
-Build Better Wake-Up Habits Through Cognitive Challenges
+<h2>Build Better Wake-Up Habits Through Cognitive Challenges</h2>
 
 A web-based alarm platform that combines intelligent alarm scheduling, cognitive challenges, habit tracking, and behavioral analytics to support consistent wake-up routines.
+
+
+
+
 
 
 
@@ -16,7 +20,7 @@ Features · Architecture · Installation · Documentation
 
 </div>
 
-📌 Overview
+<h2>📌 Overview</h2>
 
 The Intelligent Cognitive Alarm Platform is designed to make waking up more interactive by combining traditional alarm functionality with cognitive exercises and habit-related insights.
 
@@ -24,7 +28,7 @@ Instead of relying only on dismissing an alarm, the platform can use cognitive c
 
 The application uses a React frontend, a FastAPI backend, and PostgreSQL for data persistence. Docker Compose simplifies running the application locally.
 
-🎯 Project Objectives
+<h2>🎯 Project Objectives</h2>
 
 Provide a centralized interface for managing alarms and wake-up routines.
 
@@ -38,25 +42,25 @@ Provide a foundation for adaptive challenge difficulty and personalized recommen
 
 Deliver a modular web application that can be developed and deployed using Docker.
 
-✨ Key Features
+<h2>✨ Key Features</h2>
 
 ⏰ Alarm Management
 
 Create and manage alarms through the application interface, with configurable alarm settings supported by the backend.
 
-🧩 Cognitive Challenges
+<h2>🧩 Cognitive Challenges</h2>
 
 Integrate cognitive exercises into the wake-up process to make alarm dismissal more interactive.
 
-👤 User Profiles
+<h2>👤 User Profiles </h2>
 
 Manage user-related information and habit preferences.
 
-📊 Behavioral Analytics
+<h2>📊 Behavioral Analytics</h2>
 
 Use recorded behavioral information to support habit tracking and provide insights into user routines.
 
-🧠 Adaptive Difficulty
+<h2>🧠 Adaptive Difficulty</h2>
 
 The project includes adaptive-difficulty-related code intended to support adjusting challenge difficulty based on user performance.
 
@@ -74,81 +78,170 @@ Run the frontend and backend in containers using Docker Compose.
 
 Feature availability depends on the implementation, configuration, and completion status of the corresponding workflows.
 
-🛠️ Technology Stack
+<h2>🛠️ Technology Stack</h2>
 
-Category
 
-Technologies
 
-Frontend
+| Category          | Technologies            |
 
-React, JavaScript, Vite
+| ----------------- | ----------------------- |
 
-Backend
+| Frontend          | React, JavaScript, Vite |
 
-Python, FastAPI
+| Backend           | Python, FastAPI         |
 
-ORM
+| ORM               | SQLAlchemy              |
 
-SQLAlchemy
+| Database          | PostgreSQL              |
 
-Database
+| API documentation | FastAPI / Swagger UI    |
 
-PostgreSQL
+| Containerization  | Docker, Docker Compose  |
 
-API documentation
+| Development tools | Git, GitHub, VS Code    |
 
-FastAPI / Swagger UI
 
-Containerization
-
-Docker, Docker Compose
-
-Development tools
-
-Git, GitHub, VS Code
 
 Additional machine-learning and data-processing dependencies are defined in the backend requirements file.
 
-🏗️ System Architecture
 
-flowchart TD
-    A[User / Browser] --> B[React + Vite Frontend]
-    B -->|HTTP / REST API| C[FastAPI Backend]
-    C -->|SQLAlchemy ORM| D[(PostgreSQL Database)]
-    B --- E[Alarm Management]
-    B --- F[Cognitive Challenge Screens]
-    B --- G[Habit and Analytics Views]
-    C --- H[Authentication and User APIs]
-    C --- I[Alarm, Habit, and Challenge Workflows]
-    C --- J[Analytics and Recommendations]
 
-Docker Compose manages the frontend and backend containers. This diagram represents the intended high-level architecture; the exact data flow depends on the implemented endpoints and database models.
+<h2>🏗️ System Architecture</h2>
 
-📂 Repository Structure
+
+
+┌─────────────────────────────────────┐
+
+│             User / Browser          │
+
+└──────────────────┬──────────────────┘
+
+                       │
+
+                       ▼
+
+┌─────────────────────────────────────┐
+
+│         React + Vite Frontend       │
+
+│                                     │
+
+│  • User Interface                   │
+
+│  • Alarm Management                 │
+
+│  • Cognitive Challenge Screens      │
+
+│  • Habit and Analytics Views        │
+
+└──────────────────┬──────────────────┘
+
+                   │ 
+                
+                   │ HTTP / REST API
+
+                   ▼
+
+┌─────────────────────────────────────┐
+
+│           FastAPI Backend           │
+
+│                                     │
+
+│  • Authentication and User APIs     │
+
+│  • Alarm and Habit APIs             │
+
+│  • Challenge Workflows              │
+
+│  • Analytics and Recommendations    │
+
+└──────────────────┬──────────────────┘
+
+                   │ 
+               
+                   │ SQLAlchemy
+
+                   ▼
+
+┌─────────────────────────────────────┐
+
+│             PostgreSQL              │
+
+│                                     │
+
+│  • User and Profile Data            │
+
+│  • Alarm Data                       │
+
+│  • Challenge and Attempt Data       │
+
+│  • Habit and Behavioral Data        │
+
+└─────────────────────────────────────┘
+
+                  │
+
+           Docker Compose manages frontend and backend
+
+
+
+This diagram represents the intended high-level architecture. The exact data flow depends on the implemented endpoints and database models.
+
+<h2>📂 Repository Structure </h2>
 
 Intelligent-Alarm-Platform/
+
+│
+
 ├── backend/
+
 │   ├── main.py
+
 │   ├── database.py
+
 │   ├── auth.py
+
 │   ├── routers/
+
 │   ├── Models/
+
 │   ├── services/
+
 │   ├── ml/
+
 │   ├── requirements.txt
+
 │   └── Dockerfile
+
+│
+
 ├── frontend/
+
 │   ├── src/
+
 │   ├── public/
+
 │   ├── package.json
+
 │   └── Dockerfile
+
+│
+
 ├── docs/
+
 │   ├── Intelligent_Cognitive_Alarm_Platform_Presentation.pptx
+
 │   └── Intelligent_Cognitive_Alarm_Platform_Project_Report.docx
+
+│
+
 ├── .env.example
+
 ├── .gitignore
+
 ├── docker-compose.yml
+
 └── README.md
 
 The structure above describes the intended repository layout. Some files may be added, renamed, or reorganized as the project evolves.
@@ -169,14 +262,13 @@ Docker Compose, included with current Docker Desktop installations
 
 PostgreSQL, if running the database separately on your computer
 
-1. Clone the Repository
+Clone the Repository
 
 git clone https://github.com/springboardmentor3010s/Intelligent-Alarm-Platform.git
+
 cd Intelligent-Alarm-Platform
 
-If you are working from your existing local clone, you do not need to clone the repository again.
-
-2. Configure Environment Variables
+Configure Environment Variables
 
 Create your local environment file from the provided template.
 
@@ -188,16 +280,19 @@ Open .env in a text editor and configure the PostgreSQL connection string.
 
 Example format:
 
-DATABASE_URL=postgresql+psycopg2://postgres:YOUR_PASSWORD@host.docker.internal:5432/cognitive_alarm
+DATABASE_URL=postgresql+psycopg2://postgres@host.docker.internal:5432/cognitive_alarm
+
 VITE_API_URL=http://localhost:8000
 
-Replace YOUR_PASSWORD with your own PostgreSQL password. If your password contains special characters, URL-encode them where required by the database connection URL.
+Replace YOUR_PASSWORD with your own PostgreSQL password.
 
-Important: This example assumes PostgreSQL is accessible from Docker at host.docker.internal:5432. Adjust it for your own database setup.
+If your password contains special characters, URL-encode them where required by the database connection URL.
+
+Important: The example above assumes PostgreSQL is accessible from Docker at host.docker.internal:5432. Adjust it for your own database setup.
 
 Never commit your actual .env file or publish database credentials.
 
-3. Start the Application
+Start the Application
 
 From the directory containing docker-compose.yml, run:
 
@@ -205,7 +300,7 @@ docker compose up -d --build
 
 Docker Compose builds the frontend and backend images and starts the configured services.
 
-4. Verify the Containers
+Verify the Containers
 
 docker compose ps
 
@@ -219,29 +314,23 @@ docker compose logs -f
 
 Press Ctrl+C to stop following the logs. This does not stop the running containers.
 
-5. Access the Application
+Access the Application
 
 When running with the default port mappings:
 
-Service
+| Service                        | URL                        |
 
-URL
+| -----------------------------  | -------------------------- |
 
-Frontend
+| Frontend                       | http://localhost:5173      |
 
-http://localhost:5173
+| Backend                        | http://localhost:8000      |
 
-Backend
-
-http://localhost:8000
-
-Interactive API documentation
-
-http://localhost:8000/docs
+| Interactive API documentation  | http://localhost:8000/docs |
 
 These addresses are for local development, not a public internet deployment.
 
-6. Stop the Application
+Stop the Application
 
 docker compose stop
 
@@ -251,31 +340,29 @@ docker compose start
 
 Avoid removing database volumes or deleting database files unless you fully understand the impact and have a verified backup.
 
-🔌 API Documentation
+<h2>🔌 API Documentation </h2>
 
 The backend uses FastAPI to expose HTTP API endpoints.
 
-After starting the backend, open Swagger UI at http://localhost:8000/docs.
+After starting the backend, open:
 
-Swagger UI provides an interactive interface for inspecting available routes, request parameters, and response schemas. The exact API capabilities are determined by the routers registered in the backend.
+http://localhost:8000/docs
+
+Swagger UI provides an interactive interface for inspecting available routes, request parameters, and response schemas.
+
+The exact API capabilities are determined by the routers registered in the backend.
 
 📄 Project Documentation
 
 Project documentation is available in the docs/ directory.
 
-Document
+| Document                                                                            | Description                                     |
 
-Description
+| ----------------------------------------------------------------------------------- | ----------------------------------------------- |
 
-Project Presentation
+| Project Presentation                                                                | PowerPoint presentation introducing the project |
 
-PowerPoint presentation introducing the project
-
-Project Report
-
-Project report and supporting documentation
-
-Confirm that these filenames match the files committed in your docs/ directory.
+| Project Report                                                                      | Project report and supporting documentation     |
 
 🔐 Security and Configuration
 
@@ -297,26 +384,6 @@ The backend repository includes test and verification scripts related to alarm w
 
 Run tests only after configuring the required dependencies and test database. Verify each workflow in your own environment before treating it as production-ready.
 
-🔮 Future Enhancements
-
-Potential areas for further development include:
-
-Expanded behavioral analytics and progress visualization.
-
-More cognitive challenge types and difficulty levels.
-
-Improved personalization based on user performance.
-
-Automated testing of end-to-end alarm workflows.
-
-Production deployment with HTTPS and secure secret management.
-
-Monitoring, logging, and reliability improvements.
-
-Responsive UI and accessibility refinements.
-
-These are potential enhancements, not claims that the features are already implemented.
-
 🤝 Contributing
 
 Contributions, bug reports, and suggestions are welcome.
@@ -331,9 +398,9 @@ Test your changes locally.
 
 Submit a pull request describing the changes.
 
-📜 License
+<h2>📜 License</h2>
 
-Add a LICENSE file to the repository before specifying license terms. Until then, no license is declared by this README.
+See the LICENSE file in the repository for the applicable license terms.
 
 <div align="center">
 
