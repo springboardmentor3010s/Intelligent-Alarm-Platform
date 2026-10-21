@@ -1,8 +1,8 @@
 <div align="center">
 
-<h1>🧠 Intelligent Cognitive Alarm Platform
+<h1>🧠 Intelligent Cognitive Alarm Platform</h1>
 
-Build Better Wake-Up Habits Through Cognitive Challenges
+<h2>Build Better Wake-Up Habits Through Cognitive Challenges</h2>
 
 A web-based alarm platform that combines intelligent alarm scheduling, cognitive challenges, habit tracking, and behavioral analytics to support consistent wake-up routines.
 
@@ -20,7 +20,7 @@ Features · Architecture · Installation · Documentation
 
 </div>
 
-<h2>📌 Overview
+<h2>📌 Overview</h2>
 
 The Intelligent Cognitive Alarm Platform is designed to make waking up more interactive by combining traditional alarm functionality with cognitive exercises and habit-related insights.
 
@@ -28,7 +28,7 @@ Instead of relying only on dismissing an alarm, the platform can use cognitive c
 
 The application uses a React frontend, a FastAPI backend, and PostgreSQL for data persistence. Docker Compose simplifies running the application locally.
 
-<h2>🎯 Project Objectives
+<h2>🎯 Project Objectives</h2>
 
 Provide a centralized interface for managing alarms and wake-up routines.
 
@@ -42,25 +42,25 @@ Provide a foundation for adaptive challenge difficulty and personalized recommen
 
 Deliver a modular web application that can be developed and deployed using Docker.
 
-<h2>✨ Key Features
+<h2>✨ Key Features</h2>
 
 ⏰ Alarm Management
 
 Create and manage alarms through the application interface, with configurable alarm settings supported by the backend.
 
-🧩 Cognitive Challenges
+<h2>🧩 Cognitive Challenges</h2>
 
 Integrate cognitive exercises into the wake-up process to make alarm dismissal more interactive.
 
-👤 User Profiles
+<h2>👤 User Profiles </h2>
 
 Manage user-related information and habit preferences.
 
-📊 Behavioral Analytics
+<h2>📊 Behavioral Analytics</h2>
 
 Use recorded behavioral information to support habit tracking and provide insights into user routines.
 
-🧠 Adaptive Difficulty
+<h2>🧠 Adaptive Difficulty</h2>
 
 The project includes adaptive-difficulty-related code intended to support adjusting challenge difficulty based on user performance.
 
@@ -78,7 +78,7 @@ Run the frontend and backend in containers using Docker Compose.
 
 Feature availability depends on the implementation, configuration, and completion status of the corresponding workflows.
 
-<h2>🛠️ Technology Stack
+<h2>🛠️ Technology Stack</h2>
 
 
 
@@ -106,7 +106,7 @@ Additional machine-learning and data-processing dependencies are defined in the 
 
 
 
-<h2>🏗️ System Architecture
+<h2>🏗️ System Architecture</h2>
 
 
 
@@ -189,7 +189,7 @@ Additional machine-learning and data-processing dependencies are defined in the 
 This diagram represents the intended high-level architecture. The exact data flow depends on the implemented endpoints and database models.
 
 
-<h2>📂 Repository Structure
+<h2>📂 Repository Structure </h2>
 
 
 Intelligent-Alarm-Platform/
@@ -361,7 +361,7 @@ docker compose start
 
 Avoid removing database volumes or deleting database files unless you fully understand the impact and have a verified backup.
 
-🔌 API Documentation
+<h2>🔌 API Documentation </h2>
 
 The backend uses FastAPI to expose HTTP API endpoints.
 
@@ -399,14 +399,14 @@ Use a unique database password and rotate credentials that have been exposed.
 
 Review database schema initialization and migration behavior before deploying to a production database.
 
-<h2>🧪 Testing and Validation
+🧪 Testing and Validation
 
 The backend repository includes test and verification scripts related to alarm workflows, adaptive difficulty, analytics, recommendations, and other application functionality.
 
 Run tests only after configuring the required dependencies and test database. Verify each workflow in your own environment before treating it as production-ready.
 
 
-<h2>🤝 Contributing
+🤝 Contributing
 
 Contributions, bug reports, and suggestions are welcome.
 
@@ -420,7 +420,7 @@ Test your changes locally.
 
 Submit a pull request describing the changes.
 
-<h2>📜 License
+<h2>📜 License</h2>
 
 See the LICENSE file in the repository for the applicable license terms.
 
