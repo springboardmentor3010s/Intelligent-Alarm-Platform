@@ -10,21 +10,37 @@
 
 
 
-A web-based alarm platform that combines intelligent alarm scheduling, cognitive challenges, habit tracking, and behavioral analytics to support consistent wake-up routines.
+
+
+A web-based alarm platform that combines intelligent alarm scheduling, cognitive challenges, habit tracking, and behavioral analytics to support consistent wake-up routines.  
 
 
 
-<br/>
+
+
+!\[Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge\&logo=python\&logoColor=white)
+
+!\[FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge\&logo=fastapi\&logoColor=white)
+
+!\[React](https://img.shields.io/badge/React-20232A?style=for-the-badge\&logo=react\&logoColor=61DAFB)
+
+!\[PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge\&logo=postgresql\&logoColor=white)
+
+!\[Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge\&logo=docker\&logoColor=white)
 
 
 
-\[\*\*Features\*\*](#-key-features) · \[\*\*Architecture\*\*](#-system-architecture) · \[\*\*Installation\*\*](#-getting-started) · \[\*\*Documentation\*\*](#-project-documentation)
 
 
 
-</div>
 
-\---
+Features · Architecture · Installation · Documentation  
+
+
+
+
+
+</div>---
 
 
 
