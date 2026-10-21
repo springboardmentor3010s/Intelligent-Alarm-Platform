@@ -20,7 +20,7 @@ Features · Architecture · Installation · Documentation
 
 </div>
 
-📌 Overview
+##📌 Overview
 
 The Intelligent Cognitive Alarm Platform is designed to make waking up more interactive by combining traditional alarm functionality with cognitive exercises and habit-related insights.
 
