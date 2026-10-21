@@ -1,0 +1,28 @@
+
+.env
+.env.*
+!.env.example
+
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+frontend/node_modules/
+frontend/dist/
+
+node_modules/
+dist/
+
+*.log
+# Backend local files
+backend/venv/
+backend/.pytest_cache/
+backend/.env
+backend/cognitive_alarm.db
+
+# Root test cache
+.pytest_cache/
