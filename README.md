@@ -110,79 +110,44 @@ Additional machine-learning and data-processing dependencies are defined in the 
 
 
 
-┌─────────────────────────────────────┐
-
-│             User / Browser          │
-
-└──────────────────┬──────────────────┘
-
-                       │
-
-                       ▼
-
-┌─────────────────────────────────────┐
-
-│         React + Vite Frontend       │
-
-│                                     │
-
-│  • User Interface                   │
-
-│  • Alarm Management                 │
-
-│  • Cognitive Challenge Screens      │
-
-│  • Habit and Analytics Views        │
-
-└──────────────────┬──────────────────┘
-
-                   │ 
-                
-                   │ HTTP / REST API
-
-                   ▼
-
-┌─────────────────────────────────────┐
-
-│           FastAPI Backend           │
-
-│                                     │
-
-│  • Authentication and User APIs     │
-
-│  • Alarm and Habit APIs             │
-
-│  • Challenge Workflows              │
-
-│  • Analytics and Recommendations    │
-
-└──────────────────┬──────────────────┘
-
-                   │ 
-               
-                   │ SQLAlchemy
-
-                   ▼
-
-┌─────────────────────────────────────┐
-
-│             PostgreSQL              │
-
-│                                     │
-
-│  • User and Profile Data            │
-
-│  • Alarm Data                       │
-
-│  • Challenge and Attempt Data       │
-
-│  • Habit and Behavioral Data        │
-
-└─────────────────────────────────────┘
-
-                  │
-
-           Docker Compose manages frontend and backend
+┌─────────────────────────────────────────┐
+│              User / Browser             │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┤
+│         React + Vite Frontend           │
+│                                         │
+│  • User Interface                       │
+│  • Alarm Management                     │
+│  • Cognitive Challenge Screens          │
+│  • Habit and Analytics Views            │
+└────────────────────┬────────────────────┘
+                     │
+                     │ HTTP / REST API
+                     ▼
+┌─────────────────────────────────────────┐
+│             FastAPI Backend             │
+│                                         │
+│  • Authentication and User APIs         │
+│  • Alarm and Habit APIs                 │
+│  • Challenge Workflows                  │
+│  • Analytics and Recommendations        │
+└────────────────────┬────────────────────┘
+                     │
+                     │ SQLAlchemy
+                     ▼
+┌─────────────────────────────────────────┐
+│               PostgreSQL                │
+│                                         │
+│  • User and Profile Data                │
+│  • Alarm Data                           │
+│  • Challenge and Attempt Data           │
+│  • Habit and Behavioral Data            │
+└─────────────────────────────────────────┘
+                     │
+                     │ 
+  Docker Compose manages frontend and backend
 
 
 
@@ -191,57 +156,31 @@ This diagram represents the intended high-level architecture. The exact data flo
 <h2>📂 Repository Structure </h2>
 
 Intelligent-Alarm-Platform/
-
 │
-
 ├── backend/
-
 │   ├── main.py
-
 │   ├── database.py
-
 │   ├── auth.py
-
 │   ├── routers/
-
 │   ├── Models/
-
 │   ├── services/
-
 │   ├── ml/
-
 │   ├── requirements.txt
-
 │   └── Dockerfile
-
 │
-
 ├── frontend/
-
 │   ├── src/
-
 │   ├── public/
-
 │   ├── package.json
-
 │   └── Dockerfile
-
 │
-
 ├── docs/
-
 │   ├── Intelligent_Cognitive_Alarm_Platform_Presentation.pptx
-
 │   └── Intelligent_Cognitive_Alarm_Platform_Project_Report.docx
-
 │
-
 ├── .env.example
-
 ├── .gitignore
-
 ├── docker-compose.yml
-
 └── README.md
 
 The structure above describes the intended repository layout. Some files may be added, renamed, or reorganized as the project evolves.
