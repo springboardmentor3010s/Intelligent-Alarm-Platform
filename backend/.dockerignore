@@ -1,0 +1,35 @@
+# Virtual environment & Python cache
+venv/
+.venv/
+env/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Local databases and backups
+*.db
+*.sqlite
+*.sqlite3
+*.zip
+
+# Local environment and secret files
+.env
+.env.*
+!.env.example
+
+# Diagnostic & test scripts with hardcoded credentials or seeds
+check_*.py
+seed_*.py
+clear_dummy.py
+restore_mock_data.py
+fix_db.py
+migrate_*.py
+test_*.py
+verify_*.py
+
+# Git & IDE
+.git/
+.gitignore
+.vscode/
+.idea/
