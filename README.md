@@ -117,9 +117,9 @@ Additional machine-learning and data-processing dependencies are defined in the 
 
 └──────────────────┬──────────────────┘
 
-                   │
+                           │
 
-                   ▼
+                           ▼
 
 ┌─────────────────────────────────────┐
 
@@ -137,9 +137,9 @@ Additional machine-learning and data-processing dependencies are defined in the 
 
 └──────────────────┬──────────────────┘
 
-                   │ HTTP / REST API
+                           │ HTTP / REST API
 
-                   ▼
+                           ▼
 
 ┌─────────────────────────────────────┐
 
@@ -179,7 +179,7 @@ Additional machine-learning and data-processing dependencies are defined in the 
 
 
 
-      Docker Compose
+               Docker Compose
 
   manages frontend and backend
 
