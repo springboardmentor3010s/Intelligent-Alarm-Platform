@@ -1,0 +1,77 @@
+# Wakeful - run with:  docker compose up --build   (Windows: double-click start.bat)
+# Secrets come from the .env file (generated for you by start.bat / start.sh).
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wakeful
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run start.bat (or start.sh) first so .env is created}
+      POSTGRES_DB: wakeful
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wakeful -d wakeful"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # no "ports": the database is NOT reachable from outside the Docker network
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: wakeful
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Run start.bat (or start.sh) first so .env is created}
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    environment:
+      ENV: production
+      DATABASE_URL: postgresql+psycopg2://wakeful:${POSTGRES_PASSWORD}@db:5432/wakeful
+      MONGO_URL: mongodb://wakeful:${MONGO_PASSWORD}@mongo:27017/?authSource=admin
+      SECRET_KEY: ${SECRET_KEY:?Run start.bat (or start.sh) first so .env is created}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:5173}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-Administrator}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-false}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # no "ports": only the nginx frontend container can reach the API
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-5173}:8080"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  pgdata:
+  mongodata:
