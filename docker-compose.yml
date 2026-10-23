@@ -33,7 +33,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+psycopg://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/cognitive_alarm_recovery
+      DATABASE_URL: postgresql+psycopg://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/cognitive_alarm
       MONGO_URL: mongodb://mongodb:27017
     volumes:
       - ./backend/firebase_service_account.json:/app/firebase_service_account.json:ro
