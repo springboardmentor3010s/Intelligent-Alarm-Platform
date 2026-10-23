@@ -1,0 +1,49 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource/newsreader/500.css';
+@import '@fontsource/newsreader/600.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c-bg: 246 247 251; --c-surface: 255 255 255; --c-surface2: 240 242 249; --c-line: 226 230 241;
+  --c-ink: 18 23 43; --c-mute: 91 100 131; --c-brand: 226 88 28; --c-brandfg: 255 255 255;
+  --c-accent: 79 91 232; --c-ok: 21 128 61; --c-bad: 200 30 30; --c-warn: 180 95 6; --c-shadow: 30 40 90;
+  color-scheme: light;
+}
+.dark {
+  --c-bg: 11 15 33; --c-surface: 20 26 51; --c-surface2: 27 34 69; --c-line: 42 50 98;
+  --c-ink: 243 241 234; --c-mute: 152 162 199; --c-brand: 255 148 87; --c-brandfg: 16 21 43;
+  --c-accent: 140 158 255; --c-ok: 111 207 151; --c-bad: 255 107 107; --c-warn: 251 191 36; --c-shadow: 0 0 0;
+  color-scheme: dark;
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-bg text-ink font-sans antialiased; transition: background-color .25s ease, color .25s ease; }
+  h1, h2, h3 { @apply font-display; letter-spacing: -0.01em; }
+  :focus-visible { outline: 2px solid rgb(var(--c-brand)); outline-offset: 2px; border-radius: 6px; }
+  ::selection { background: rgb(var(--c-brand) / .3); }
+  input, select, textarea, button { font: inherit; }
+  * { scrollbar-width: thin; scrollbar-color: rgb(var(--c-line)) transparent; }
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-mute/70
+           transition-colors focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60;
+  }
+  .label { @apply mb-1.5 block text-xs font-medium text-mute; }
+  .num { @apply font-mono tabular-nums; }
+  .glass { background: rgb(var(--c-surface) / .72); backdrop-filter: blur(14px); }
+  .hero-glow {
+    background:
+      radial-gradient(60% 50% at 80% 0%, rgb(var(--c-brand) / .22), transparent 70%),
+      radial-gradient(50% 45% at 0% 20%, rgb(var(--c-accent) / .18), transparent 70%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
