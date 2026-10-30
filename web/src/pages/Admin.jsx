@@ -31,6 +31,102 @@ export default function Admin({ mode } = {}) {
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailState, setDetailState] = useState('idle');
+  const [assignments, setAssignments] = useState(null);
+  const [assignCoach, setAssignCoach] = useState('');
+  const [assignUser, setAssignUser] = useState('');
+  const [assignMsg, setAssignMsg] = useState(null);
+  const [announcements, setAnnouncements] = useState(null);
+  const [annForm, setAnnForm] = useState({ title: '', body: '', priority: 0 });
+  const [annMsg, setAnnMsg] = useState(null);
+
+  // Admin-only side data (assignments + announcements) — loaded after the main payload.
+  async function loadAdminExtras() {
+    const [asg, ann] = await Promise.all([
+      getJSON('/dashboard/coach/assignments'),
+      getJSON('/announcements'),
+    ]);
+    if (asg.status === 200) setAssignments(asg.body);
+    if (ann.status === 200) setAnnouncements(ann.body);
+  }
+
+  const changeRole = async (userId, role) => {
+    const res = await apiFetch(`/api/v1/dashboard/users/${userId}/role`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role }),
+    });
+    if (res.ok) {
+      setUsers(prev => (prev || []).map(u => (u.id === userId ? { ...u, role } : u)));
+    } else {
+      const b = await res.json().catch(() => null);
+      setAssignMsg({ tone: 'error', text: b?.detail || 'Could not change role' });
+    }
+  };
+
+  const submitAssignment = async (action) => {
+    const coachId = Number(assignCoach);
+    const userId = Number(assignUser);
+    if (!coachId || !userId) {
+      setAssignMsg({ tone: 'error', text: 'Choose both a coach and a user.' });
+      return;
+    }
+    const res = action === 'assign'
+      ? await apiFetch('/api/v1/dashboard/coach/assignments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coach_id: coachId, user_id: userId }),
+        })
+      : await apiFetch(
+          `/api/v1/dashboard/coach/assignments?coach_id=${coachId}&user_id=${userId}`,
+          { method: 'DELETE' },
+        );
+    const body = await res.json().catch(() => null);
+    if (res.ok) {
+      setAssignMsg({
+        tone: 'success',
+        text: action === 'assign' ? 'User added to the coach\u2019s cohort.' : 'User removed from the cohort.',
+      });
+      loadAdminExtras();
+    } else {
+      setAssignMsg({ tone: 'error', text: body?.detail || 'Assignment failed' });
+    }
+  };
+
+  const createAnnouncement = async () => {
+    if (!annForm.title.trim() || !annForm.body.trim()) {
+      setAnnMsg({ tone: 'error', text: 'Title and body are required.' });
+      return;
+    }
+    const res = await apiFetch('/api/v1/announcements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...annForm, priority: Number(annForm.priority) || 0 }),
+    });
+    if (res.ok) {
+      setAnnForm({ title: '', body: '', priority: 0 });
+      setAnnMsg({ tone: 'success', text: 'Announcement published.' });
+      loadAdminExtras();
+    } else {
+      const b = await res.json().catch(() => null);
+      setAnnMsg({ tone: 'error', text: b?.detail || 'Could not publish announcement' });
+    }
+  };
+
+  const toggleAnnouncement = async (a) => {
+    const res = await apiFetch(`/api/v1/announcements/${a.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !a.is_active }),
+    });
+    if (res.ok) loadAdminExtras();
+    else setAnnMsg({ tone: 'error', text: 'Could not update announcement' });
+  };
+
+  const deleteAnnouncement = async (id) => {
+    const res = await apiFetch(`/api/v1/announcements/${id}`, { method: 'DELETE' });
+    if (res.ok) loadAdminExtras();
+    else setAnnMsg({ tone: 'error', text: 'Could not delete announcement' });
+  };
 
   const load = () => {
     setLoadState('loading');
@@ -55,6 +151,7 @@ export default function Admin({ mode } = {}) {
           setAnalytics(a.body);
           setUsers(u.body);
           setLoadState('admin');
+          loadAdminExtras();
         } else if (a.status === 403 && u.status === 200) {
           // Wellness Coach: platform telemetry is admin-only, but the
           // cohort roster is served scoped by the backend.
@@ -204,6 +301,7 @@ export default function Admin({ mode } = {}) {
                       <th>Status</th>
                       <th>Verification</th>
                       <th>Joined</th>
+                      <th>Manage role</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -228,6 +326,18 @@ export default function Admin({ mode } = {}) {
                           )}
                         </td>
                         <td className="tabular text-muted-600">{u.created_at ? formatDate(u.created_at) : '-'}</td>
+                        <td>
+                          <select
+                            className="form-control form-control--select"
+                            aria-label={`Role for ${u.email}`}
+                            value={u.role || 'User'}
+                            onChange={(e) => changeRole(u.id, e.target.value)}
+                          >
+                            <option>User</option>
+                            <option>Wellness Coach</option>
+                            <option>Administrator</option>
+                          </select>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -235,6 +345,143 @@ export default function Admin({ mode } = {}) {
               </div>
             </Card>
           )}
+          {/* Cohort assignment — assign users to a Wellness Coach */}
+          <Card className="p-4 mt-6">
+            <div className="card-label mb-3"><span className="sys-label">Coach Cohort Assignment</span></div>
+            <p className="text-sm text-muted-600 mb-4" style={{ lineHeight: 1.5 }}>
+              Place a user in a Wellness Coach&rsquo;s cohort. Coaches only ever see the users assigned here.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end' }}>
+              <label className="text-xs text-muted-600" style={{ display: 'grid', gap: '0.25rem' }}>
+                Wellness Coach
+                <select
+                  className="form-control form-control--select"
+                  aria-label="Select coach"
+                  value={assignCoach}
+                  onChange={(e) => setAssignCoach(e.target.value)}
+                >
+                  <option value="">Select coach…</option>
+                  {(users || []).filter(u => u.role === 'Wellness Coach')
+                    .map(c => <option key={c.id} value={c.id}>{c.email}</option>)}
+                </select>
+              </label>
+              <label className="text-xs text-muted-600" style={{ display: 'grid', gap: '0.25rem' }}>
+                User
+                <select
+                  className="form-control form-control--select"
+                  aria-label="Select user"
+                  value={assignUser}
+                  onChange={(e) => setAssignUser(e.target.value)}
+                >
+                  <option value="">Select user…</option>
+                  {(users || []).filter(u => u.role === 'User')
+                    .map(u => <option key={u.id} value={u.id}>{u.email}</option>)}
+                </select>
+              </label>
+              <button className="btn btn-primary" onClick={() => submitAssignment('assign')}>Assign</button>
+              <button className="btn btn-secondary" onClick={() => submitAssignment('remove')}>Remove</button>
+            </div>
+            {assignMsg && (
+              <div className={`banner ${assignMsg.tone === 'error' ? 'banner-error' : ''}`} role="status" style={{ marginTop: '0.75rem' }}>
+                {assignMsg.text}
+              </div>
+            )}
+            <div className="mt-4">
+              <div className="card-label mb-2">Current assignments</div>
+              {assignments == null ? (
+                <p className="text-sm text-muted-600">Loading…</p>
+              ) : assignments.length === 0 ? (
+                <p className="text-sm text-muted-600">No users are assigned to any coach yet.</p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead><tr><th>Coach</th><th>User</th><th /></tr></thead>
+                    <tbody>
+                      {assignments.map(a => (
+                        <tr key={a.id}>
+                          <td>{(users || []).find(u => u.id === a.coach_id)?.email || a.coach_id}</td>
+                          <td>{(users || []).find(u => u.id === a.user_id)?.email || a.user_id}</td>
+                          <td>
+                            <button
+                              className="btn btn-secondary"
+                              onClick={() => {
+                                setAssignCoach(String(a.coach_id));
+                                setAssignUser(String(a.user_id));
+                                submitAssignment('remove');
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Announcements — admin CRUD feeding the user-facing /public feed */}
+          <Card className="p-4 mt-6">
+            <div className="card-label mb-3"><span className="sys-label">Platform Announcements</span></div>
+            <div style={{ display: 'grid', gap: '0.5rem', maxWidth: '640px' }}>
+              <input
+                className="form-control" placeholder="Title" aria-label="Announcement title"
+                value={annForm.title} onChange={(e) => setAnnForm(f => ({ ...f, title: e.target.value }))}
+              />
+              <textarea
+                className="form-control" placeholder="Body" aria-label="Announcement body" rows={3}
+                value={annForm.body} onChange={(e) => setAnnForm(f => ({ ...f, body: e.target.value }))}
+              />
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input
+                  className="form-control" type="number" style={{ width: '110px' }} aria-label="Priority"
+                  value={annForm.priority} onChange={(e) => setAnnForm(f => ({ ...f, priority: e.target.value }))}
+                />
+                <button className="btn btn-primary" onClick={createAnnouncement}>Publish</button>
+              </div>
+            </div>
+            {annMsg && (
+              <div className={`banner ${annMsg.tone === 'error' ? 'banner-error' : ''}`} role="status" style={{ marginTop: '0.75rem' }}>
+                {annMsg.text}
+              </div>
+            )}
+            <div className="mt-4">
+              {announcements == null ? (
+                <p className="text-sm text-muted-600">Loading…</p>
+              ) : announcements.length === 0 ? (
+                <p className="text-sm text-muted-600">No announcements yet.</p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead><tr><th>Title</th><th>Priority</th><th>Status</th><th /></tr></thead>
+                    <tbody>
+                      {announcements.map(a => (
+                        <tr key={a.id}>
+                          <td>{a.title}</td>
+                          <td className="tabular">{a.priority}</td>
+                          <td>
+                            <span className={`pill ${a.is_active ? 'pill-success' : 'pill-neutral'}`}>
+                              {a.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                              <button className="btn btn-secondary" onClick={() => toggleAnnouncement(a)}>
+                                {a.is_active ? 'Deactivate' : 'Activate'}
+                              </button>
+                              <button className="btn btn-secondary" onClick={() => deleteAnnouncement(a.id)}>Delete</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </Card>
         </>
       )}
 

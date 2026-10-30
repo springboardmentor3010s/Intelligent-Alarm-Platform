@@ -15,6 +15,7 @@ import {
 } from '../components/auth';
 import { TimezonePicker, AlertCircleIcon, CheckCircleIcon } from '../components/ui';
 import { browserTimeZone } from '../utils/timezones';
+import { Link } from 'react-router-dom';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -330,6 +331,12 @@ timezone: browserTimeZone(),
             hint={mode === 'register' ? 'Minimum 8 characters' : undefined}
             error={errors.password}
           />
+
+          {mode === 'login' && (
+            <div style={{ textAlign: 'right' }}>
+              <Link to="/reset-password" className="text-sm">Forgot password?</Link>
+            </div>
+          )}
 
           {mode === 'register' && (
             <>

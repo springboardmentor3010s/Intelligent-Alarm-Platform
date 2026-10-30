@@ -27,9 +27,10 @@ const detail = {
   progress: null,
 };
 
-function mockApi(routes) {
-  global.fetch = vi.fn((url) => {
-    const key = url.split('?')[0];
+function mockApi(routes, calls = []) {
+  global.fetch = vi.fn((url, opts) => {
+    calls.push([url, opts]);
+    const key = String(url).split('?')[0];
     const hit = routes[key];
     if (!hit) return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve(null) });
     return Promise.resolve({ ok: hit.status < 400, status: hit.status, json: () => Promise.resolve(hit.body) });
@@ -104,5 +105,79 @@ describe('Admin page coach mode', () => {
 
     await waitFor(() => expect(screen.getByText('Total Users')).toBeInTheDocument());
     expect(screen.getByText('Registered Users Directory')).toBeInTheDocument();
+  });
+});
+
+describe('Admin management controls', () => {
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
+  const adminBase = {
+    '/api/v1/dashboard/analytics': {
+      status: 200,
+      body: {
+        total_users: 3, active_users_today: 1, new_users_this_week: 0,
+        alarm_dismissal_success_rate: 0.5, platform_habit_score_avg: 60,
+        top_challenge_types: [], system_uptime_percentage: 100,
+      },
+    },
+    '/api/v1/dashboard/users': {
+      status: 200,
+      body: [
+        { id: 1, email: 'admin@test.io', is_active: true, is_verified: true, created_at: '2026-09-01T00:00:00', role: 'Administrator' },
+        { id: 2, email: 'coach@test.io', is_active: true, is_verified: true, created_at: '2026-09-01T00:00:00', role: 'Wellness Coach' },
+        coachUser,
+      ],
+    },
+    '/api/v1/dashboard/coach/assignments': { status: 200, body: [{ id: 1, coach_id: 2, user_id: 7 }] },
+    '/api/v1/announcements': { status: 200, body: [{ id: 1, title: 'Welcome', body: 'Platform is live', priority: 5, is_active: true }] },
+  };
+
+  it('changes a user role through the inline select', async () => {
+    const calls = [];
+    mockApi(adminBase, calls);
+    renderAdmin();
+
+    const select = await screen.findByLabelText('Role for coach@test.io');
+    fireEvent.change(select, { target: { value: 'User' } });
+
+    await waitFor(() =>
+      expect(calls.some(([u, o]) => String(u).includes('/dashboard/users/2/role') && o?.method === 'PUT')).toBe(true),
+    );
+  });
+
+  it('assigns a user to a coach cohort', async () => {
+    const calls = [];
+    mockApi(adminBase, calls);
+    renderAdmin();
+
+    expect(await screen.findByText('Coach Cohort Assignment')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Select coach'), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText('Select user'), { target: { value: '7' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Assign' }));
+
+    await waitFor(() =>
+      expect(calls.some(([u, o]) => String(u).includes('/dashboard/coach/assignments') && o?.method === 'POST')).toBe(true),
+    );
+  });
+
+  it('publishes an announcement with title and body', async () => {
+    const calls = [];
+    mockApi(adminBase, calls);
+    renderAdmin();
+
+    expect(await screen.findByText('Platform Announcements')).toBeInTheDocument();
+    expect(screen.getByText('Welcome')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Announcement title'), { target: { value: 'Maintenance' } });
+    fireEvent.change(screen.getByLabelText('Announcement body'), { target: { value: 'Downtime at 2am' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Publish' }));
+
+    await waitFor(() =>
+      expect(calls.some(([u, o]) => String(u) === '/api/v1/announcements' && o?.method === 'POST')).toBe(true),
+    );
   });
 });

@@ -11,6 +11,8 @@ import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Admin from './pages/Admin';
 import Landing from './pages/Landing';
+import PasswordReset from './pages/PasswordReset';
+import VerifyEmail from './pages/VerifyEmail';
 import Sidebar from './components/layout/Sidebar';
 import { NAV_SECTIONS, sectionsForRole } from './navSections';
 import { MenuIcon, LiveClock } from './components/ui';
@@ -156,6 +158,8 @@ function App() {
       <Router>
         <Routes>
           <Route path="/auth" element={<Auth onAuth={handleAuth} />} />
+          <Route path="/reset-password" element={<PasswordReset />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="*" element={<Landing />} />
         </Routes>
       </Router>
@@ -228,6 +232,8 @@ function App() {
               />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/reset-password" element={<PasswordReset />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>

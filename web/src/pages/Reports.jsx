@@ -144,7 +144,7 @@ export default function Reports() {
 
   const trendHistory = history.filter(h => h.overall_score !== null);
   const trendData = buildSeries(trendHistory, { dataKey: 'overall_score', label: 'Overall Score (%)' });
-  const prodTrendData = buildSeries([...prodHistory].reverse(), { dataKey: 'score', label: 'Productivity (user-entered)' });
+  const prodTrendData = buildSeries(prodHistory, { dataKey: 'score', label: 'Productivity (user-entered)' });
   const chartOpts = makeChartOptions();
 
   const submitLog = async (e) => {

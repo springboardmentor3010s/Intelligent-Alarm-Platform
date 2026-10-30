@@ -126,6 +126,10 @@ class NotificationService:
 
         provider = messaging.get_provider()
         provider_name = getattr(provider, "name", "unknown")
+        # Same definition as GET /notifications/status. Derived from the
+        # provider, not from the per-token loop: with zero registered tokens
+        # that loop never runs, so a noop provider used to report configured=True.
+        configured = not isinstance(provider, messaging.NoopProvider)
 
         if dedupe_key:
             with _delivered_lock:
@@ -140,7 +144,7 @@ class NotificationService:
                         "invalid_removed": 0,
                         "duplicate": True,
                         "provider": provider_name,
-                        "configured": True,
+                        "configured": configured,
                     }
                 _delivered.add(dedupe_key)
 
@@ -155,7 +159,7 @@ class NotificationService:
             "invalid_removed": 0,
             "duplicate": False,
             "provider": provider_name,
-            "configured": True,
+            "configured": configured,
         }
 
         for row in tokens:

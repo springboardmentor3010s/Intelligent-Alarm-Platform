@@ -6,6 +6,7 @@ import { buildHabitCharts, makeChartOptions } from '../utils/chartUtils';
 import { subscribeTheme } from '../theme';
 import { CardSkeleton, Badge, SectionHeader } from '../components/ui';
 import ErrorState from '../components/ui/ErrorState';
+import InsightsPanel from '../components/InsightsPanel';
 import { apiFetch } from '../utils/api';
 
 const PRIORITY_TONE = { high: 'danger', medium: 'warm', low: 'success', 1: 'danger', 2: 'warm', 3: 'success' };
@@ -125,7 +126,7 @@ export default function Dashboard() {
       <div className="analytics-bento">
         <Card className="bento-score">
           <div>
-            <div className="card-label">Composite Habit Score</div>
+            <div className="card-label">Composite Habit Score · Today</div>
             <div className="bento-score__head">
               <div className="bento-score__num">
                 <span className="metric-value">{habitScore.overall_score}</span>
@@ -241,7 +242,7 @@ export default function Dashboard() {
                 </div>
                 <div className="bento-tile__value">
                   <div className="metric-value">{currentVal}<span className="metric-denom">/100</span></div>
-                  <span className="text-xs text-muted-600">{meta.weight}</span>
+                  <span className="text-xs text-muted-600">Today · {meta.weight}</span>
                 </div>
               </div>
 
@@ -267,6 +268,8 @@ export default function Dashboard() {
           <span className="chart-note__label">Disclaimer</span>
           Tracking {available} of 7 recorded days. Only real server-verified habit scoring events are plotted.
         </div>
+
+        <InsightsPanel />
       </div>
     </div>
   );

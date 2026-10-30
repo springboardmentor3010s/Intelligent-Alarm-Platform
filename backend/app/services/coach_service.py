@@ -91,6 +91,15 @@ def unassign_user(db: Session, coach_id: int, user_id: int) -> None:
     db.commit()
 
 
+def list_assignments(db: Session) -> List[CoachAssignment]:
+    """Every coach-to-user assignment, for the admin management view."""
+    return (
+        db.query(CoachAssignment)
+        .order_by(CoachAssignment.coach_id, CoachAssignment.user_id)
+        .all()
+    )
+
+
 def assigned_user_ids(db: Session, coach_id: int) -> List[int]:
     rows = db.query(CoachAssignment.user_id).filter(CoachAssignment.coach_id == coach_id).all()
     return [user_id for (user_id,) in rows]

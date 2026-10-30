@@ -4,6 +4,7 @@ import { Card, Grid } from '../styles';
 import { Toggle, SunIcon, MoonIcon, SectionHeader, Badge } from '../components/ui';
 import { getTheme, setTheme as applyTheme } from '../theme';
 import { apiFetch } from '../utils/api';
+import NotificationsPanel from '../components/NotificationsPanel';
 
 const SETTING_KEYS = ['notifications', 'auto_dismiss', 'vibrate'];
 
@@ -28,6 +29,8 @@ const SETTING_META = {
 export default function Settings() {
   const [settings, setSettings] = useState({ notifications: true, auto_dismiss: false, vibrate: true });
   const [theme, setThemeState] = useState(getTheme);
+  const [deactivating, setDeactivating] = useState(false);
+  const [deactivateMsg, setDeactivateMsg] = useState(null);
 
   useEffect(() => {
     apiFetch('/api/v1/users/settings')
@@ -51,6 +54,24 @@ export default function Settings() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ [key]: next }),
     }).catch(err => console.warn(`Could not persist ${key}`, err));
+  };
+
+  const deactivateAccount = async () => {
+    if (!window.confirm('Deactivate your account? You will be signed out and unable to log in until it is reactivated.')) {
+      return;
+    }
+    setDeactivating(true);
+    setDeactivateMsg(null);
+    const res = await apiFetch('/api/v1/users/deactivate', { method: 'POST' });
+    if (res.ok) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/auth';
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    setDeactivateMsg(data.detail || 'Could not deactivate account.');
+    setDeactivating(false);
   };
 
   return (
@@ -151,6 +172,39 @@ export default function Settings() {
           </div>
         </Card>
       </Grid>
+
+      {/* Push notification diagnostics & reminders */}
+      <Card className="p-4 mt-4">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <div className="card-label mb-0"><span className="sys-label">Push Notifications</span></div>
+          <Badge tone="subtle">Device delivery</Badge>
+        </div>
+        <NotificationsPanel />
+      </Card>
+
+      {/* Account — self-service deactivation (irreversible without an admin) */}
+      <Card className="p-4 mt-4">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <div className="card-label mb-0"><span className="sys-label">Account</span></div>
+          <Badge tone="subtle">Self-service</Badge>
+        </div>
+        <p className="text-sm text-muted-600 mb-4" style={{ lineHeight: 1.5 }}>
+          Deactivating signs you out on every device and blocks future logins until an administrator reactivates the account.
+        </p>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={deactivateAccount}
+          disabled={deactivating}
+        >
+          {deactivating ? 'Deactivating…' : 'Deactivate account'}
+        </button>
+        {deactivateMsg && (
+          <div className="banner banner-error" role="alert" style={{ marginTop: '0.75rem' }}>
+            {deactivateMsg}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

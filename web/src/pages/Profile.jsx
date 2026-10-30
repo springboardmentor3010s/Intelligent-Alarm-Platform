@@ -55,6 +55,8 @@ export default function Profile() {
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifyMsg, setVerifyMsg] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -138,6 +140,17 @@ export default function Profile() {
     }
   };
 
+  const resendVerification = async () => {
+    setVerifyBusy(true);
+    setVerifyMsg(null);
+    const res = await apiFetch('/api/v1/auth/verify-email/request', { method: 'POST' });
+    const data = await res.json().catch(() => ({}));
+    setVerifyBusy(false);
+    setVerifyMsg(res.ok
+      ? (data.message || 'Verification email sent.')
+      : (data.detail || 'Could not send verification email.'));
+  };
+
   if (!profile) {
     if (error) {
       return (
@@ -173,9 +186,24 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className={`pill ${profile.is_verified ? 'pill-success' : 'pill-neutral'}`}>
-            <CheckCircleIcon size={13} /> {profile.is_verified ? 'Verified Account' : 'Unverified'}
-          </div>
+          {profile.is_verified ? (
+            <div className="pill pill-success">
+              <CheckCircleIcon size={13} /> Verified Account
+            </div>
+          ) : (
+            <div className="profile-identity__verify">
+              <div className="pill pill-neutral"><CheckCircleIcon size={13} /> Unverified</div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={resendVerification}
+                disabled={verifyBusy}
+              >
+                {verifyBusy ? 'Sending…' : 'Resend verification email'}
+              </button>
+              {verifyMsg && <span className="text-xs text-muted-600">{verifyMsg}</span>}
+            </div>
+          )}
 
           <div className="profile-member">
             <span className="profile-member__label">Member Since</span>

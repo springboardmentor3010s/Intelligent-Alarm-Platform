@@ -20,6 +20,7 @@ import {
 import { formatTimeOfDay, formatWeekday } from '../utils/timeFormat';
 import { getTheme, subscribeTheme } from '../theme';
 import { apiFetch } from '../utils/api';
+import AnnouncementFeed from '../components/AnnouncementFeed';
 import { Link } from 'react-router-dom';
 
 const WEIGHTS = [
@@ -189,6 +190,8 @@ export default function Home() {
             <PlusIcon size={16} /> New Alarm
           </Link>
         </SectionHeader>
+
+        <AnnouncementFeed />
 
         {error && <div className="banner banner-warning">{error}</div>}
 

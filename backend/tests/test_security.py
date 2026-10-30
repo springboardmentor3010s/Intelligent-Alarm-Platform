@@ -702,3 +702,21 @@ class TestCoachScope:
         r = client.get("/api/v1/dashboard/coach/users", headers=user_headers)
         assert r.status_code == 403
 
+    def test_admin_lists_assignments(self, client, db, admin_headers):
+        """Admins can enumerate coach↔user pairs to manage the cohort UI."""
+        from app.Models import CoachAssignment
+        coach_id, _ = self._coach(client, db)
+        assigned_id = self._register(client, "ce")
+        db.add(CoachAssignment(coach_id=coach_id, user_id=assigned_id))
+        db.commit()
+
+        r = client.get("/api/v1/dashboard/coach/assignments", headers=admin_headers)
+        assert r.status_code == 200
+        pairs = {(a["coach_id"], a["user_id"]) for a in r.json()}
+        assert (coach_id, assigned_id) in pairs
+
+    def test_non_admin_cannot_list_assignments(self, client, user_headers):
+        """Assignment enumeration is admin-only."""
+        r = client.get("/api/v1/dashboard/coach/assignments", headers=user_headers)
+        assert r.status_code == 403
+

@@ -321,6 +321,24 @@ def test_notifications_test_returns_summary(monkeypatch, client, user_headers, d
     assert body["configured"] is True
 
 
+def test_notifications_test_without_tokens_reports_unconfigured(client, user_headers):
+    """Noop provider must report configured=False even with zero tokens.
+
+    The flag is derived from the provider; with no tokens the per-token loop
+    never runs, so it used to leak through as True and contradict /status.
+    """
+    messaging.reset_provider()
+
+    res = client.post("/api/v1/notifications/test", headers=user_headers)
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["attempted"] == 0
+    assert body["configured"] is False
+
+    status = client.get("/api/v1/notifications/status", headers=user_headers).json()
+    assert status["configured"] is False
+
+
 def test_alarm_notify_endpoint_returns_summary(monkeypatch, client, user_headers, db):
     monkeypatch.setenv("PUSH_PROVIDER", "expo")
     messaging.reset_provider()

@@ -43,10 +43,13 @@ export function buildSeries(history = [], cfgOrKey = {}) {
   const cfg = typeof cfgOrKey === 'string'
     ? chartConfigs[cfgOrKey] || { dataKey: cfgOrKey, label: cfgOrKey }
     : { ...{ dataKey: 'overall_score', label: 'Overall Score (%)' }, ...cfgOrKey };
-  const labels = history.map(h => dayLabel(h.date));
+  // History endpoints return newest-first; plot oldest→newest so the x-axis
+  // runs forward in time (sort is identity for already-ordered input).
+  const rows = [...history].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const labels = rows.map(h => dayLabel(h.date));
   return {
     labels,
-    datasets: [makeDataset(cfg, history.map(h => h[cfg.dataKey]), labels)],
+    datasets: [makeDataset(cfg, rows.map(h => h[cfg.dataKey]), labels)],
   };
 }
 

@@ -59,6 +59,15 @@ describe('buildHabitCharts', () => {
     expect(charts.wakeUp.labels).toEqual([]);
     expect(charts.wakeUp.datasets[0].data).toEqual([]);
   });
+
+  it('plots newest-first history oldest to newest so the x-axis runs forward', () => {
+    const charts = buildHabitCharts([
+      entry('2026-09-06', { wake_up_consistency: 90 }),
+      entry('2026-09-05', { wake_up_consistency: 80 }),
+    ]);
+    expect(charts.wakeUp.datasets[0].data).toEqual([80, 90]);
+    expect(charts.wakeUp.labels).toEqual(['Sat', 'Sun']);
+  });
 });
 
 describe('chartOptions', () => {

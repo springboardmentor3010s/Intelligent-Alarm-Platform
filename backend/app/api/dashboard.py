@@ -76,6 +76,15 @@ def list_users(
     return coach_service.list_cohort_users(db, current_user.id)
 
 
+@router.get("/coach/assignments", response_model=list[CoachAssignmentRes])
+def list_coach_assignments(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(admin_only),
+):
+    """List every coach-to-user cohort assignment (Administrator only)."""
+    return coach_service.list_assignments(db)
+
+
 @router.post("/coach/assignments", response_model=CoachAssignmentRes, status_code=201)
 def assign_cohort_user(
     payload: CoachAssignmentReq,
