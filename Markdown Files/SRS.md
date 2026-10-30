@@ -1,0 +1,1030 @@
+# SRS.md - Software Requirements Specification (IEEE Format)
+**Project**: CerebroKognit — Intelligent Cognitive Alarm Platform  
+**Developer**: Pawan Simha R  
+**Internship**: Infosys Virtual Internship 7.0  
+**Project Guide & Mentor**: Shanmukha Priya  
+
+**System**: Intelligent Cognitive Alarm Platform  
+**Version**: 1.14  
+**Date**: 2026-10-17  
+**Organization**: CerebroKognit Project  
+**Contact**: architect@cerebrokognit.local
+
+> **Documentation Status**: This revision reflects the actual implementation state discovered during a deep codebase analysis. Requirements marked with an update indicator reflect known gaps between spec and implementation.
+
+---
+
+## 1. Introduction
+
+### 1.1 Purpose
+This Software Requirements Specification (SRS) documents the functional and non-functional requirements for the Intelligent Cognitive Alarm Platform. It serves as the definitive reference for developers, testers, architects, and stakeholders throughout the development lifecycle. All requirements trace back to the Product Requirements Document (PRD.md) and are verified via test cases in the QA plan.
+
+### 1.1.1 Scope
+This document covers:
+- Backend FastAPI service (Python 3.11, SQLAlchemy 2.0, PostgreSQL 15)
+- Mobile React Native/Expo client (iOS and Android)
+- Web React.js dashboard (Custom CSS, Chart.js)
+- Offline-first data synchronization
+- JWT-based authentication and RBAC
+- Adaptive difficulty and habit scoring engines
+- ML model inference for cognitive challenges
+
+### 1.2 Definitions, Acronyms, and Abbreviations
+| Term | Definition |
+|---|---|
+| API | Application Programming Interface |
+| JWT | JSON Web Token |
+| RBAC | Role-Based Access Control |
+| ML | Machine Learning |
+| NB | Not Blocked |
+| FCM | Firebase Cloud Messaging |
+| API | Representational State Transfer (REST) |
+| UI | User Interface |
+| UX | User Experience |
+| ER | Entity-Relationship |
+| API | Application Programming Interface |
+
+### 1.3 References
+- PRD.md: Product Requirements Document (`Markdown Files/PRD.md`)
+- SRS.md: This document (`Markdown Files/SRS.md`)
+- CONTEXT.md: System Memory & State Anchor (`Markdown Files/CONTEXT.md`)
+- API Contract Registry: Section 7 of `SRS.md` and `CONTEXT.md`
+- Technology Stack: `CONTEXT.md` → Technology Stack Version Matrix
+- Design Documents: AI_Intelligent Cognitive Alarm Platform.pdf (removed from repo 2026-09-10; recoverable via git history)
+
+### 1.4 Overview
+- Section 2: Functional Requirements (ordered by feature module)
+- Section 3: Non-Functional Requirements (security, performance, reliability, etc.)
+- Section 4: Interface Specifications (API, Data, User)
+- Section 5: Data Flow Diagrams (Mermaid format)
+- Section 6: PostgreSQL ER Diagrams (Mermaid format)
+- Section 7: API Endpoint Contracts (Pydantic v2 models, authentication)
+- Section 8: Offline-First Sync Protocol
+- Section 9: Acceptance Criteria and Test Requirements
+
+---
+
+## 2. Functional Requirements
+
+### 2.1 Authentication & Authorization
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-AUTH-001 | The system shall support user registration with email and password hash storage. | High | Passwords must be hashed using bcrypt (or equivalent) with minimum 12-round cost. |
+| FR-AUTH-002 | The system shall support user login via JWT authentication. | High | JWT signed with HS256 algorithm. Access token expiry configurable (default 60 mins). Refresh token expiry configurable (default 30 days). |
+| FR-AUTH-003 | The system shall implement role-based access control with three roles: User, Wellness Coach, Administrator. | High | ✅ **ENFORCED as of M1 (2026-09-05).** `Role`/`user_roles` tables exist; RBAC enforced via `require_roles()` in `backend/app/api/deps.py`. `/dashboard/users` requires staff, `/dashboard/analytics` requires admin (verified 403 in smoke test). Roles are auto-assigned on registration; seeds include a demo `Administrator` user. |
+| FR-AUTH-004 | The system shall validate JWT `Authorization: Bearer <token>` header on protected endpoints. | High | Missing/invalid token returns `401 Unauthorized` with error code `ERR_AUTH_001`. |
+| FR-AUTH-005 | The system shall support OAuth2 login (Google) as alternative to local registration. | Medium | Optional; OAuth2 user profile linked to existing or newly created local user. |
+
+### 2.2 User Profile & Habit Management
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-UP-001 | The system shall allow users to create and manage their profile including preferred wake-up time, sleep duration, time zone, productivity goals, difficulty preference, and habit preferences. | High | Stored in `users` table and mirrored in `habit_scores` daily. |
+| FR-UP-002 | The system shall track and store daily habit scores comprising wake-up consistency (35%), challenge completion (25%), snooze reduction (20%), and sleep schedule adherence (20%). | High | Composite overall_score computed as weighted sum; stored in `habit_scores` table with `date` (YYYY-MM-DD). |
+| FR-UP-003 | The system shall allow users to update their difficulty preference (Beginner → Easy → Medium → Hard → Expert). | Medium | Affects adaptive challenge selection in the Cognitive Alarm Engine. |
+| FR-UP-004 | The system shall store user's sleep schedule and time zone for circadian-aware alarm scheduling. | High | Used by smart alarm scheduling module; timezone offset stored per user. |
+
+### 2.3 Alarm Scheduling System
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-AS-001 | The system shall support creation of the following alarm types: Daily, Weekday, Weekend, One-Time, Smart Adaptive. | High | `alarm_type` column in `alarms` table; enum constraint. |
+| FR-AS-002 | The system shall allow recurring alarm schedules with configurable recurrence rules. | High | `next_trigger` computed based on recurrence rule and user's time zone. |
+| FR-AS-003 | The system shall support smart adaptive alarms that automatically select challenge type and difficulty based on user history. | High | `alarm_type = 'Smart Adaptive'`; uses adaptive difficulty engine inputs. |
+| FR-AS-004 | The system shall compute and store `next_trigger` timestamp for each alarm. | High | Updated each time alarm is dismissed or modified. |
+| FR-AS-005 | The system shall support snooze tracking: increment `times_snoozed` on each snooze action. | High | `times_snoozed` column in `alarms` table; contributes to snooze_reduction habit score component. |
+
+### 2.4 Cognitive Challenge Engine
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-CE-001 | The system shall generate cognitive challenges of the following types: Math, Logic, Memory, Word, Pattern, Riddle, QuickQuiz. | High | `challenge_type` column in `challenges` table; enum constraint matching PRD. |
+| FR-CE-002 | The system shall support 5 difficulty levels: Beginner, Easy, Medium, Hard, Expert. | High | `difficulty` column in `challenges` table; enum constraint. |
+| FR-CE-003 | The adaptive difficulty engine shall adjust challenge difficulty based on user performance: increase on consistent success, decrease on repeated failure. | High | See FR-DA-001 for detailed adjustment algorithm. |
+| FR-CE-004 | The system shall validate challenge completion: user must answer all questions correctly or meet threshold within time limit. | High | ✅ **Implemented (M2):** `POST /challenges/submit` performs server-authoritative verification against the attempt snapshot; `puzzle_payload` contains no answer (smoke_m2 no-leak check). |
+| FR-CE-005 | The system shall generate personalized challenge selection based on user's difficulty preference, past performance, and time-of-day engagement. | Medium | Uses behavioral analytics inputs; fallback to default difficulty if no history exists. |
+| FR-CE-006 | The system shall store challenge description and metadata in the `challenges` table. | High | `title` and `description` fields; used for display and logging. |
+
+### 2.5 Wake-Up Verification Module
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-WV-001 | The system shall require challenge completion before alarm can be dismissed. | High | ✅ Implemented: attempt snapshot created at `/next`; dismiss only after `completed = true` + all-correct + user-owned (smoke_m2 verified 400/404 paths). |
+| FR-WV-002 | The system shall support multi-step challenges (3-5 questions) for deeper wake-up verification. | Medium | ✅ Implemented: question count is persisted per alarm (`question_count`, migration `a7d3e5f1b9c2`) and honored at ring time via `/challenges/next?question_count=`; defaults scale by difficulty (1–5, Expert `(3,5)`). |
+| FR-WV-003 | The system shall track consecutive correct answers as a verification metric. | Medium | ✅ Implemented: consecutive-correct streak derived from ordered attempt history in `ChallengeService._adaptive_difficulty` and the `rule_based_v2` `streak_length` signal (`ai_engine/difficulty.py`). |
+| FR-WV-004 | The system shall support time-based challenges (user must complete within N seconds). | Medium | ✅ Implemented: per-type budget `ChallengeService.TIMEOUTS` (Math 60s, Logic 90s, Memory 45s, Word 90s, Pattern 60s, Riddle 90s, QuickQuiz 60s); `expires_at` + `AttemptExpired` (410) reject late submissions; `timeout_seconds` is returned in the puzzle payload and the client enforces the countdown. |
+| FR-WV-005 | The system shall record `start_time` and `end_time` for each challenge attempt. | High | Timestamps stored in `challenge_attempts`; used to compute `time_taken_seconds`. |
+
+### 2.6 Behavioral Analytics Engine
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-BA-001 | The system shall analyze snooze pattern trends over time (daily, weekly, monthly). | High | Aggregated from `alarms.times_snoozed` and `challenge_attempts`. |
+| FR-BA-002 | The system shall track wake-up behavior: successful dismissals, failed attempts, average time-to-dismiss. | High | Derived from `challenge_attempts.start_time`/`end_time` and `alarms` table. |
+| FR-BA-003 | The system shall correlate productivity metrics with wake-up consistency (if user logs productivity data). | Low | ✅ **IMPLEMENTED (Phase 7).** Manual daily logs (`productivity_logs`, user-entered 0-100) + gated Pearson correlation (`GET /productivity/correlation`, ≥4 paired days, association-only message, `source: inferred`). |
+| FR-BA-004 | The system shall analyze sleep pattern analytics: bedtime consistency, sleep duration vs. target. | High | Ingested from user-provided sleep data; stored for habit score computation. |
+
+### 2.7 Recommendation Engine
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-RE-001 | The system shall generate sleep improvement recommendations based on sleep schedule patterns. | Medium | Uses habit score data; suggests bedtime adjustments in 15-min increments. |
+| FR-RE-002 | The system shall provide wake-up optimization suggestions (optimal wake-up time, challenge type). | Medium | Based on user's historical performance and difficulty adaptation. |
+| FR-RE-003 | The system shall offer habit improvement guidance (e.g., "Your snooze count increased 20% this week"). | Medium | Triggered when behavioral thresholds are crossed. |
+| FR-RE-004 | The system shall provide personalized challenge recommendations based on difficulty history. | Low | Suggest new challenge types user hasn't attempted or needs practice in. |
+
+### 2.8 Dashboard & Analytics
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-DD-001 | The system shall provide a User Dashboard displaying: habit scores, alarm history, wake-up statistics, challenge performance. | High | React.js component consuming `/api/v1/habits/score` and `/api/v1/analytics/me`. |
+| FR-DD-002 | The system shall provide a Wellness Coach Dashboard displaying: user behavior insights, habit adherence analytics, sleep trend reports, progress monitoring. | High | ✅ **IMPLEMENTED (Phase 5).** `coach_assignments` table + `coach_service` scope enforcement; `POST/DELETE /dashboard/coach/assignments` (admin), `GET /dashboard/coach/users` + `GET /dashboard/coach/users/{id}` (coach sees assigned cohort only, admin sees all; out-of-scope reads return 403). `GET /dashboard/users` is cohort-scoped for coaches. Detail view reuses the single-source habit/analytics services so values match user dashboards and exports. |
+| FR-DD-003 | The system shall provide an Admin Dashboard displaying: user management, platform analytics, recommendation monitoring, system reports. | High | ✅ **COMPLETE (M4).** Backend endpoints + RBAC enforced; admin UI page (`web/src/pages/Admin.jsx`) with metric cards, top challenge types, users table, RBAC-gated 403 panel. |
+| FR-DD-004 | Dashboards shall support responsive design for mobile, tablet, and desktop form factors. | Medium | ✅ Custom CSS media queries + viewport-based grid/flex layouts (`index.css`); sidebar collapses, cards restack, nav switches to mobile drawer. |
+
+### 2.9 Notification & Reminder System
+
+> ✅ **Delivery IMPLEMENTED (Phase 3, 2026-09-17)**: push tokens (P5) plus an **Expo Push Service** provider (`integrations/messaging.py::ExpoPushProvider`), env-selected via `PUSH_PROVIDER=noop|expo` (default `noop`, strict-raise; production fails fast on unknown values), optional `EXPO_ACCESS_TOKEN`, dead-token pruning (`DeviceNotRegistered`/`MismatchSenderId`), and in-process dedupe (`alarm:{id}:{next_trigger}`). On-device delivery is via **expo-notifications local scheduling** (Android channel `cerebrokognit-alarms`, importance MAX), which fires with no network. New diagnostics: `GET /notifications/status`, `POST /notifications/test`, `POST /alarms/{id}/notify`.
+>
+> On-device firing must still be verified per `Markdown Files/REAL_DEVICE_CHECKLIST.md`; remote push requires an Expo dev build (Expo Go disables token acquisition).
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-NT-001 | The system shall support bedtime reminders: configurable countdown to target bedtime. | High | ⚠️ Delivery channel available; per-user bedtime schedule UI still planned. |
+| FR-NT-002 | The system shall support wake-up reminders with customizable alarm tones and snooze behavior prompts. | Medium | ✅ **IMPLEMENTED (Phase 3)** — alarms fire via on-device local notifications (channel `cerebrokognit-alarms`); sound/vibration/urgency set by the channel; snooze prompt on the Alarm screen. |
+| FR-NT-003 | The system shall send habit alerts: streak notifications, snooze increase warnings, milestone celebrations. | Medium | 🟡 Delivery channel **implemented** (Expo push + `notify_alarm_due`); habit-specific alert triggers still planned. |
+| FR-NT-004 | The system shall send challenge reminders: if alarm dismissed without challenge (e.g., snoozed), prompt on next ring. | Medium | 🟡 `POST /alarms/{id}/notify` re-delivers the alarm-due notification; dismiss gate unchanged. Automatic "ring without challenge" trigger still planned. |
+
+### 2.10 Reports & Export System
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-REP-001 | The system shall generate habit reports (PDF) with daily/weekly/monthly trend analysis. | High | ✅ **IMPLEMENTED (M4)** — `GET /dashboard/reports/habits?format=pdf` (reportlab). |
+| FR-REP-002 | The system shall generate wake-up reports (PDF/CSV) with wake-up timestamps, snooze counts, success rates. | High | ✅ **IMPLEMENTED (M4)** — `GET /dashboard/reports/wake-up?format=pdf`. |
+| FR-REP-003 | The system shall generate challenge performance reports (PDF/CSV) with quiz analysis: types attempted, accuracy, difficulty progression. | Medium | ✅ **IMPLEMENTED (M4)** — `GET /dashboard/reports/challenges?format=pdf`. |
+| FR-REP-004 | The system shall generate productivity reports (PDF/CSV) correlating wake-up consistency with user-defined productivity goals. | Low | ✅ **IMPLEMENTED (Phase 7).** `GET /dashboard/reports/productivity` (`csv/json/pdf/excel`); exports user-entered log rows only, honest-empty for new accounts. |
+| FR-REP-005 | The system shall generate sleep analytics reports (PDF) with bedtime/wake-time trends and sleep duration analysis. | High | ⚠️ Sleep trends available via `/dashboard/reports/wake-up`; standalone sleep report module not split out. |
+| FR-REP-005 | All reports shall be exportable in PDF and Excel (.xlsx) formats. | High | ✅ **IMPLEMENTED (M4)** — `format=csv\|json\|pdf\|excel` on all three report endpoints via `services/report_export.py`; web Reports page downloads CSV (PDF/Excel downloads available via API / admin context). |
+
+### 2.11 Offline-First Sync Protocol
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| FR-OFF-001 | The system shall cache cognitive challenges locally on the mobile device for offline access. | High | Expo SQLite or AsyncStorage; cache key format: `puzzle:{challengeId}:{version}`. |
+| FR-OFF-002 | The system shall mark local cache entries with a `synced: boolean` flag and `last_sync_at: timestamp`. | High | Enables idempotent background sync. |
+| FR-OFF-003 | The system shall perform idempotent background sync when connectivity is restored (transition from offline to online). | High | Uses PostgreSQL `ON CONFLICT (upsert)` for all sync operations. |
+| FR-OFF-004 | The system shall batch telemetry events in groups of ≤ 20 per HTTP POST for sync. | Medium | Reduces payload size; retry with exponential backoff on failure. |
+| FR-OFF-005 | The system shall detect online/offline state and only attempt sync on online transition. | Medium | Using React Native `NetInfo` or Expo connectivity API. |
+| FR-OFF-006 | The system shall retry failed sync operations with exponential backoff (max 3 attempts). | High | Failed records marked with `retry_count` and `last_retry_at`. |
+| FR-OFF-007 | The system shall never lose data on sync retry: idempotent upsert ensures no duplicate records. | Critical | Primary key or unique constraint on `(user_id, challenge_id, date)` for attempt records. |
+
+---
+
+## 3. Non-Functional Requirements
+
+### 3.1 Performance Requirements
+
+| Requirement ID | Requirement Text | Target | Threshold | Notes |
+|---|---|---|---|---|
+| NF-PERF-001 | API endpoint response time (p95) under normal load | < 200ms | < 500ms | Measured from request arrival to response send; includes JWT validation + DB query. |
+| NF-PERF-002 | Challenge generation latency (inference) | < 100ms | < 300ms | PyTorch model forward pass + preprocessing; CPU mode default. |
+| NF-PERF-003 | Dashboard page load time (p95) | < 2s | < 5s | Full render with charts (Chart.js/Plotly). |
+| NF-PERF-004 | Mobile app startup time | < 3s | < 5s | Time from `expo start` to first alarm display. |
+| NF-PERF-005 | Sync batch payload size | ≤ 10KB per batch | ≤ 50KB per batch | Reduces mobile data usage; paginate if needed. |
+| NF-PERF-006 | Concurrent user capacity (Docker compose scaling) | ≥ 1000 users | ≥ 500 users | Per full platform deployment (API + DB + Redis). |
+
+### 3.2 Security Requirements
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| NF-SEC-001 | All passwords must be hashed using bcrypt with minimum 12-round cost. | Critical | Never store plaintext passwords. |
+| NF-SEC-002 | JWT tokens must be signed with HS256 algorithm using a server-side secret key. | Critical | ✅ **COMPLIANT (Phase 2, 2026-09-16).** `SECRET_KEY` is read from env via `get_secret_key()` (`backend/app/core/config.py`); startup **fail-fast** if missing/placeholder in `ENVIRONMENT=production`. Dev-only fallback remains for `development`. |
+| NF-SEC-003 | All API endpoints must validate JWT authentication on protected routes. | Critical | `401 Unauthorized` for missing/invalid tokens. |
+| NF-SEC-004 | Input validation must be enforced via Pydantic v2 models on all request bodies. | Critical | Prevents injection attacks; rejects malformed payloads. |
+| NF-SEC-005 | CORS must be configured via `CORS_ORIGINS` environment variable; `["*"]` prohibited in production. | High | ✅ **COMPLIANT (Phase 2, 2026-09-16).** Parsed by `get_cors_origins()` (`backend/app/core/config.py`); raises in production when empty; dev-fallback `DEV_CORS_ORIGINS`; wildcard never emitted. |
+| NF-SEC-006 | SQL injection must be prevented via SQLAlchemy parameterized queries (ORM). | Critical | No raw SQL string concatenation in data access layer. |
+| NF-SEC-007 | Sensitive telemetry data (sleep patterns, habit scores) must be encrypted at rest in PostgreSQL. | High | Use `pgcrypto` or application-level encryption for PII. |
+| NF-SEC-008 | Session revocation must be supported: invalidate JWTs on password change or admin revocation. | Medium | Optional: use JWT blacklist in Redis with `exp` check. |
+| NF-SEC-009 | API must rate-limit repeated requests to prevent abuse/brute force. | High | ✅ **IMPLEMENTED (P1, 2026-09-07).** In-memory sliding-window limiter in `gateway/`; exceeded requests get `429` with `Retry-After` + `ERR_RATE_LIMIT`. |
+
+### 3.3 Fault Tolerance Requirements
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| NF-FT-001 | System must handle database connection pool exhaustion gracefully. | High | `503 Service Unavailable` with retry-after header if pool exhausted. |
+| NF-FT-002 | Sync failures must be retried with exponential backoff; max 3 attempts. | High | Failed records retained in local cache for next sync cycle. |
+| NF-FT-003 | API must return structured error responses: `{ "detail": "human readable error", "error_code": "ERR_XXX", "timestamp": "ISO8601" }`. | High | ✅ **IMPLEMENTED (M4).** Global handlers in `app/main.py` return `{detail, error_code, timestamp, status_code}` (additive — `detail` unchanged, so existing clients keep working). 422 → `ERR_VALIDATION`, HTTP → `ERR_{status}`. |
+| NF-FT-004 | Backend must log authentication failures with structured logging (include JWT subject ID, mask token). | High | Audit trail for security monitoring. |
+| NF-FT-005 | Graceful degradation: if ML model inference fails, fall back to default (Easy difficulty) challenge. | Medium | Ensures alarm can still be dismissed; logged as error. |
+
+### 3.4 Reliability Requirements
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| NF-REL-001 | PostgreSQL must be available ≥ 99.9% of time (excluding planned maintenance). | High | Monitored via health check endpoint + external monitoring. |
+| NF-REL-002 | API server must be restartable without data loss (stateless design). | High | All state in PostgreSQL; sessions managed via JWT. |
+| NF-REL-003 | Background sync must not lose data on app restart: local cache persists across launches. | High | Expo SQLite persistent storage; `synced` flag checked on startup. |
+| NF-REL-004 | Docker containers must health-check every 10s; auto-restart on failure (unless-stopped). | Medium | `docker-compose.yml` healthcheck configuration. |
+
+### 3.5 Offline-First Requirements
+
+| Requirement ID | Requirement Text | Priority | Notes |
+|---|---|---|---|
+| NF-OFF-001 | Mobile app must function fully offline: alarms trigger, challenges cached, habit scores stored locally. | Critical | No network dependency for alarm dismissal flow. |
+| NF-OFF-002 | Data sync on reconcil must be idempotent: no duplicate records on retry. | Critical | PostgreSQL `ON CONFLICT` upsert; unique constraints on junction tables. |
+| NF-OFF-003 | Local cache stale-while-revalidate: show cached data immediately, refresh in background. | Medium | User sees last synced state; refreshes when online. |
+| NF-OFF-004 | Connectivity detection must use NetInfo/Expo API with < 1s detection latency. | Medium | Triggers sync on online transition. |
+
+---
+
+## 4. Interface Specifications
+
+### 4.1 API Specifications
+
+All API endpoints follow the contract registry in `CONTEXT.md` Section 7 and `PRD.md`. Request/response schemas are defined using Pydantic v2 `BaseModel`.
+
+#### 4.1.1 Base Response Structure
+
+All successful responses return the domain object directly (no wrapper envelope):
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  ...
+}
+```
+
+All error responses follow:
+```json
+{
+  "detail": "human readable error",
+  "error_code": "ERR_XXX",
+  "timestamp": "2026-08-23T14:30:00Z",
+  "status_code": 401
+}
+```
+
+#### 4.1.2 Authentication Endpoints
+
+| Endpoint | Method | Path | Auth | Request | Response |
+|---|---|---|---|---|---|
+| Register | POST | `/api/v1/auth/register` | None | `AuthRegisterReq` | `AuthRes` |
+| Login | POST | `/api/v1/auth/login` | None | `AuthLoginReq` | `AuthRes` |
+| Me | GET | `/api/v1/auth/me` | Bearer | — | `UserProfileRes` |
+
+##### 4.1.2.1 AuthRegisterReq (Pydantic v2)
+```python
+class AuthRegisterReq(BaseModel):
+    email: EmailStr = Field(..., description="User email (unique)")
+    password: str = Field(..., min_length=8, description="Plaintext password (will be hashed)")
+    full_name: str | None = Field(None, description="Optional full name")
+    timezone: str = Field("UTC", description="IANA time zone name, e.g. America/Los_Angeles")
+```
+
+##### 4.1.2.2 AuthLoginReq (Pydantic v2)
+```python
+class AuthLoginReq(BaseModel):
+    email: EmailStr = Field(..., description="User email")
+    password: str = Field(..., description="Plaintext password for verification")
+```
+
+##### 4.1.2.3 AuthRes (Pydantic v2)
+```python
+class AuthRes(BaseModel):
+    access_token: str = Field(description="JWT access token")
+    refresh_token: str = Field(description="JWT refresh token")
+    token_type: str = Field(default="bearer", description="Token type")
+    expires_in: int = Field(description="Seconds until access token expiry")
+    user: UserProfileRes
+```
+
+##### 4.1.2.4 UserProfileRes (Pydantic v2)
+```python
+class UserProfileRes(BaseModel):
+    id: int
+    email: str
+    full_name: str | None
+    timezone: str  # IANA timezone, default "UTC"
+    difficulty_preference: str  # Beginner/Easy/Medium/Hard/Expert, default "Medium"
+    is_active: bool
+    is_verified: bool
+    created_at: datetime
+```
+
+#### 4.1.3 Alarms Endpoints
+
+> Backend additions since P1: `GET /api/v1/auth/register` (verification stub) and `GET /api/v1/auth/login` (token inspector) — diagnostics; no auth, intended for debug/smoke use.
+
+#### 4.1.3.1 Notification Endpoints (P5, 2026-09-07; delivery added Phase 3, 2026-09-17)
+
+| Endpoint | Method | Path | Auth | Request | Response |
+|---|---|---|---|---|---|
+| Register push token | POST | `/api/v1/notifications/register` | Bearer | `PushRegisterReq` | `PushRegisterRes` |
+| Deregister push token | DELETE | `/api/v1/notifications/register` | Bearer | `PushRegisterReq` | `PushDeregisterRes` |
+| List push tokens | GET | `/api/v1/notifications/tokens` | Bearer | — | `List[PushTokenRes]` |
+| Provider status | GET | `/api/v1/notifications/status` | Bearer | — | `{provider, configured, registered_tokens}` |
+| Send test push | POST | `/api/v1/notifications/test` | Bearer | — | delivery summary |
+| Notify alarm due | POST | `/api/v1/alarms/{alarm_id}/notify` | Bearer | — | delivery summary |
+
+`POST register` is idempotent: re-registering the same token reassigns it to the authenticating user (ownership transfer between accounts). Delivery is implemented behind `integrations/messaging.py` (`MessagingProvider` protocol): `NoopProvider` (strict-raise) and `ExpoPushProvider` (Expo Push Service relay covering FCM + APNs), selected by `PUSH_PROVIDER`. Dead tokens are pruned on `DeviceNotRegistered`/`MismatchSenderId`; duplicate deliveries for the same `alarm:{id}:{next_trigger}` are suppressed in-process.
+
+#### 4.1.3.2 Async Report Endpoints (P4, 2026-09-07)
+
+The habit/wake-up/challenge report endpoints accept `?format=csv|json|pdf|excel` (sync, M4) and additionally `?async=1` (P4): the request is queued via `workers/` and a `job_id` returned; poll `GET /api/v1/dashboard/reports/status/{job_id}` for `{status: queued|running|completed|failed}` + result download once completed.
+
+#### 4.1.4 Challenges Endpoints
+
+| Endpoint | Method | Path | Auth | Request | Response |
+|---|---|---|---|---|---|
+| List Alarms | GET | `/api/v1/alarms` | Bearer | — | `List[AlarmRes]` |
+| Create Alarm | POST | `/api/v1/alarms` | Bearer | `AlarmCreateReq` | `AlarmRes` |
+| Update Alarm | PUT | `/api/v1/alarms/{id}` | Bearer | `AlarmCreateReq` | `AlarmRes` |
+| Delete Alarm | DELETE | `/api/v1/alarms/{id}` | Bearer | — | `{"deleted": true}` |
+| Dismiss Alarm | POST | `/api/v1/alarms/{id}/dismiss` | Bearer | `AlarmDismissReq` | `DismissRes` |
+| Snooze Alarm | POST | `/api/v1/alarms/{id}/snooze` | Bearer | — | `AlarmRes` |
+
+##### 4.1.3.1 AlarmCreateReq (Pydantic v2)
+```python
+class AlarmCreateReq(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200, description="Alarm title/label")
+    type: str = Field(..., description="Daily/Weekday/Weekend/One-Time/Smart Adaptive")
+    time: str = Field(..., description="HH:MM format, e.g. '07:00'")
+    recurrence: str | None = Field(None, description="Recurrence rule (iCalendar format)")
+    challenge_type: str | None = Field(None, description="Math/Logic/Memory/Word/Pattern/Riddle/QuickQuiz")
+    difficulty: str | None = Field(None, description="Beginner/Easy/Medium/Hard/Expert")
+    question_count: int = Field(3, ge=1, le=5, description="Number of questions per challenge")
+    next_trigger: datetime | None = Field(None, description="Override computed next trigger")
+```
+
+##### 4.1.3.2 AlarmDismissReq (Pydantic v2)
+```python
+class AlarmDismissReq(BaseModel):
+    challenge_attempt_id: int = Field(..., description="ID of challenge_attempt that was completed")
+    correct_answers: int = Field(..., ge=0, description="Number of correct answers given")
+    total_questions: int = Field(..., gt=0, description="Total questions in challenge")
+    time_taken_seconds: int = Field(..., ge=0, description="Time from challenge start to dismissal")
+```
+
+##### 4.1.3.3 DismissRes (Pydantic v2)
+```python
+class DismissRes(BaseModel):
+    alarm_id: int
+    successfully_dismissed: bool
+    new_habit_score_update: bool  # Whether habit score was recomputed
+    next_trigger: datetime  # Updated next trigger timestamp
+```
+
+#### 4.1.4 Challenges Endpoints
+
+| Endpoint | Method | Path | Auth | Request | Response |
+|---|---|---|---|---|---|
+| List Challenges | GET | `/api/v1/challenges` | Bearer | — | `List[ChallengeListRes]` |
+| Next Adaptive Challenge | GET | `/api/v1/challenges/next` | Bearer | — | `ChallengeRes` |
+| Submit Challenge Answer | POST | `/api/v1/challenges/submit` | Bearer | `ChallengeSubmitReq` | `ChallengeSubmitRes` |
+
+> ✅ **IMPLEMENTED (M2):** `POST /api/v1/challenges/submit` is live and server-authoritative. Flow: mobile calls `GET /next` (gets `challenge_attempt_id`, no answers) → user solves → `POST /submit` (verification against the snapshot) → `POST /alarms/{id}/dismiss`.
+
+##### 4.1.4.3 ChallengeSubmitReq (Pydantic v2) — IMPLEMENTED (M2)
+```python
+class ChallengeSubmitReq(BaseModel):
+    challenge_id: int = Field(..., description="ID of the challenge being answered")
+    challenge_attempt_id: int = Field(..., description="Pending attempt id returned by /next")
+    user_answer: str | None = Field(None, description="Single answer (single-question challenges)")
+    user_answers: list[str] | None = Field(None, description="Ordered answers (multi-question challenges)")
+    time_taken_seconds: int = Field(..., ge=0, description="Time spent solving")
+```
+
+##### 4.1.4.4 ChallengeSubmitRes (Pydantic v2) — IMPLEMENTED (M2)
+```python
+class ChallengeSubmitRes(BaseModel):
+    challenge_id: int
+    challenge_attempt_id: int  # Used by /alarms/{id}/dismiss
+    correct: bool
+    completed: bool
+    correct_answers: int
+    total_questions: int
+```
+
+##### 4.1.4.1 ChallengeListRes (Pydantic v2)
+```python
+class ChallengeListRes(BaseModel):
+    id: int
+    title: str
+    challenge_type: str  # Math/Logic/Memory/Word/Pattern/Riddle/QuickQuiz
+    difficulty: str  # Beginner/Easy/Medium/Hard/Expert
+    is_active: bool
+```
+
+##### 4.1.4.2 ChallengeRes (Pydantic v2)
+```python
+class ChallengeRes(BaseModel):
+    id: int
+    title: str
+    description: str | None
+    challenge_type: str
+    difficulty: str
+    generated_at: datetime
+    # Additional puzzle-specific fields (opaque JSON sent to mobile)
+    puzzle_payload: dict = Field(..., description="Challenge data sent to mobile client")
+```
+
+#### 4.1.5 Habits/Analytics Endpoints
+
+| Endpoint | Method | Path | Auth | Request | Response |
+|---|---|---|---|---|---|
+| Get Habit Score | GET | `/api/v1/habits/score` | Bearer | — | `HabitScoreRes` |
+| Get Habit Score History | GET | `/api/v1/habits/score/history` | Bearer | `days` query param | `List[HabitScoreRes]` |
+| Get User Analytics | GET | `/api/v1/analytics/me` | Bearer | — | `AnalyticsRes` |
+| Get ML Status | GET | `/api/v1/analytics/ml-status` | Bearer | — | availability, `model_version`, `training_data`, fallback, `feature_contract`, `last_training` (Phase 6) |
+| Get Recommendations | GET | `/api/v1/analytics/recommendations` | Bearer | — | `List[RecommendationRes]` incl. `reason` + `source_metric` (Phase 6) |
+| Get Anomalies | GET | `/api/v1/analytics/anomalies` | Bearer | — | gated baseline assessment `{available, anomalies[]}` (Phase 6) |
+| Get Forecast | GET | `/api/v1/analytics/forecast` | Bearer | — | gated baseline trend `{available, trend, confidence, horizon_days}` (Phase 6) |
+| Log Productivity | POST | `/api/v1/productivity/log` | Bearer | `ProductivityLogReq` (score 0-100, date, note) | `ProductivityLogRes` (201; upsert; `source: user-entered`) (Phase 7) |
+| Productivity History/Trend/Correlation | GET | `/api/v1/productivity/history`, `/trend`, `/correlation` | Bearer | `days` | logged days / gated trend / gated Pearson correlation (Phase 7) |
+
+##### 4.1.5.1 HabitScoreRes (Pydantic v2)
+```python
+class HabitScoreRes(BaseModel):
+    date: str  # YYYY-MM-DD
+    wake_up_consistency: int  # 0-100
+    challenge_completion: int  # 0-100
+    snooze_reduction: int  # 0-100
+    sleep_schedule_adherence: int  # 0-100
+    overall_score: int  # weighted composite 0-100
+```
+
+##### 4.1.5.2 AnalyticsRes (Pydantic v2)
+```python
+class AnalyticsRes(BaseModel):
+    user_id: int
+    total_alarms: int
+    total_dismissals: int
+    average_snooze_count: float
+    wake_up_consistency_trend: str  # "improving"/"stable"/"declining"
+    challenge_accuracy: float  # overall correct/total ratio
+    sleep_duration_avg: float  # average hours/night
+    recent_activity: dict  # last 7 days activity summary
+```
+
+#### 4.1.6 Mobile Sync Endpoints
+
+| Endpoint | Method | Path | Auth | Request | Response |
+|---|---|---|---|---|---|
+| Upload Offline Changes | POST | `/api/v1/sync/pending` | Bearer | `SyncPendingReq` | `SyncRes` |
+| Download Changes | GET | `/api/v1/sync/pull` | Bearer | `sync_timestamp` query param | `List[SyncRecordRes]` |
+
+##### 4.1.6.1 SyncPendingReq (Pydantic v2)
+```python
+class SyncPendingReq(BaseModel):
+    records: List[SyncRecordReq]
+    
+class SyncRecordReq(BaseModel):
+    table_name: str  # "alarms", "challenge_attempts", "habit_scores"
+    record_id: int
+    operation: str  # "insert", "update", "delete"
+    payload: dict  # JSON; table row data
+    local_timestamp: datetime  # When record was created/modified offline
+```
+
+##### 4.1.6.2 SyncRes (Pydantic v2)
+```python
+class SyncRes(BaseModel):
+    synced_count: int
+    failed_count: int
+    failed_record_ids: List[int]
+```
+
+##### 4.1.6.3 SyncRecordRes (Pydantic v2)
+```python
+class SyncRecordRes(BaseModel):
+    record_id: int
+    table_name: str
+    server_etag: str  # Version tag for conflict detection
+    synced: bool
+```
+
+#### 4.1.7 Web Dashboard Endpoints
+
+| Endpoint | Method | Path | Auth | Request | Response |
+|---|---|---|---|---|---|
+| List All Users (Admin) | GET | `/api/v1/dashboard/users` | Bearer (Staff+: Admin, Wellness Coach) | — | `List[AdminUserRes]` (coaches: assigned cohort only) |
+| Platform Analytics (Admin) | GET | `/api/v1/dashboard/analytics` | Bearer (Admin only) | — | `AdminAnalyticsRes` (measured uptime, Phase 5) |
+| Assign Cohort User | POST | `/api/v1/dashboard/coach/assignments` | Bearer (Admin only) | `CoachAssignmentReq` | `CoachAssignmentRes` (201; 409 on duplicate) |
+| Unassign Cohort User | DELETE | `/api/v1/dashboard/coach/assignments?coach_id=&user_id=` | Bearer (Admin only) | query ids | `{"removed": true}` |
+| List Cohort Users | GET | `/api/v1/dashboard/coach/users` | Bearer (Staff+) | — | `List[AdminUserRes]` (coaches: assigned only; admins: all) |
+| Cohort User Detail | GET | `/api/v1/dashboard/coach/users/{user_id}` | Bearer (Staff+) | — | habit score + history + analytics + sleep/wake trends + challenge performance + progress (403 outside cohort) |
+| Habit Report | GET | `/api/v1/dashboard/reports/habits` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON |
+| Wake-Up Report | GET | `/api/v1/dashboard/reports/wake-up` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON |
+| Challenge Report | GET | `/api/v1/dashboard/reports/challenges` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON |
+| Productivity Report | GET | `/api/v1/dashboard/reports/productivity` | Bearer (authenticated) | `format=json/csv/pdf/excel` | File / JSON (user-entered rows only; honest-empty) (Phase 7) |
+| Update User Profile | PUT | `/api/v1/users/profile` | Bearer | `UserProfileUpdateReq` | `UserProfileRes` |
+
+> ✅ **NOTE:** `PUT /api/v1/users/profile` (plus `GET /api/v1/users/profile`, `GET/PUT /api/v1/users/settings`, `PUT /api/v1/users/{key}`) is **IMPLEMENTED as of M1** in `backend/app/api/users.py`. FR-REP-005 (PDF + Excel export) is **IMPLEMENTED as of M4** — all three report endpoints accept `format=csv|json|pdf|excel` via `backend/app/services/report_export.py`.
+
+##### 4.1.7.1 AdminUserRes (Pydantic v2)
+```python
+class AdminUserRes(BaseModel):
+    id: int
+    email: str
+    is_active: bool
+    is_verified: bool
+    created_at: datetime
+    last_login: datetime | None
+    role: str  # "User"/"Wellness Coach"/"Administrator"
+```
+
+##### 4.1.7.2 AdminAnalyticsRes (Pydantic v2)
+```python
+class AdminAnalyticsRes(BaseModel):
+    total_users: int
+    active_users_today: int
+    new_users_this_week: int
+    alarm_dismissal_success_rate: float
+    platform_habit_score_avg: float
+    top_challenge_types: List[dict]  # {type, attempts, accuracy}
+    system_uptime_percentage: float  # measured lifetime API success ratio (services/system_status.py), 0.0 when DB unreachable
+    uptime_seconds: float  # measured process age since boot
+    db_connected: bool  # live SELECT 1 round-trip at measurement time
+```
+
+### 4.2 Data Flow Diagrams (Mermaid Format)
+
+#### 4.2.1 High-Level Data Flow
+
+```mermaid
+flowchart TD
+    subgraph Mobile [Mobile (Expo Go)]
+        A[Alarm Trigger] --> B[Show Cognitive Challenge]
+        B --> C[User Solves Challenge]
+        C --> D[Submit Result]
+        D --> E[POST /api/v1/alarm/dismiss]
+        E -->|Auth Validate| F[FastAPI Backend]
+    end
+
+    subgraph Backend [FastAPI Backend]
+        F --> G[Validate JWT]
+        G --> H[Look Up Alarm + Challenge]
+        H --> I[Verify Challenge Completion]
+        I --> J[Update Alarm.times_snoozed]
+        J --> K[Update Habit Scores]
+        K --> L[PostgreSQL WRITE]
+        L --> M[Redis Cache (optional)]
+        M --> N[Broadcast Event]
+    end
+
+    subgraph Analytics [Behavioral Analytics]
+        K --> O[Compute Consistency/Completion/Snooze/Sleep]
+        O --> P[Habit Score Overall]
+        P --> Q[PostgreSQL habit_scores TABLE]
+    end
+
+    style Mobile fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style Backend fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style Analytics fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+```
+
+#### 4.2.2 Challenge Adaptation Flow
+
+```mermaid
+flowchart TD
+    A[User Dismisses Alarm] --> B[Record Challenge Attempt]
+    B --> C{Correct Threshold Met?}
+    C -- Yes --> D[Increase Difficulty Level]
+    C -- No --> E[Decrease Difficulty Level]
+    D --> F[Store new challenge difficulty in challenges TABLE]
+    E --> F
+    F --> G[Next Alarm Uses New Difficulty]
+    G --> H[Adaptive Engine Updates]
+    H --> I[Behavioral Analytics Log]
+    I --> J[Long-term Difficulty Trend]
+    
+    style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style D fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style E fill:#ffcdd2,stroke:#b71c1c,stroke-width:2px
+```
+
+### 4.3 PostgreSQL ER Diagrams (Mermaid Format)
+
+```mermaid
+erDiagram
+    USER ||--|{ ALARM : owns
+    USER ||--|{ CHALLENGE_ATTEMPT : attempts
+    USER ||--|{ HABIT_SCORE : generates
+    USER ||--|{ USER_ROLES : has
+    ROLE ||--|{ USER_ROLES : assigns
+    USER ||--|{ CHALLENGE : generates
+    CHALLENGE ||--|{ CHALLENGE_ATTEMPT : has_attempts
+    CHALLENGE ||--|{ ALARM : triggers
+    ALARM ||--|{ CHALLENGE : uses_challenge
+    ALARM ||--|{ ALARM_ROLES : assigned_roles
+    ROLE ||--|{ ALARM_ROLES : assigned_to_alarms
+    USER ||--|{ PUSH_TOKEN : owns_push_tokens
+
+    USER {
+        int id PK
+        string email UK
+        string hashed_password
+        string full_name
+        string timezone
+        string difficulty_preference
+        json settings
+        bool is_active
+        bool is_superuser
+        bool is_verified
+        datetime created_at
+        datetime updated_at
+    }
+
+    ROLE {
+        int id PK
+        string name UK
+        string description
+    }
+
+    USER_ROLES {
+        int id PK
+        int user_id FK
+        int role_id FK
+    }
+
+    ALARM {
+        int id PK
+        int user_id FK
+        string title
+        string alarm_type
+        datetime next_trigger
+        bool is_enabled
+        int challenge_id FK
+        int times_snoozed
+        string recurrence
+        datetime created_at
+        datetime updated_at
+    }
+
+    CHALLENGE {
+        int id PK
+        string title
+        text description
+        string challenge_type
+        string difficulty
+        bool is_active
+        datetime created_at
+        datetime generated_at
+    }
+
+    CHALLENGE_ATTEMPT {
+        int id PK
+        int user_id FK
+        int challenge_id FK
+        int attempt_number
+        bool completed
+        int correct_answers
+        int total_questions
+        datetime start_time
+        datetime end_time
+        int time_taken_seconds
+        json puzzle_payload
+        json expected_answers
+        json user_answers
+        datetime created_at
+    }
+
+    HABIT_SCORE {
+        int id PK
+        int user_id FK
+        string date YYYY-MM-DD
+        int wake_up_consistency 0-100
+        int challenge_completion 0-100
+        int snooze_reduction 0-100
+        int sleep_schedule_adherence 0-100
+        int overall_score 0-100
+        datetime created_at
+    }
+
+    ALARM_ROLES {
+        int id PK
+        int alarm_id FK
+        int role_id FK
+    }
+
+    PUSH_TOKEN {
+        int id PK
+        int user_id FK
+        string token UK
+        string platform
+        datetime created_at
+    }
+```
+
+### 4.4 User Interface Specifications
+
+#### 4.4.1 Mobile (Expo Go) UI Flow
+1. **Alarm Screen**: Displays alarm title, time remaining, "Dismiss" button challenged-locked.
+2. **Challenge Screen**: Presents challenge type-specific UI (math equation, pattern sequence, riddle text, quiz question).
+3. **Result Screen**: Shows "Correct!" / "Try Again" with option to snooze (if configured) or view habit score update.
+4. **Profile Screen**: Edit preferred wake-up time, sleep duration, difficulty preference, notification settings.
+
+#### 4.4.2 Web Dashboard UI Flow
+1. **Login Page**: JWT-based authentication; remember me option.
+2. **User Dashboard**: KPI cards (overall habit score, this week's wake-up consistency), line charts (7-day trends), alarm list, quick-action buttons.
+3. **Challenge Generator**: Admin interface to manually create/edit challenges; type selector, difficulty picker, payload preview.
+4. **Analytics Panel**: Filterable by user, date range; Chart.js/Plotly charts for sleep, snooze, challenge accuracy.
+5. **Report Export**: "Download PDF" / "Download Excel" buttons on report pages.
+
+---
+
+## 5. Data Flow Diagrams (Expanded)
+
+### 5.1 Complete End-to-End Data Flow (Mermaid)
+
+```mermaid
+flowchart LR
+    %% Mobile Client Side
+    MC[Mobile App (Expo)] -->|HTTPS Requests| MB[Backend FastAPI]
+    MC -->|Firebase Cloud Messaging| MB
+    MC -->|NetInfo Connectivity| MCConn[Connectivity Monitor]
+    
+    %% Backend Services
+    MB -->|SQL Queries| PG[PostgreSQL DB]
+    MB -->|Cache Read/Write| RC[Redis (Optional)]
+    MB -->|ML Inference| PT[PyTorch Model Cache]
+    MB -->|Model Upload/Download| ML[Model Repository]
+    
+    %% Sync Flow
+    MCConn -->|online/offline state| MC
+    MC -->|Offline Cache| LocalSQL[Expo SQLite / AsyncStorage]
+    MC -->|Pending Records| MB
+    MB -->|Idempotent Upsert| PG
+    
+    %% Alarm Dismissal Flow
+    MC -->|Alarm Trigger| MB
+    MB -->|Challenge Generation| PT
+    PT -->|Challenge Payload| MC
+    MC -->|User Input| MB
+    MB -->|Verify Attempt| PG
+    PG -->|Habit Score Update| MB
+    MB -->|Push Notification| FCM[Firebase Cloud Messaging]
+    FCM -->|Push to MC| MC
+    
+    %% Analytics Flow
+    PG -->|Aggregated Data| MB
+    MB -->|Charts/Stats| MC
+    MC -->|View Dashboard| Web[Web Dashboard React]
+    
+    %% Style
+    style MC fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style MB fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style PG fill:#e0f7fa,stroke:#00bcd4,stroke-width:2px
+    style RC fill:#f3e5f5,stroke:#8e24aa,stroke-width:1px,stroke-dasharray: 5 5
+    style PT fill:#f1f8e9,stroke:#689f38,stroke-width:1px
+    style FCM fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+```
+
+### 5.2 Habit Score Computation Flow
+
+```mermaid
+flowchart TD
+    A[Daily Sync Trigger] --> B[Fetch Today's habit_scores Records]
+    B --> C[Fetch alarms Times_snoozed Count]
+    B --> D[Fetch challenge_attempts Completion Rate]
+    B --> E[Fetch sleep schedule Adherence Data]
+    C --> F[Compute Wake-Up Consistency %]
+    D --> G[Compute Challenge Completion %]
+    E --> H[Compute Snooze Reduction %]
+    F & G & H --> I[Compute Sleep Schedule Adherence %]
+    I --> J[Apply Weights: 35% + 25% + 20% + 20%]
+    J --> K[Compute Overall Score 0-100]
+    K --> L[Update habit_scores TABLE]
+    L --> M[User Dashboard Display]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style K fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style M fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+```
+
+---
+
+## 6. Acceptance Criteria & Test Requirements
+
+### 6.1 Acceptance Criteria per Milestone
+
+| Milestone | Criteria |
+|---|---|
+| **M1 (Weeks 1–2)** | ✅ Project repository initialized with `backend/`, `mobile/`, `web/`, `docker-compose.yml`<br>✅ PostgreSQL schema created and `alembic upgrade head` runs without errors<br>✅ Auth endpoints `/register`, `/login`, `/me` functional with JWT tokens<br>✅ User profile CRUD operational<br>✅ Basic alarm creation (Daily type) working<br>✅ `.env.example` present in `backend/` with all required variables |
+| **M2 (Weeks 3–4)** | ✅ Challenge engine operational: all 7 challenge types generatable<br>✅ Adaptive difficulty engine adjusts difficulty based on correct/incorrect responses<br>✅ Wake-up verification: alarm dismisses only after challenge completion<br>✅ `challenge_attempts` table populated with `correct_answers`, `total_questions`, `completed`<br>✅ `times_snoozed` incremented on snooze action<br>✅ Mobile app can fetch and display challenges via `/api/v1/challenges` |
+| **M3 (Weeks 5–6)** | ✅ Adaptive difficulty engine functional: level changes (Beginner→Easy→Medium→Hard→Expert) based on performance<br>✅ Habit scoring engine computes `overall_score` = weighted composite (35/25/20/20)<br>✅ Recommendation engine generates at least 3 types of personalized recommendations (sleep, wake-up, habit)<br>✅ Habit dashboards (User + Wellness Coach) display scores and trends<br>✅ ML model inference wrapper operational (PyTorch only; scikit-learn/XGBoost are unused dependencies)<br>✅ Background sync idempotent: upsert on retry produces no duplicates |
+| **M4 (Weeks 7–8)** | ✅ Executive dashboards (User, Wellness Coach, Admin) operational with responsive design<br>✅ Report export: PDF and Excel for habit, wake-up, challenge, and sleep analytics<br>✅ End-to-end workflow: alarm trigger → challenge → dismissal → habit score update demonstrable<br>✅ Docker compose up -d starts all services (DB, API, Web, Mobile)<br>✅ Security testing: JWT validation, Pydantic input validation, CORS configuration<br>✅ Performance benchmarking: API p95 < 200ms, challenge inference < 100ms<br>✅ Final documentation: PRD.md, SRS.md, CONTEXT.md all updated and versioned |
+
+### 6.2 Test Case Summary
+
+| Test Category | Test Cases | Coverage |
+|---|---|---|
+| **Unit Tests** | - Auth: register, login, token verification<br>- Models: SQLAlchemy CRUD operations<br>- Schemas: Pydantic v2 validation<br>- Math: challenge generation algorithms<br>- Utils: habit score computation, date utilities | 80% of backend logic |
+| **Integration Tests** | - API full flow: register → login → create alarm → dismiss<br>- Sync: offline cache → background upsert → server confirmation<br>- DB: transactions, rollbacks, migrations<br>- API: CORS, error response format, auth guards | 65% of API pathways |
+| **E2E Tests** | - Full alarm dismissal flow (mobile → backend → DB → habit score)<br>- Multi-user scenario: two users simultaneously<br>- Sync conflict resolution: offline changes → sync → reconcile<br>- Dashboard rendering with real data<br>- Report generation and download | 40% of user journeys |
+| **Performance Tests** | - API load test: 100 concurrent users, p95 latency<br>- Challenge inference latency: CPU mode timing<br>- Sync batch payload timing: 20 records per batch<br>- Memory usage: model cache size limits | NF-PERF-001 through NF-PERF-005 |
+| **Security Tests** | - JWT token tampering detection<br>- SQL injection attempts on all string fields<br>- XSS probes in dashboard text fields<br>- Rate limiting on auth endpoints<br>- Password hashing verification (bcrypt cost) | NF-SEC-001 through NF-SEC-008 |
+
+### 6.3 Traceability Matrix
+
+| Requirement ID | Satisfied By | Test Case(s) | Milestone |
+|---|---|---|---|
+| FR-AUTH-001 | `auth.register` endpoint + `models.User` | TC-AUTH-001, TC-UNIT-001 | M1 |
+| FR-AUTH-002 | `auth.login` endpoint + JWT middleware | TC-AUTH-002, TC-UNIT-002 | M1 |
+| FR-CE-001 | `challenges` table + generation module | TC-CE-001 through TC-CE-007 | M2 |
+| FR-WV-001 | `/alarm/dismiss` endpoint logic | TC-WV-001, TC-E2E-001 | M2 |
+| NF-PERF-001 | API middleware + DB query profiling | TC-PERF-001, TC-LOAD-001 | M4 |
+| NF-SEC-001 | Password hashing utility + auth tests | TC-SEC-001, TC-UNIT-010 | M4 |
+| FR-OFF-001 | Mobile offline cache + sync module | TC-OFF-001 through TC-OFF-007 | M3 |
+| FR-REP-001 | Report generation module + export endpoints | TC-REP-001 through TC-REP-005 | M4 |
+
+---
+
+## 7. Offline-First Sync Protocol Details
+
+### 7.1 Local Cache Schema (Expo SQLite / AsyncStorage)
+
+| Field | Type | Description |
+|---|---|---|
+| `key` | string | Cache key: `puzzle:{challengeId}:{version}` or `user_profile:{userId}` |
+| `value` | string (JSON) | Serialized challenge payload or user profile data |
+| `expiresAt` | number (unix ms) | Cache entry expiration time |
+| `lastAccessed` | number (unix ms) | LRU cache eviction metric |
+| `synced` | boolean | `true` if record has been upserted to PostgreSQL |
+| `last_sync_at` | number (unix ms) | Timestamp of last successful sync |
+| `retry_count` | integer | Number of failed sync retry attempts |
+
+### 7.2 Idempotent Sync Algorithm
+
+```pseudo
+FUNCTION sync_pending_records(records):
+    FOR each record IN records:
+        TABLE = record.table_name
+        ID = record.record_id
+        OP = record.operation
+        PAYLOAD = record.payload
+        
+        IF OP == "insert" OR OP == "update":
+            EXECUTE UPSERT INTO TABLE (
+                columns FROM PAYLOAD,
+                ON CONFLICT (unique_constraint) DO UPDATE SET
+                    column_values FROM PAYLOAD,
+                    updated_at = NOW()
+            )
+            MARK record.synced = true
+            record.last_sync_at = NOW()
+        
+        ELSE IF OP == "delete":
+            EXECUTE DELETE FROM TABLE WHERE id = ID
+            MARK record.synced = true
+        
+        END IF
+    END FOR
+    
+    COMMIT transaction
+    RETURN synced_count, failed_count
+```
+
+### 7.3 Connectivity Detection & Sync Trigger
+
+1. App launches → check `NetInfo.isConnected` → if false, load local cache only.
+2. User returns to app from background → `NetInfo.addEventListener('online')` → trigger `POST /api/v1/sync/pending` with all unsynced local records.
+3. Background task (setInterval 5 min) → same sync flow.
+4. On sync success → mark all synced records `synced = true`, update `last_sync_at`.
+5. On sync failure → increment `retry_count`; if `retry_count >= 3`, alert user via notification and keep `synced = false`.
+
+### 7.4 Conflict Resolution Policy
+
+- **Policy**: Server-first; local changes merged only if server has no newer version.
+- **Implementation**: 
+  - Each synced table has a `version` column (integer, incremented on each upsert).
+  - Local cache includes `server_version` field.
+  - On sync, if `local.server_version > server.version`, prompt user: "Conflict detected: server has older version. Overwrite?".
+  - If user confirms, perform upsert with local data; otherwise, keep server data.
+
+---
+
+## 8. Revision History
+
+| Version | Date | Author | Changes |
+|---|---|---|---|
+| 1.0 | 2026-08-23 | architect | Initial SRS draft based on PDF analysis and project scaffolding |
+| 1.1 | 2026-09-05 | architect | Reflected actual implementation state from deep codebase analysis; added missing endpoints, known issues, and implementation status matrix |
+| 1.2 | 2026-09-05 | architect | Marked M1-resolved items (RBAC enforced, env JWT/CORS, `PUT /users/profile` implemented, migration regenerated, Dockerfile CMD fixed); updated known-issues and implementation status matrices to verified post-M1 state |
+| 1.3 | 2026-09-06 | architect | Refreshed to post-M2 state: `POST /challenges/submit`, no-answer-leak `/next`, and mobile E2E dismiss marked complete; corrected `load_dotenv` note in issue #6; migration HEAD `1c584bd4a5b0`; `smoke_m2.py` 25/25 added to testing matrix |
+| 1.4 | 2026-09-08 | architect | Refreshed to post-M4/build state: offline/-first sync + push-token registration rows implemented; testing matrix (pytest 32, Vitest 18, jest-expo 31, ruff, GitHub Actions CI); web app-shell/global-theme/Profile additions; migration HEAD `992b0ec03dba` |
+| 1.5 | 2026-09-10 | architect | Full audit pass: corrected UserProfileRes/AlarmCreateReq schemas, added push_tokens + alarm_roles to ER diagram, fixed admin dashboard status (complete), updated RBAC descriptions (staff+/admin/authenticated), corrected success response format (no wrapper envelope), fixed Tailwind reference, updated test counts (pytest 34, Vitest 42, jest 33) |
+| 1.6 | 2026-09-16 | architect | Phase 1 stabilization: corrected test counts to pytest **47**, Vitest **49**, jest **47**; added coverage tooling (pytest-cov, @vitest/coverage-v8, jest coverage); created `TEST_STATUS.md` |
+| 1.7 | 2026-09-16 | architect | Phase 2 security completion: production secret fail-fast, CORS allowlist enforcement, refresh-token rotation/revocation, password reset + email verification (expiring single-use hashed tokens in new `auth_tokens` table), audit-log table + middleware, security headers, account deactivation, admin role-change endpoint (audited); test suite grew to pytest **95** (added `test_security.py`, 48 tests), coverage **74%**; migration HEAD `c7e4a9b2d1f0` |
+| 1.8 | 2026-09-17 | architect | Phase 3 alarm/notification workflow: Expo Push Service provider (`ExpoPushProvider`) with `PUSH_PROVIDER`/`EXPO_ACCESS_TOKEN` config + prod fail-fast, dead-token pruning, in-process dedupe, structured alarm/notification logs, `GET /notifications/status` + `POST /notifications/test` + `POST /alarms/{id}/notify`, on-device local scheduling (`expo-notifications`, Android channel `cerebrokognit-alarms`), notification-tap → challenge-gate routing, offline alarm cache, `Markdown Files/REAL_DEVICE_CHECKLIST.md`; pytest **187**, mobile jest **75**, backend coverage **75%** |
+| 1.9 | 2026-09-17 | architect | Phase 5 analytics/habit/dashboard completion: measured uptime via `services/system_status.py` (boot time, gateway-fed lifetime success counters, live DB check; `/health` extended; 99.9 placeholder removed from `platform_analytics`; `uptime_seconds`/`db_connected` added to `AdminAnalyticsRes`), Wellness Coach cohort (`coach_assignments` table, migration `e7a2c4d6b810`, `coach_service` scope enforcement, `POST/DELETE /dashboard/coach/assignments` + `GET /dashboard/coach/users[/{id}]`, cohort-scoped `/dashboard/users`), single-source reports (habit rows from `get_habit_score_history`; tz-aware ordered wake-up/challenge builders with UTC-aware ISO output), documented 35/25/20/20 formula, `days` 1..365 validation, Reports wake-up timeline + range-honoring exports, Dashboard/InsightsTab empty states; `test_phase5_analytics.py` (11 tests); pytest **151**, mobile jest **75** |
+| 1.10 | 2026-09-17 | architect | Phase 6 AI intelligence (honest ML): `ai_engine/features.py` (frozen 4-feature model contract + 6 rule signals, clamped); `difficulty.py` v1.0.0 — synthetic-training honesty header, 6-signal `rule_based_v2` with explanations, PII-free inference logging, extended `ml-status` (version/training_data/fallback/feature_contract/last_training), DB-backed `recommend_difficulty` wired into `ChallengeService` (±1 band kept); train script writes `difficulty_model.meta.json` (re-trained: val 0.937) + `evaluate_difficulty_model.py` (held-out synthetic 0.935, monotonic, sane extremes — PASS); gated **baseline** anomaly (`GET /analytics/anomalies`) + forecast (`GET /analytics/forecast`) with `available` flags; `RecommendationRes.reason` + `source_metric` on all 10 recs; `AI_FEATURES.md` (6 features × 8 columns + limitations); `test_ai_engine.py` (17 tests); pytest **168** |
+| 1.11 | 2026-09-17 | architect | Phase 7 coach + productivity: web `Admin.jsx` coach mode (cohort roster from `/dashboard/coach/users`, empty-cohort state, per-user detail — profile/adherence/alarms/challenges/sleep/progress; partial-403 handling so coaches are no longer locked out) + `Admin.test.jsx` (4 tests); manual productivity tracking — `productivity_logs` table (migration `f2b1d8e4a903`, unique user+date, upsert), `productivity_service` (user-entered logs, gated trend, gated Pearson wake/productivity correlation with association-only message, `source` labels), owner-only `/productivity/*` routes, `GET /dashboard/reports/productivity` (real-data-only exports), web Reports log form + trend + correlation with provenance badges, mobile InsightsTab trend; `test_productivity.py` (9 tests); FR-BA-003/FR-REP-004 implemented; pytest **177**, Vitest **56** |
+| 1.12 | 2026-09-17 | architect | Phase 8 full integration & E2E: executable journey suite `tests/test_e2e_workflows.py` (9 tests covering W01–W20) + `E2E_TEST_REPORT.md` (20 workflows with preconditions/actions/expected/actual/evidence; W17 server-path PASS, real-device leg MANUAL per checklist; no Playwright — no browser harness in repo/CI); pytest **186** (339 total with Vitest 56 + jest 75) |
+| 1.13 | 2026-09-17 | architect | Phase 9 local prod validation (NO public-cloud deploy): `ml_models/.gitkeep` (fresh-clone COPY fix), exact-pinned `requirements-runtime.txt`, hardened `backend/Dockerfile` (non-root appuser), new `web/Dockerfile` (node→nginx SPA) + `.dockerignore`, env-driven compose + `docker-compose.prod.yml` (`:?` secret guards, production env, unpublished DB port), guarded Sentry hook, boot-time prod secret guard in lifespan + test; validated live — both images build, alembic head `f2b1d8e4a903` on fresh Postgres, container E2E (register→dismiss→habit 73), web 200 + SPA fallback, restart recovery, pg_dump→destroy→restore, logs, placeholder-secret boot refusal; new `DEPLOYMENT_GUIDE/OPERATIONS_GUIDE/USER_GUIDE/API_REFERENCE/FINAL_VALIDATION_REPORT.md`; pytest **187** |
+| 1.14 | 2026-10-17 | architect | Phase A–D: **Google OAuth2** (`GET /auth/oauth/google/login` returns consent URL + signed CSRF state, `POST /auth/oauth/google/callback`, `POST /auth/oauth/google/mobile` PKCE; `services/oauth_service.py` Google provider, id_token audience-aware verify, link-or-create by provider+subject→email; password login rejects password-less OAuth accounts; migration `d3f6a8b1c2e4` adds `oauth_provider`/`oauth_subject` + unique `uq_users_oauth_identity`; web Continue-with-Google + mobile PKCE button); **notification triggers** (`POST /notifications/triggers/{bedtime,challenge,habit,progress}` — server computes payload, device schedules; Module 11, no Celery); **platform announcements** (Module 11 — `Announcement` model + migration `c339b9896c3a`, public active window+priority feed `GET /announcements/public`, admin CRUD under Administrator); **RL bandit** (light-real — `ai_engine/rl_policy.py` UCB1 `ContextualBandit` blended into `difficulty.recommend_difficulty` behind config-gated `RL_BANDIT_ENABLED`/`RL_BLEND_RATIO`, off by default; `AI_FEATURES.md` documents TF→PyTorch / Tailwind→custom-CSS / Plotly→Chart.js substitutions); pytest **219**, web Vitest **58**, mobile jest **84**, ruff clean, migration roundtrip verified |
+
+---
+
+## 9. Known Issues & Security Vulnerabilities
+
+> Audit performed 2026-09-05 (pre-M1); status refreshed 2026-09-06 after M1+M2. Priority: 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low
+
+### 9.1 Resolved by Milestone 1 (2026-09-05)
+
+| # | Severity | Issue | Location | Resolution |
+|---|---|---|---|---|
+| 1 | 🔴 | Hardcoded JWT `SECRET_KEY` never read from env | `backend/app/services/auth.py` | Read from `os.getenv("SECRET_KEY")` with dev-only fallback |
+| 2 | 🔴 | Admin authorization bypass — `_require_admin()` always returns `True` | `backend/app/api/deps.py` | RBAC via `require_roles()`; `is_superuser`/staff checked (403 smoke-verified) |
+| 6 | 🟠 | `load_dotenv(override=True)` overrides Docker-injected `DATABASE_URL` | `backend/app/database.py` | Deferred as acceptable risk: `backend/.dockerignore` excludes `.env` from the image, so nothing baked in can clobber Docker-injected env |
+| 7 | 🟠 | Dockerfile CMD references nonexistent `app:app` | `backend/Dockerfile` | Corrected to `app.main:app`; `.dockerignore` added |
+| 8 | 🟠 | CORS `allow_origins=["*"]` with `allow_credentials=True` | `backend/app/main.py` | Env-driven `CORS_ORIGINS`; credentials only with explicit origins |
+| 9 | 🟠 | Stale Alembic migration out of sync with Models.py | `migrations/versions/732e5cb49bcf_initial_schema.py` | Migration regenerated; `upgrade head` verified on fresh DB |
+| 10 | 🟠 | `migrations/env.py` imports `app.models` (lowercase) | `migrations/env.py:28` | Import fixed to `app.Models`; `DATABASE_URL` override honored |
+| 11 | 🟠 | No DB table initialization on fresh deploy | `scripts/init_db.py` | `create_all` + seed roles/demo user added (manual bootstrap; Docker entrypoint still TODO) |
+| 15 | 🟡 | Mobile calls nonexistent endpoints: `PUT /users/profile`, `PUT /users/{key}`, `PUT /habits/score` | `backend/app/api/users.py` | `users` router added (profile + settings GET/PUT, per-key PUT); habit score PUT is M3 |
+| ~~17~~ | 🟢 | ~~`schemas/all.py` dead file with broken import~~ | `backend/app/schemas/all.py` | **REMOVED (Level 2, 2026-09-19)** — no production import path used it; auth models stay in `schemas/auth.py`, the rest are re-exported via `schemas/__init__.py` |
+
+### 9.2 Open Issues (target the milestone shown)
+
+| # | Severity | Issue | Location | Impact | Target |
+|---|---|---|---|---|---|
+| ~~3~~ | 🔴 | ~~Challenge answer leaked in `puzzle_payload` response~~ | `backend/app/services/challenge_service.py` | **RESOLVED (M2):** payload contains no answer; `POST /submit` verifies server-side | — |
+| ~~4~~ | 🔴 | ~~No `ChallengeAttempt` creation / verify path (`POST /challenges/submit`)~~ | `backend/app/api/challenges.py` | **RESOLVED (M2):** `/next` creates a pending snapshot attempt; `/submit` verifies | — |
+| ~~5~~ | 🔴 | ~~Mobile dismiss payload mismatch~~ | `mobile/src/screens/AlarmScreen.jsx` | **RESOLVED (M2):** mobile now runs `/next` → `/submit` → `/dismiss` with matching payload | — |
+| ~~12~~ | 🟠 | ~~Challenge template random-mismatch (Logic/Word/Pattern)~~ | `backend/app/services/challenge_service.py` | **RESOLVED (M2):** deterministic generators compute prompt + answer from the same data | — |
+| 16 | 🟡 | Mobile `overist_score` typo (should be `overall_score`) | `mobile/src/screens/HomeScreen.jsx` | **RESOLVED (M2)** — rendered as `overall_score`; was always 0 | — |
+| ~~13~~ | 🟡 | ~~Web dashboard renders hardcoded mock chart data~~ | `web/src/utils/chartUtils.js` | **RESOLVED (M3):** Home/Dashboard/Reports wired to live `/habits/score/history` | — |
+| ~~14~~ | 🟡 | ~~Web silently substitutes fake scores (70) on API failure~~ | `web/src/pages/Home.jsx`, `Dashboard.jsx`, `Reports.jsx` | **RESOLVED (M3):** `'—'` fallback removed; real API data only | — |
+| ~~18~~ | 🟢 | ~~Triplicated divergent schema definitions~~ | `schemas/__init__.py`, `schemas/auth.py` | **RESOLVED (Level 2, 2026-09-19)** — `schemas/all.py` deleted; drift risk eliminated | — |
+| ~~19~~ | 🟢 | ~~No test files exist; no CI/CD~~ | entire repo | **RESOLVED (M4 + phases):** pytest (219), Vitest (58), jest-expo (84), ruff, GitHub Actions CI (ruff + pytest + smokes + web test/build + mobile jest) | — |
+
+---
+
+## 10. Implementation Status Matrix
+
+Status legend: ✅ Complete · ⚠️ Partial · ❌ Not Implemented · 🔴 Broken · *(updated 2026-09-08 post-M4 + backlog — core)*
+
+### Backend Modules
+
+| Module | Status | Evidence | Completion % |
+|---|---|---|---|
+| Authentication (register/login/me) | ✅ Complete | Real bcrypt + JWT; works end-to-end (smoke) | 95% |
+| RBAC / Authorization | ✅ Complete | `require_roles()` in `deps.py`; 403 smoke-verified | 90% |
+| User Profiles & Settings | ✅ Complete | `/users/profile` GET+PUT, `/users/settings` GET, `/users/{key}` PUT | 95% |
+| Alarm CRUD + Snooze | ✅ Complete | tz-aware `next_trigger`, recurrence, challenge linkage, `time` in response, snooze cap 5 | 95% |
+| Alarm Dismiss | ✅ Complete | `/next` → `/submit` → `/dismiss` verified end-to-end (smoke_m2: ownership, all-correct gate, 400/404 paths) | 95% |
+| Challenge Engine (7 types) | ✅ Complete | 7×5 deterministic templates; no answer leak; server-authoritative submit (smoke_m2) | 95% |
+| Habit Scoring (35/25/20/20) | ✅ Complete | Real weighted computation + history (smoke-verified) | 95% |
+| Analytics | ✅ Complete (M3 + Phase 6) | Real sleep estimate (alarm gaps/preference), 5-pt trend band, per-type recent activity, `generated_at`; recommendations endpoint live; gated baseline anomaly + forecast endpoints | 96% |
+| Recommendations | ✅ Complete (M3 + Phase 6) | `GET /api/v1/analytics/recommendations` — sleep/wake-up/habit/challenge, priority-sorted (FR-RE-001..004); every rec carries `reason` + `source_metric` | 96% |
+| ML Difficulty Inference | ✅ Complete (M3 + Phase 6) | `difficulty_model.pt` v1.0.0, **synthetic-trained** (documented in `AI_FEATURES.md`; re-trained 2026-09-17, held-out synthetic acc 0.935, monotonic); `ml-status` reports version/fallback/training record; 6-signal rule fallback with explanations; inference logged without PII | 96% |
+| Offline Sync (server) | ✅ Complete (M4-backlog) | Idempotent upsert works and **mobile calls it** via `syncEngine.js` (offlineStore cache, sync-on-focus, offline banner) | 95% |
+| Dashboard + Reports | ✅ Complete (M4) | CSV/JSON/PDF/Excel via `format` param; RBAC enforced; admin UI added | 95% |
+| ML Inference | ✅ Complete (M3) | Trained `difficulty_model.pt` served; rule-based fallback in container (no torch) | 85% |
+| Database Models + Migrations | ✅ Complete | **11+ ORM tables** (9 core + `auth_tokens` + `audit_logs` + `coach_assignments` + `productivity_logs`); migration at head (`f2b1d8e4a903`); 0→head verified fresh | 95% |
+| Error Handling Standard | ✅ Complete (M4) | Global handlers → `{detail, error_code, timestamp, status_code}` | 95% |
+| Security Hardening | ✅ Complete (Phase 2, 2026-09-16) | Secret fail-fast (`ENVIRONMENT=production`), CORS allowlist, refresh-token rotation + hashed single-use tokens, password reset/email verification, audit log, security headers, deactivate + role-change | 90% |
+| Notification Delivery | ✅ Complete (Phase 3, 2026-09-17) | `ExpoPushProvider` behind `PUSH_PROVIDER`, dead-token pruning, dedupe, `/notifications/status` + `/notifications/test` + `/alarms/{id}/notify`; delivery config strict-raise by default | 85% |
+| Testing (pytest) | ✅ Complete (M4 + Phase 2/3/5/6/7/8/9/A–D) | **219 tests** (auth, alarms, challenges, analytics, coach cohort, productivity, feedback, notifications, security incl. boot guard, uptime, AI engine + RL bandit, OAuth2, announcements, E2E journeys); coverage **87%**; verified Python 3.11 + 3.14 | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest + smokes + web build + web test (Vitest 58) + mobile jest (84) | 90% |
+
+### Web Dashboard
+
+| Module | Status | Evidence | Completion % |
+|---|---|---|---|
+| Auth (login/register) | ✅ Complete | Works against API; auth design system (`components/auth/*`, `login-bg.svg` hero, tabs, validation) | 95% |
+| Home / Charts | ✅ Complete (M3) | Home/Dashboard/Reports wired to live `/habits/score/history`; honest/theme-aware charts (`makeChartOptions`) | 90% |
+| Alarm Management | ✅ Complete | Full form (time picker, type, challenge, difficulty, recurrence); CRUD works | 90% |
+| Challenge Generator | ✅ Complete | List + adaptive next | 85% |
+| Reports | ✅ Complete (M4 + Phase 5) | CSV/PDF/Excel/JSON downloads wired + export cards + trend state; exports honor the selected 7/14/30-day range; wake-up alarm timeline with empty state (same source as exports) | 94% |
+| Settings (Profile/Settings) | ✅ Complete | Paged Profile (`PUT /users/profile`) + Settings (`/users/settings`, `/users/{key}`, theme control) | 90% |
+| Admin Dashboard | ✅ Complete (M4 + Phase 5) | `web/src/pages/Admin.jsx` — metric cards, top challenge types, users table, RBAC 403 panel, `/admin` route; uptime metric now renders the measured value (Phase 5) | 88% |
+| App Shell | ✅ Complete (2026-09-10) | Collapsible sidebar (5 nav sections), global Light/Dark theme (`theme.js`), mobile drawer + ESC, session restore, LiveClock, responsive overflow pass | 95% |
+| Landing Page | ✅ Complete (2026-09-10) | Marketing hero ("WAKE WITH PURPOSE."), 4 feature cards, 3-step protocol, CTA, footer | 90% |
+| Timezone System | ✅ Complete (2026-09-08) | Searchable timezone picker, 12/24h format, LiveClock, TimeInput, timeFormat.js | 90% |
+
+### Mobile App
+
+| Module | Status | Evidence | Completion % |
+|---|---|---|---|
+| Auth / Navigation | ✅ Complete | Login + shared `AuthContext`; registration still web-only | 80% |
+| Alarm Display | ✅ Complete | HOME/ALARMS/INSIGHTS/PROFILE tabs; alarms list + create/edit form (`AlarmFormScreen`) | 85% |
+| Alarm Dismiss | ✅ Complete | Runs `/next` → `/submit` → `/dismiss` with matching payload (M2); notification tap routes to the gated Alarm screen | 90% |
+| Challenge Flow | ✅ Complete | Fetches `/next`, submits `/submit`, renders verification result (M2) | 85% |
+| Profile | ✅ Complete | Calls now-implemented `PUT /users/profile` | 80% |
+| Settings | ✅ Complete | Calls now-implemented `PUT /users/settings` + `/users/{key}` | 80% |
+| Offline Sync | ✅ Implemented (2026-09-07) | `sync/offlineStore.js` + `syncEngine.js` + `useSync`; Home/Challenge/Alarms cache + sync-on-focus + offline banner | 90% |
+| Push Notifications | ✅ Complete (Phase 3) | Expo token registered on login; `ExpoPushProvider` delivery backend; **on-device local scheduling** (`expo-notifications`, channel `cerebrokognit-alarms`) + tap→challenge routing; remote push needs a dev build | 85% |
+
+### Infrastructure
+
+| Module | Status | Evidence | Completion % |
+|---|---|---|---|
+| Docker | ✅ Complete (M4 + Phase 9) | Pinned lean image (non-root), env-driven compose + prod overlay (secret guards), web nginx image, Postgres migrations entrypoint; prod-container validated (migrate/E2E/restart/backup-restore/logs) — see FINAL_VALIDATION_REPORT.md | 95% |
+| Database Migrations | ✅ Complete | Migration at head (`c339b9896c3a` adds announcements; `d3f6a8b1c2e4` added OAuth identity; earlier `f2b1d8e4a903` productivity_logs, `e7a2c4d6b810` coach_assignments); `upgrade head` verified on fresh DB | 95% |
+| CI/CD | ✅ Complete (M4) | GitHub Actions: ruff + pytest (219) + smoke_m1 (22) + smoke_m2 (25) + web test (58)/build + mobile jest (84) | 90% |
+| Testing | ✅ Complete (M4-backlog + Phase 2/3/5/6/7/8/9/A–D) | pytest **219** + Vitest 58 + jest 84; smoke_m1 (22) + smoke_m2 (25) regression gates; `E2E_TEST_REPORT.md` (W01–W20); `FINAL_VALIDATION_REPORT.md` (prod-container evidence); coverage 87%/74.88%/33.75% (2026-10-17) | 95% |
+| On-Device Verification | 🟡 Manual | `Markdown Files/REAL_DEVICE_CHECKLIST.md` written; firing must be confirmed on a physical device | 40% |
+| Environment Config | ✅ Complete (Phase 2) | Secrets/CORS from env with prod fail-fast; `AUTO_INIT` SQLite auto-init | 95% |

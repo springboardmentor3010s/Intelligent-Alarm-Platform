@@ -1,0 +1,70 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
+"""add announcements table
+
+Revision ID: c339b9896c3a
+Revises: d3f6a8b1c2e4
+Create Date: 2026-10-16 23:18:53.598682
+
+"""
+from typing import Sequence, Union
+
+from alembic import op
+import sqlalchemy as sa
+
+
+# revision identifiers, used by Alembic.
+revision: str = 'c339b9896c3a'
+down_revision: Union[str, Sequence[str], None] = 'd3f6a8b1c2e4'
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
+def upgrade() -> None:
+    """Create the announcements table and its lookup indexes."""
+    op.create_table(
+        "announcements",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("title", sa.String(length=200), nullable=False),
+        sa.Column("body", sa.Text(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column("priority", sa.Integer(), nullable=False, server_default="0"),
+        sa.Column("starts_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("ends_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column(
+            "published_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            nullable=True,
+        ),
+        sa.Column("created_by", sa.Integer(), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            nullable=True,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            nullable=True,
+        ),
+        sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(
+        "ix_announcements_active_published",
+        "announcements",
+        ["is_active", "published_at"],
+        unique=False,
+    )
+    op.create_index(op.f("ix_announcements_id"), "announcements", ["id"], unique=False)
+    op.create_index("ix_announcements_priority", "announcements", ["priority"], unique=False)
+
+
+def downgrade() -> None:
+    """Drop the announcements table and its indexes."""
+    op.drop_index("ix_announcements_priority", table_name="announcements")
+    op.drop_index(op.f("ix_announcements_id"), table_name="announcements")
+    op.drop_index("ix_announcements_active_published", table_name="announcements")
+    op.drop_table("announcements")

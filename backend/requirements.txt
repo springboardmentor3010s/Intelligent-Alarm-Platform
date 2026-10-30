@@ -1,0 +1,34 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
+# backend requirements for Intelligent Cognitive Alarm Platform
+# Python 3.11 FastAPI application
+
+fastapi==0.141.1  # pinned: newer starlette testclient requires httpx2
+starlette==1.6.0  # pinned: matches fastapi 0.141.1 (falls back to httpx for TestClient)
+uvicorn[standard]>=0.27.0
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.9
+pydantic>=2.5.0
+pyjwt[crypto]>=2.8.0
+python-dotenv>=1.0.0
+bcrypt>=4.0.0  # for password hashing
+torch>=2.3.0  # for adaptive difficulty & cognitive challenges
+torchvision>=0.18.0
+scikit-learn>=1.4.0
+xgboost>=2.0.0
+pandas>=2.2.0
+numpy>=1.26.0
+reportlab>=4.0.0  # PDF report export
+openpyxl>=3.1.0  # Excel report export
+python-multipart>=0.0.6  # for file uploads
+email-validator>=2.1.0  # for JWT email validation
+aioredis>=2.0.0  # optional Redis for caching
+pymongo[srv]>=4.19.0  # optional MongoDB event log (MONGODB_URI); default is a silent no-op
+google-auth>=2.35.0  # Google OAuth2 login (Module 1); endpoints 503 until credentials are set
+requests>=2.31.0  # google.auth.transport.requests needs it to verify the Google ID token
+alembic>=1.13.0  # database migrations
+
+# Testing
+pytest>=8.0.0
+pytest-cov>=6.0.0  # coverage reporting (run: pytest --cov)
+ruff>=0.8.0  # linter (run: ruff check app tests scripts)
+httpx==0.28.1  # TestClient transport used by starlette 1.6.0 (absent in fresh CI -> RuntimeError)

@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "CerebroKognit",
+    "slug": "cerebrokognit-mobile",
+    "version": "1.0.0",
+    "scheme": "cerebrokognit",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.cerebrokognit.mobile",
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-status-bar",
+      [
+        "expo-notifications",
+        {
+          "color": "#6844FD",
+          "defaultChannel": "cerebrokognit-alarms"
+        }
+      ],
+      "expo-web-browser"
+    ]
+  }
+}

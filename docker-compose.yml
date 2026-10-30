@@ -1,0 +1,94 @@
+# CerebroKognit | Developer: Pawan Simha R | Infosys Virtual Internship 7.0 | Guide: Shanmukha Priya
+# CerebroKognit local stack (development defaults; Phase 9).
+# Every secret/flag reads from the environment with a dev default so
+# `docker compose up -d` works out of the box, while production uses
+# docker-compose.prod.yml, which *requires* real secrets and drops every
+# development default. Copy .env.docker.example to .env.docker to pin values.
+# Pin the compose project name so container/volume/network names never depend
+# on the repo folder name (renaming the folder used to clash with an existing
+# `cerebrokognit-db` container via the hardcoded container_name below).
+name: cerebrokognit
+services:
+
+  # PostgreSQL database
+  db:
+    image: postgres:15-alpine
+    container_name: cerebrokognit-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cerebro_kognit}
+      POSTGRES_USER: ${POSTGRES_USER:-cerebro_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cerebro_user} -d ${POSTGRES_DB:-cerebro_kognit}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB — optional secondary event log (PRD §4). Disabled unless the api is
+  # given MONGODB_URI (default empty -> the event store is a silent no-op).
+  # Point MONGODB_URI at mongodb://mongo:27017 for local use, or an Atlas SRV
+  # string for cloud. The container is not a hard dependency of the api.
+  mongo:
+    image: mongo:8
+    container_name: cerebrokognit-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend (FastAPI)
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: cerebrokognit-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cerebro_user}:${POSTGRES_PASSWORD:-change_me}@db:5432/${POSTGRES_DB:-cerebro_kognit}
+      SECRET_KEY: ${SECRET_KEY:-change_this_to_a_very_random_secret_key_min_32_bytes}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-False}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      REFRESH_TOKEN_EXPIRE_DAYS: 30
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8080}
+      PUSH_PROVIDER: ${PUSH_PROVIDER:-noop}
+      EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
+      MONGODB_URI: ${MONGODB_URI:-}
+      MONGODB_DB: ${MONGODB_DB:-cerebrokognit_events}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      PORT: 8000
+    ports:
+      - "${API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Web dashboard (development: run locally with npm run dev)
+  # Production serves the built bundle via web/Dockerfile (nginx);
+  # enable it in docker-compose.prod.yml, not here.
+  #
+  # Mobile development (Expo)
+  # Run locally with npx expo start (needs LAN + QR, unsuitable for Docker).
+
+volumes:
+  pg_data:
+  mongo_data:

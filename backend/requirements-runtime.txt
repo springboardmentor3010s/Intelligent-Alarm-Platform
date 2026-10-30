@@ -1,0 +1,26 @@
+# Minimal runtime dependencies for the Docker image — EXACT pins so the
+# image builds reproducibly (verified against backend/.venv, 2026-09-17).
+# Deliberately excludes the ML/data stack (torch, torchvision, scikit-learn,
+# xgboost, pandas, numpy, aioredis): ml_inference falls back to its documented
+# rule-based path when torch is unavailable, and nothing in app/ imports
+# pandas/sklearn/xgboost. Keeping this lean keeps image builds fast.
+
+fastapi==0.141.1  # pinned: newer starlette testclient requires httpx2
+starlette==1.6.0  # pinned: matches fastapi 0.141.1
+uvicorn[standard]==0.52.4
+SQLAlchemy==2.0.52
+psycopg2-binary==2.9.12
+pydantic==2.13.4
+PyJWT==2.13.0
+python-dotenv==1.2.3
+bcrypt==5.0.0
+python-multipart==0.0.32
+email-validator==2.3.0
+alembic==1.19.2
+reportlab==5.0.1
+openpyxl==3.1.5
+sentry-sdk==2.41.0
+httpx==0.28.1  # ExpoPushProvider transport (PUSH_PROVIDER=expo); absent -> pushes fail silently
+pymongo[srv]==4.19.0  # MongoDB event log (MONGODB_URI); [srv] enables Atlas SRV strings
+google-auth==2.35.0  # Google OAuth2 ID-token verification (Module 1); endpoints 503 when unset
+requests==2.34.2  # google.auth.transport.requests transport for ID-token verification; absent -> 500

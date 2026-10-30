@@ -1,0 +1,4 @@
+# Keeps backend/ml_models/ present in fresh clones so the Docker build's
+# COPY backend/ml_models step never fails. The actual weights
+# (difficulty_model.pt) are gitignored build artifacts; the app runs the
+# documented rule-based fallback when they are absent.
