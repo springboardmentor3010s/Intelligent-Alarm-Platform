@@ -635,7 +635,7 @@ html[data-theme="dark"] .auth-page .auth-google {
   margin: 0;
   padding: 20px;
   border-radius: 16px;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .wellness-coach-page .wellness-chart-card .card-header {
@@ -655,60 +655,31 @@ html[data-theme="dark"] .auth-page .auth-google {
 }
 
 /*
- * IMPORTANT CHART FIX
+ * CHART FIX
  *
- * The browser diagnostics showed that ResponsiveContainer
- * had a valid width but Recharts' inner wrapper had width 0.
- *
- * Explicitly size the inner wrapper and SVG. The !important
- * declarations override normal inline width declarations.
+ * Only the ResponsiveContainer is given a size (full width,
+ * fixed height). Recharts' own inner elements (.recharts-wrapper
+ * and .recharts-surface) are NOT overridden, because Recharts
+ * sets their width/height itself. Forcing them with !important
+ * is what made the charts disappear.
  */
-
-.wellness-coach-page .wellness-chart-card
-  .recharts-responsive-container {
-  display: block !important;
-  position: relative !important;
+.wellness-coach-page .wellness-chart-card .recharts-responsive-container {
+  flex: 0 0 auto;
   width: 100% !important;
-  height: 280px !important;
   min-width: 0 !important;
-  min-height: 280px !important;
-  flex: 0 0 280px !important;
-}
-
-.wellness-coach-page .wellness-chart-card
-  .recharts-wrapper {
-  display: block !important;
-  position: relative;
-  width: 100% !important;
   height: 280px !important;
-  max-width: 100% !important;
+  min-height: 280px;
 }
 
-.wellness-coach-page .wellness-chart-card
-  .recharts-surface {
-  display: block;
-  width: 100% !important;
-  max-width: 100% !important;
-  height: 280px !important;
-  overflow: visible;
-}
-
-.wellness-coach-page .wellness-chart-card svg {
-  overflow: visible;
-}
-
-.wellness-coach-page .wellness-chart-card
-  .recharts-cartesian-axis-tick-value {
+.wellness-coach-page .wellness-chart-card .recharts-cartesian-axis-tick-value {
   font-size: 11px;
 }
 
-.wellness-coach-page .wellness-chart-card
-  .recharts-legend-item-text {
+.wellness-coach-page .wellness-chart-card .recharts-legend-item-text {
   font-size: 12px;
 }
 
-.wellness-coach-page .wellness-chart-card
-  .recharts-tooltip-wrapper {
+.wellness-coach-page .wellness-chart-card .recharts-tooltip-wrapper {
   outline: none;
 }
 
@@ -893,71 +864,300 @@ textarea {
 button {
   cursor: pointer;
 }
-/* =====================================================
-   PERMANENT FIX: WELLNESS COACH CHART RENDERING
-   ===================================================== */
 
-.wellness-coach-page .wellness-chart-grid {
-  width: 100%;
-  min-width: 0;
-}
+/* =========================================================
+   ADMIN / ANALYTICS DASHBOARD CHARTS
+   Responsive layout with larger, readable charts.
+   Wellness Coach styles remain unchanged.
+   ========================================================= */
 
-.wellness-coach-page .wellness-chart-card {
-  min-width: 0;
-  min-height: 390px;
+/* Main admin page */
+.analytics-page {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1600px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 28px;
+  box-sizing: border-box;
 }
 
-.wellness-coach-page .wellness-chart-card .recharts-responsive-container {
-  display: block !important;
-  position: relative !important;
+.analytics-page,
+.analytics-page * {
+  box-sizing: border-box;
+}
+
+.analytics-page > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Page heading */
+.analytics-page > .page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+  margin: 0 0 24px;
+}
+
+/* Summary statistics */
+.analytics-page > .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 18px;
+  width: 100%;
+  margin: 0 0 28px;
+}
+
+.analytics-page > .stats-grid > .stat-card {
+  min-width: 0;
+}
+
+/* Dashboard cards */
+.analytics-page > .alarms-card {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 28px;
+  box-sizing: border-box;
+}
+
+/* Platform Analytics outer card */
+.analytics-page > .alarms-card:has(.wellness-chart-grid) {
+  display: block;
+  width: 100%;
+  padding: 24px;
+  overflow: visible;
+}
+
+/* Analytics heading */
+.analytics-page > .alarms-card:has(.wellness-chart-grid) > .card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 22px;
+}
+
+.analytics-page > .alarms-card:has(.wellness-chart-grid) > .card-header h2 {
+  margin: 0;
+  font-size: 23px;
+  line-height: 1.4;
+}
+
+.analytics-page > .alarms-card:has(.wellness-chart-grid) > .card-header p {
+  max-width: 900px;
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* Chart grid: two large columns on desktop */
+.analytics-page .wellness-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Individual chart cards */
+.analytics-page .wellness-chart-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 430px;
+  margin: 0;
+  padding: 22px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Chart title and description */
+.analytics-page .wellness-chart-card .card-header {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 16px;
+}
+
+.analytics-page .wellness-chart-card .card-header h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.analytics-page .wellness-chart-card .card-header p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+/*
+  Recharts sizing:
+  Only the ResponsiveContainer gets a size (full width, fixed
+  height). .recharts-wrapper and .recharts-surface are left alone
+  so Recharts can size the SVG itself.
+*/
+.analytics-page .wellness-chart-card .recharts-responsive-container {
+  flex: 0 0 auto;
   width: 100% !important;
+  max-width: 100%;
   min-width: 0 !important;
-  height: 280px !important;
-  min-height: 280px !important;
-  flex: 0 0 280px !important;
-  overflow: visible !important;
+  height: 320px !important;
+  min-height: 320px;
+  margin: 0;
 }
 
-.wellness-coach-page .wellness-chart-card .recharts-wrapper {
-  display: block !important;
-  position: relative !important;
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-  height: 280px !important;
-  flex: 0 0 auto !important;
-  overflow: visible !important;
-}
-
-.wellness-coach-page .wellness-chart-card .recharts-surface {
-  display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  height: 280px !important;
-  overflow: visible !important;
-}
-
-.wellness-coach-page .wellness-chart-card .recharts-cartesian-axis-tick-value {
-  font-size: 11px;
-}
-
-.wellness-coach-page .wellness-chart-card .recharts-legend-item-text {
+.analytics-page .wellness-chart-card .recharts-cartesian-axis-tick-value {
   font-size: 12px;
 }
 
-.wellness-coach-page .wellness-chart-card .recharts-tooltip-wrapper {
+.analytics-page .wellness-chart-card .recharts-legend-item-text {
+  font-size: 13px;
+}
+
+.analytics-page .wellness-chart-card .recharts-tooltip-wrapper {
   outline: none;
 }
 
-@media (max-width: 680px) {
-  .wellness-coach-page .wellness-chart-grid {
+.analytics-page .wellness-chart-card .muted-line {
+  margin-top: 14px;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+/* Other admin two-column sections */
+.analytics-page > .two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 24px;
+  width: 100%;
+  margin: 0 0 28px;
+}
+
+.analytics-page > .two-column > .alarms-card {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Recommendation lists and tables */
+.analytics-page .table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.analytics-page .data-table {
+  width: 100%;
+}
+
+/* Dark mode chart text and grid lines */
+html[data-theme="dark"] .wellness-chart-card .recharts-cartesian-axis-tick-value {
+  fill: #cbd5e1;
+}
+
+html[data-theme="dark"] .wellness-chart-card .recharts-cartesian-grid line {
+  stroke: #374151;
+}
+
+/* Tablet and smaller laptops */
+@media (max-width: 1100px) {
+  .analytics-page {
+    padding: 22px;
+  }
+
+  .analytics-page > .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analytics-page .wellness-chart-grid {
+    gap: 18px;
+  }
+
+  .analytics-page .wellness-chart-card {
+    min-height: 410px;
+    padding: 18px;
+  }
+
+  .analytics-page .wellness-chart-card .recharts-responsive-container {
+    height: 300px !important;
+    min-height: 300px;
+  }
+}
+
+/* Mobile and narrow windows */
+@media (max-width: 760px) {
+  .analytics-page {
+    padding: 16px;
+  }
+
+  .analytics-page > .page-header {
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .analytics-page > .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .analytics-page > .alarms-card:has(.wellness-chart-grid) {
+    padding: 16px;
+  }
+
+  .analytics-page .wellness-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .analytics-page .wellness-chart-card {
+    min-height: 400px;
+    padding: 16px;
+  }
+
+  .analytics-page .wellness-chart-card .recharts-responsive-container {
+    height: 300px !important;
+    min-height: 300px;
+  }
+
+  .analytics-page > .two-column {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+}
+
+/* Very narrow mobile screens */
+@media (max-width: 420px) {
+  .analytics-page > .stats-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .wellness-coach-page .wellness-chart-card {
-    min-height: 360px;
-    padding: 14px;
+  .analytics-page > .alarms-card:has(.wellness-chart-grid) {
+    padding: 12px;
+  }
+
+  .analytics-page .wellness-chart-card {
+    padding: 12px;
   }
 }

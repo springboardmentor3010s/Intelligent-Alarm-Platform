@@ -24,6 +24,15 @@ import Notifications from "./pages/Notifications";
 import CoachDashboard from "./pages/CoachDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 
+// Runs the alarm scheduler once, persistently across page changes, and only
+// for signed-in members. Mounting it here (instead of inside Layout) keeps a
+// single instance alive during navigation so a ringing alarm is not torn down
+// when the member moves between pages.
+function MemberAlarmScheduler() {
+  const { user } = useAuth();
+  return user?.role === "user" ? <AlarmScheduler /> : null;
+}
+
 // Shows a page only to signed-in people with an allowed role.
 function Protected({ roles, children }) {
   const { user, checking } = useAuth();
@@ -65,8 +74,8 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        {/* Keep the alarm scheduler running across app pages. */}
-        <AlarmScheduler />
+        {/* Keep a single alarm scheduler running across app pages. */}
+        <MemberAlarmScheduler />
 
         <Routes>
           <Route path="/" element={<Home />} />

@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException
+from reportlab.lib.units import mm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -59,6 +60,10 @@ def build_platform_report(data: dict) -> dict:
     challenges, habit = data["challenges"], data["habit"]
     recs, system = data["recommendations"], data["system"]
     snooze = alarms.get("snooze") or {}
+    sleep = data.get("sleep") or {}
+    sleep_trend = data.get("sleep_trend") or []
+    guidance = data.get("guidance") or []
+    management = data.get("management") or []
 
     summary: list[tuple] = [
         ("Total users", platform["total_users"]),
@@ -95,6 +100,9 @@ def build_platform_report(data: dict) -> dict:
         summary.append(("Average sleep schedule adherence %", trend["average_adherence_percent"]))
     else:
         summary.append(("Sleep schedule adherence", "No sleep logs recorded in this period"))
+
+    if sleep.get("available"):
+        summary.append(("Average sleep duration (minutes)", sleep.get("average_duration_minutes")))
 
     if recs.get("available"):
         summary += [
@@ -160,6 +168,21 @@ def build_platform_report(data: dict) -> dict:
         {"title": "Habit score distribution",
          "columns": ["Score band", "Users"],
          "rows": [[b["band"], b["count"]] for b in habit.get("distribution", [])]},
+        {"title": "Sleep trend",
+         "columns": ["Date", "Nights logged", "Avg sleep (min)", "On schedule %"],
+         "rows": [[d["date"], d["nights_logged"], d["average_duration_minutes"],
+                   d["on_schedule_percent"]]
+                  for d in sleep_trend if d["nights_logged"]]},
+        {"title": "Recommendations",
+         "columns": ["Category", "Recommendation", "Detail"],
+         "widths": [26 * mm, 52 * mm, 100 * mm],
+         "rows": [[r.get("category", "general").replace("_", " ").title(),
+                   r.get("title"), r.get("detail")] for r in guidance]},
+        {"title": "User management",
+         "columns": ["Name", "Email", "Role", "Status"],
+         "widths": [48 * mm, 70 * mm, 30 * mm, 30 * mm],
+         "rows": [[m["full_name"], m["email"], m["role"].title(),
+                   "Active" if m["is_active"] else "Deactivated"] for m in management]},
     ]
     if system.get("available"):
         tables.append({
@@ -360,12 +383,13 @@ def build_report(db: Session, user_id: int, report_type: str, days: int = 30) ->
 def render_pdf(report: dict) -> bytes:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.lib.units import mm
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
     navy = colors.HexColor("#" + HEADER_COLOR)
     styles = getSampleStyleSheet()
+    cell_style = ParagraphStyle("cell", parent=styles["Normal"], fontSize=8.5, leading=11)
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=16 * mm, rightMargin=16 * mm,
                             topMargin=16 * mm, bottomMargin=16 * mm, title=report["title"])
@@ -394,7 +418,14 @@ def render_pdf(report: dict) -> bytes:
     for item in report["tables"]:
         story += [Spacer(1, 7 * mm), Paragraph(item["title"], styles["Heading2"])]
         if item["rows"]:
-            story.append(table([item["columns"]] + [[_fmt(c) for c in r] for r in item["rows"]]))
+            widths = item.get("widths")
+            if widths:
+                # Wrap body cells so long text (e.g. recommendation detail) wraps
+                # within the fixed column instead of overflowing the page.
+                body = [[Paragraph(_fmt(c), cell_style) for c in r] for r in item["rows"]]
+            else:
+                body = [[_fmt(c) for c in r] for r in item["rows"]]
+            story.append(table([item["columns"]] + body, widths))
         else:
             story.append(Paragraph("No records in this period.", styles["Normal"]))
     doc.build(story)

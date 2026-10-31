@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "../App.css";
 import { apiFetch } from "../api";
 import { useAuth } from "../auth";
-import AlarmScheduler from "./AlarmScheduler";
 import ThemeToggle from "./ThemeToggle";
 
 const USER_MENU = [
@@ -78,7 +77,6 @@ function Layout({ children }) {
 
   return (
     <div className="app">
-      {user?.role === "user" && <AlarmScheduler />}
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-icon">🧠</div>

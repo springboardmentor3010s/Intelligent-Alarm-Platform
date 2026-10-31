@@ -395,6 +395,8 @@ def coach_report_pdf(
     users = data.get("users", [])
     at_risk_users = data.get("at_risk", [])
     sleep = data.get("sleep", {})
+    sleep_trend = data.get("sleep_trend", [])
+    guidance = data.get("guidance", [])
 
     buffer = io.BytesIO()
 
@@ -1004,6 +1006,12 @@ def coach_report_pdf(
                     sleep.get("average_adherence_percent")
                 )),
             ],
+            [
+                cell("Average sleep duration (minutes)"),
+                cell(display_number(
+                    sleep.get("average_duration_minutes"), 0
+                )),
+            ],
         ]
 
         story.append(make_table(
@@ -1021,6 +1029,68 @@ def coach_report_pdf(
                 )
             ),
             styles["Normal"],
+        ))
+
+    # -----------------------------------------------------
+    # 9. SLEEP TREND REPORT
+    # -----------------------------------------------------
+
+    logged_nights = [d for d in sleep_trend if d.get("nights_logged")]
+
+    if logged_nights:
+        story.append(Spacer(1, 5 * mm))
+        story.append(Paragraph(
+            "Sleep Trend Report",
+            styles["CoachReportSection"],
+        ))
+
+        trend_rows = [[
+            cell("Date"),
+            cell("Nights logged"),
+            cell("Avg sleep (min)"),
+            cell("On schedule %"),
+        ]]
+
+        for day in logged_nights:
+            trend_rows.append([
+                cell(day.get("date")),
+                cell(day.get("nights_logged")),
+                cell(display_number(day.get("average_duration_minutes"), 0)),
+                cell(display_percent(day.get("on_schedule_percent"))),
+            ])
+
+        story.append(make_table(
+            trend_rows,
+            [45 * mm, 40 * mm, 45 * mm, 45 * mm],
+        ))
+
+    # -----------------------------------------------------
+    # 10. RECOMMENDATIONS
+    # -----------------------------------------------------
+
+    if guidance:
+        story.append(Spacer(1, 5 * mm))
+        story.append(Paragraph(
+            "Recommendations",
+            styles["CoachReportSection"],
+        ))
+
+        guidance_rows = [[
+            cell("Category"),
+            cell("Recommendation"),
+            cell("Detail"),
+        ]]
+
+        for item in guidance:
+            guidance_rows.append([
+                cell(str(item.get("category", "general")).replace("_", " ").title()),
+                cell(item.get("title")),
+                cell(item.get("detail")),
+            ])
+
+        story.append(make_table(
+            guidance_rows,
+            [30 * mm, 70 * mm, 155 * mm],
         ))
 
     story.append(Spacer(1, 5 * mm))

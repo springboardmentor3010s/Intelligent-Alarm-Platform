@@ -1,9 +1,244 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "../App.css";
 import { apiFetch, downloadFile } from "../api";
 import { useAuth } from "../auth";
-import BarList from "../components/BarList";
 import { Empty, ErrorBox, Loading, pct, titleCase } from "../components/ui";
+import {
+  BarBlock,
+  CATEGORY_LABEL,
+  ChartCard,
+  LineBlock,
+  PieBlock,
+  numeric,
+} from "../components/charts";
+
+const ROLE_LABEL = { user: "Members", coach: "Wellness Coaches", admin: "Administrators" };
+
+// Visual platform analysis built from the /admin/dashboard-analytics payload.
+function PlatformCharts({ stats }) {
+  const roleData = useMemo(
+    () =>
+      (stats.users.role_distribution || [])
+        .map((row) => ({ name: ROLE_LABEL[row.role] || titleCase(row.role), value: row.count }))
+        .filter((row) => row.value > 0),
+    [stats]
+  );
+
+  const accountData = useMemo(
+    () =>
+      (stats.users.active_vs_inactive || [])
+        .map((row) => ({ name: row.status, value: row.count }))
+        .filter((row) => row.value > 0),
+    [stats]
+  );
+
+  const habitDistribution = useMemo(
+    () =>
+      (stats.habit.distribution || [])
+        .map((row) => ({ name: row.band, value: row.count }))
+        .filter((row) => row.value > 0),
+    [stats]
+  );
+
+  const methodData = useMemo(
+    () =>
+      (stats.wake_up.by_method || [])
+        .map((row) => ({ name: titleCase(row.name), value: row.count }))
+        .filter((row) => row.value > 0),
+    [stats]
+  );
+
+  const recommendationData = useMemo(() => {
+    const rec = stats.recommendations;
+    if (!rec || !rec.available) return [];
+    return [
+      { name: "Viewed", value: rec.viewed || 0 },
+      { name: "Accepted", value: rec.accepted || 0 },
+      { name: "Dismissed", value: rec.dismissed || 0 },
+    ].filter((row) => row.value > 0);
+  }, [stats]);
+
+  const alarmTypeData = useMemo(
+    () =>
+      (stats.alarms.by_challenge_type || [])
+        .map((row) => ({ name: titleCase(row.name), count: row.count }))
+        .filter((row) => row.count > 0),
+    [stats]
+  );
+
+  const challengeByType = useMemo(
+    () =>
+      (stats.challenges.by_type || [])
+        .map((row) => ({ name: titleCase(row.name), accuracy: numeric(row.accuracy_percent) }))
+        .filter((row) => row.accuracy !== null),
+    [stats]
+  );
+
+  const challengeByDifficulty = useMemo(
+    () =>
+      (stats.challenges.by_difficulty || [])
+        .map((row) => ({ name: titleCase(row.name), accuracy: numeric(row.accuracy_percent) }))
+        .filter((row) => row.accuracy !== null),
+    [stats]
+  );
+
+  const wakeUpTrend = useMemo(
+    () =>
+      (stats.wake_up.daily || []).map((row) => ({
+        date: row.date.slice(5),
+        rate: numeric(row.success_rate_percent),
+        attempts: row.attempts,
+      })),
+    [stats]
+  );
+
+  const registrationTrend = useMemo(
+    () => (stats.users.registration_trend || []).map((row) => ({ date: row.date.slice(5), count: row.count })),
+    [stats]
+  );
+
+  const sleepTrend = useMemo(
+    () =>
+      (stats.sleep_trend || []).map((row) => ({
+        date: row.date.slice(5),
+        minutes: numeric(row.average_duration_minutes),
+        onSchedule: numeric(row.on_schedule_percent),
+      })),
+    [stats]
+  );
+
+  const hasSleepTrend = sleepTrend.some((row) => row.minutes !== null);
+
+  const routeLatency = useMemo(() => {
+    if (!stats.system || !stats.system.available) return [];
+    return (stats.system.routes || [])
+      .slice(0, 8)
+      .map((row) => ({ name: row.route.replace(/^\w+\s/, ""), p95: numeric(row.p95_ms) }))
+      .filter((row) => row.p95 !== null);
+  }, [stats]);
+
+  const hasWakeTrend = wakeUpTrend.some((row) => row.rate !== null);
+  const hasRegistrations = registrationTrend.some((row) => row.count > 0);
+
+  return (
+    <section className="alarms-card">
+      <div className="card-header">
+        <div>
+          <h2>Platform Analytics</h2>
+          <p>Visual breakdown of users, alarms, cognitive performance, recommendations and system health for the selected period.</p>
+        </div>
+      </div>
+
+      <div className="wellness-chart-grid">
+        <ChartCard title="User Roles" description="Distribution of accounts by role across the platform.">
+          <PieBlock data={roleData} />
+        </ChartCard>
+
+        <ChartCard title="Account Status" description="Active versus deactivated accounts.">
+          <PieBlock
+            data={accountData}
+            colorFor={(entry) => (entry.name === "Active" ? "#14b8a6" : "#ef4444")}
+          />
+        </ChartCard>
+
+        <ChartCard title="Habit Score Distribution" description="Number of scored users in each habit-score band.">
+          <PieBlock data={habitDistribution} donut />
+        </ChartCard>
+
+        <ChartCard title="Wake-up Verification Methods" description="How users verified wake-ups during the period.">
+          <PieBlock data={methodData} />
+        </ChartCard>
+
+        <ChartCard title="Recommendation Monitoring" description="Recommendation activity: viewed, accepted and dismissed.">
+          <BarBlock
+            data={recommendationData}
+            xKey="name"
+            angle={0}
+            bars={[{ key: "value", name: "Events", color: "#8b5cf6" }]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Alarms by Challenge Type" description="Challenge type configured across all alarms.">
+          <BarBlock
+            data={alarmTypeData}
+            bars={[{ key: "count", name: "Alarms", color: "#06b6d4" }]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Challenge Accuracy by Type" description="Recorded accuracy for each cognitive challenge type.">
+          <BarBlock
+            data={challengeByType}
+            yDomain={[0, 100]}
+            yUnit="%"
+            bars={[{ key: "accuracy", name: "Accuracy", color: "#f59e0b" }]}
+            tooltipFormatter={(value) => [`${value}%`, "Accuracy"]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Challenge Accuracy by Difficulty" description="Recorded accuracy across difficulty levels.">
+          <BarBlock
+            data={challengeByDifficulty}
+            yDomain={[0, 100]}
+            yUnit="%"
+            bars={[{ key: "accuracy", name: "Accuracy", color: "#6366f1" }]}
+            tooltipFormatter={(value) => [`${value}%`, "Accuracy"]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Wake-up Success Trend" description="Daily wake-up verification success rate.">
+          {hasWakeTrend ? (
+            <LineBlock
+              data={wakeUpTrend}
+              yDomain={[0, 100]}
+              yUnit="%"
+              lines={[{ key: "rate", name: "Success rate", color: "#14b8a6" }]}
+              tooltipFormatter={(value) => [`${value}%`, "Success rate"]}
+            />
+          ) : (
+            <p className="muted-line">No wake-up activity recorded in this period.</p>
+          )}
+        </ChartCard>
+
+        <ChartCard title="New Registrations" description="New user sign-ups per day across the platform.">
+          {hasRegistrations ? (
+            <LineBlock
+              data={registrationTrend}
+              lines={[{ key: "count", name: "New users", color: "#ec4899" }]}
+            />
+          ) : (
+            <p className="muted-line">No new registrations in this period.</p>
+          )}
+        </ChartCard>
+
+        <ChartCard title="Sleep Trend" description="Average nightly sleep duration (minutes) across all users with sleep logs.">
+          {hasSleepTrend ? (
+            <LineBlock
+              data={sleepTrend}
+              yUnit="m"
+              lines={[{ key: "minutes", name: "Avg sleep (min)", color: "#06b6d4" }]}
+              tooltipFormatter={(value) => [`${value} min`, "Avg sleep"]}
+            />
+          ) : (
+            <p className="muted-line">No sleep logs recorded in this period.</p>
+          )}
+        </ChartCard>
+
+        <ChartCard title="System Performance" description="Slowest API routes by 95th-percentile response time (ms).">
+          {routeLatency.length ? (
+            <BarBlock
+              data={routeLatency}
+              yUnit="ms"
+              bars={[{ key: "p95", name: "p95 latency", color: "#ef4444" }]}
+              tooltipFormatter={(value) => [`${value} ms`, "p95"]}
+            />
+          ) : (
+            <p className="muted-line">No API timings recorded yet (timings reset on restart).</p>
+          )}
+        </ChartCard>
+      </div>
+    </section>
+  );
+}
 
 function AdminDashboard() {
   const { user: me } = useAuth();
@@ -60,7 +295,7 @@ function AdminDashboard() {
   const sys = stats.system;
 
   return (
-    <div className="page-container">
+    <div className="page-container analytics-page">
       <div className="page-header">
         <div>
           <p className="eyebrow">ADMINISTRATION</p>
@@ -102,19 +337,18 @@ function AdminDashboard() {
         <div className="stat-card"><div className="stat-top"><span>Average habit score</span></div><h3>{pct(stats.habit.average_habit_score)}</h3><p className="streak-text">{stats.habit.users_scored} users scored</p></div>
       </div>
 
+      <PlatformCharts stats={stats} />
+
       <div className="two-column">
         <section className="alarms-card">
           <div className="card-header"><div><h2>Platform analytics</h2></div></div>
           <p className="muted-line">
             Challenge accuracy {pct(stats.challenges.accuracy_percent)}% over {stats.challenges.attempts} attempts ·
             {" "}{stats.users.registrations_in_period} new users in period
+            {stats.habit.average_improvement != null && (
+              <> · average habit-score change {stats.habit.average_improvement > 0 ? "+" : ""}{stats.habit.average_improvement}</>
+            )}
           </p>
-          <h3 className="sub-heading">Habit score distribution</h3>
-          <BarList
-            rows={stats.habit.distribution.map((b) => ({ label: b.band, value: b.count }))}
-            suffix=""
-            max={Math.max(1, ...stats.habit.distribution.map((b) => b.count))}
-          />
           {stats.alarms.snooze?.available && (
             <p className="muted-line">
               Snoozes: {stats.alarms.snooze.snoozes} · dismissal success {stats.alarms.snooze.dismissal_success_rate_percent ?? "–"}%
@@ -151,6 +385,30 @@ function AdminDashboard() {
           )}
         </section>
       </div>
+
+      <section className="alarms-card">
+        <div className="card-header">
+          <div>
+            <h2>Recommendations</h2>
+            <p>Sleep improvement, wake-up optimization, habit and productivity guidance from platform activity.</p>
+          </div>
+        </div>
+        {(stats.guidance || []).length ? (
+          <ul className="reason-list">
+            {stats.guidance.map((item) => (
+              <li key={item.id}>
+                <span className={`badge-category badge-${item.category}`}>
+                  {CATEGORY_LABEL[item.category] || "General"}
+                </span>{" "}
+                <strong>{item.title}</strong>
+                {item.detail && <p>{item.detail}</p>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Empty title="No recommendations">Guidance appears as users record activity.</Empty>
+        )}
+      </section>
 
       <section className="alarms-card">
         <div className="card-header"><div><h2>User management</h2></div></div>

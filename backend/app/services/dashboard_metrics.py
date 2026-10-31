@@ -520,6 +520,125 @@ def _recommendations(
 
 
 # ---------------------------------------------------------------------
+# Aggregate sleep trend and wellness guidance (coach + admin)
+# ---------------------------------------------------------------------
+
+def _sleep_trend_series(
+    sleep_logs: list,
+    profiles: dict,
+    user_map: dict,
+    rng: DateRange,
+) -> list[dict]:
+    """Daily aggregate sleep trend across one or more users.
+
+    One point per day in the range: average sleep duration, number of nights
+    logged, and the share of nights that were on schedule. Days with no logs
+    carry nulls so the chart shows a gap rather than an invented zero.
+    """
+    by_date: dict[str, list[tuple[int, bool]]] = defaultdict(list)
+    for log in sleep_logs:
+        if not (rng.start_date <= log.sleep_date <= rng.end_date):
+            continue
+        profile = profiles.get(log.user_id)
+        user = user_map.get(log.user_id)
+        goal = profile.daily_sleep_goal_minutes if profile else 480
+        target = profile.sleep_target if profile else None
+        tz = _tz(user.timezone) if user else ZoneInfo("UTC")
+        on_schedule = tm.night_is_on_schedule(log, goal, target, tz)
+        by_date[log.sleep_date.isoformat()].append(
+            (log.duration_minutes, on_schedule)
+        )
+
+    series = []
+    for i in range(rng.days):
+        day = (rng.start_date + timedelta(days=i)).isoformat()
+        entries = by_date.get(day, [])
+        if entries:
+            durations = [e[0] for e in entries]
+            on = sum(1 for e in entries if e[1])
+            series.append({
+                "date": day,
+                "nights_logged": len(entries),
+                "average_duration_minutes": _avg(durations, 0),
+                "on_schedule_percent": _pct(on, len(entries)),
+            })
+        else:
+            series.append({
+                "date": day,
+                "nights_logged": 0,
+                "average_duration_minutes": None,
+                "on_schedule_percent": None,
+            })
+    return series
+
+
+def _wellness_guidance(
+    *,
+    wake_success_percent: float | None,
+    challenge_accuracy_percent: float | None,
+    sleep_adherence_percent: float | None,
+    average_sleep_minutes: float | None,
+    sleep_goal_minutes: int,
+    habit_improvement: float | None,
+) -> list[dict]:
+    """Recommendation list (sleep improvement, wake-up, habit, productivity)
+    built from aggregate figures. Used by the coach and admin dashboards."""
+    out: list[dict] = []
+
+    def add(rec_id, category, title, detail):
+        out.append({"id": rec_id, "category": category, "title": title, "detail": detail})
+
+    # Sleep improvement -------------------------------------------------
+    if sleep_adherence_percent is None:
+        add("sleep-log", "sleep", "Encourage sleep logging",
+            "Little or no sleep data is recorded. Logging bedtime and wake "
+            "time unlocks sleep-schedule adherence and trend analysis.")
+    else:
+        if sleep_adherence_percent < 70:
+            add("sleep-adherence", "sleep", "Improve sleep-schedule adherence",
+                f"Average sleep-schedule adherence is {sleep_adherence_percent}%. "
+                "A steady bedtime within the target window is the fastest win.")
+        if (
+            average_sleep_minutes is not None
+            and average_sleep_minutes < sleep_goal_minutes - 30
+        ):
+            short = round((sleep_goal_minutes - average_sleep_minutes) / 60, 1)
+            add("sleep-duration", "sleep", "Increase nightly sleep duration",
+                f"Average sleep is about {short}h short of the "
+                f"{round(sleep_goal_minutes / 60, 1)}h goal. An earlier bedtime "
+                "helps wake-up performance the next morning.")
+
+    # Wake-up optimization ---------------------------------------------
+    if wake_success_percent is not None and wake_success_percent < 70:
+        add("wake-success", "wake_up", "Optimise the wake-up flow",
+            f"Wake-up success is {wake_success_percent}%. Keep the device "
+            "within reach and the first challenge short to raise completion.")
+
+    # Habit improvement -------------------------------------------------
+    if habit_improvement is not None and habit_improvement <= -3:
+        add("habit-dip", "habit", "Address the habit-score dip",
+            f"Average habit score moved {habit_improvement:+.1f} versus the "
+            "previous period. Review which days slipped and protect one anchor "
+            "wake-up time.")
+    elif habit_improvement is not None and habit_improvement >= 3:
+        add("habit-gain", "habit", "Reinforce the positive trend",
+            f"Average habit score improved {habit_improvement:+.1f}. Keep the "
+            "current routine and celebrate the progress to sustain it.")
+
+    # Productivity / challenge difficulty ------------------------------
+    if challenge_accuracy_percent is not None and challenge_accuracy_percent < 60:
+        add("challenge-difficulty", "productivity", "Tune challenge difficulty",
+            f"Challenge accuracy is {challenge_accuracy_percent}%. Easing the "
+            "difficulty can keep morning engagement high without frustration.")
+
+    if not out:
+        add("steady", "general", "Maintain the current routine",
+            "No risk signals were found in this period. Keep reinforcing "
+            "consistent wake-up and sleep times.")
+    return out
+
+
+# ---------------------------------------------------------------------
 # User dashboard
 # ---------------------------------------------------------------------
 
@@ -819,6 +938,23 @@ def coach_overview(
     def mean(field):
         return _avg([r[field] for r in rows if r[field] is not None], 1)
 
+    user_map = {u.id: u for u in users}
+    cur_sleep = [l for l in all_sleep if l.sleep_date >= rng.start_date]
+    avg_sleep_minutes = _avg([l.duration_minutes for l in cur_sleep], 0)
+    avg_goal = _avg(
+        [p.daily_sleep_goal_minutes for p in profiles.values()], 0
+    ) or 480
+    sleep_trend = _sleep_trend_series(all_sleep, profiles, user_map, rng)
+    average_habit_improvement = mean("habit_improvement")
+    guidance = _wellness_guidance(
+        wake_success_percent=mean("wake_up_success_rate_percent"),
+        challenge_accuracy_percent=mean("challenge_accuracy_percent"),
+        sleep_adherence_percent=_avg(sleep_adherence_values, 1),
+        average_sleep_minutes=avg_sleep_minutes,
+        sleep_goal_minutes=int(avg_goal),
+        habit_improvement=average_habit_improvement,
+    )
+
     return {
         "range": {"start": rng.start_date.isoformat(), "end": rng.end_date.isoformat(),
                   "days": rng.days, "target_window_minutes": window},
@@ -830,6 +966,7 @@ def coach_overview(
             "average_challenge_accuracy_percent": mean("challenge_accuracy_percent"),
             "average_challenge_completion_percent": mean("challenge_completion_percent"),
             "average_response_seconds": mean("average_response_seconds"),
+            "average_habit_improvement": average_habit_improvement,
             "at_risk_count": sum(1 for r in rows if r["at_risk"]),
         },
         "users": rows,
@@ -839,10 +976,13 @@ def coach_overview(
                 "available": True,
                 "users_with_sleep_logs": len(sleep_adherence_values),
                 "average_adherence_percent": _avg(sleep_adherence_values, 1),
+                "average_duration_minutes": avg_sleep_minutes,
             }
             if sleep_adherence_values
             else NO_SLEEP_DATA
         ),
+        "sleep_trend": sleep_trend,
+        "guidance": guidance,
         "habit_adherence_note": (
             "Routine consistency uses wake-up timing against each user's "
             "alarm time. Sleep adherence and snooze reduction are included "
@@ -963,6 +1103,32 @@ def admin_analytics(
     challenge_stats = _challenge_stats(cur_a)
     daily = _daily_series(cur_v, cur_a, rng, timezone.utc)
 
+    cur_sleep = [l for l in all_sleep if l.sleep_date >= rng.start_date]
+    avg_sleep_minutes = _avg([l.duration_minutes for l in cur_sleep], 0)
+    avg_goal = _avg(
+        [p.daily_sleep_goal_minutes for p in profiles.values()], 0
+    ) or 480
+    sleep_trend = _sleep_trend_series(all_sleep, profiles, user_map, rng)
+    average_improvement = _avg(deltas, 1)
+    guidance = _wellness_guidance(
+        wake_success_percent=_pct(wake_ok, len(cur_v)),
+        challenge_accuracy_percent=challenge_stats["accuracy_percent"],
+        sleep_adherence_percent=_avg(sleep_adherence_values, 1),
+        average_sleep_minutes=avg_sleep_minutes,
+        sleep_goal_minutes=int(avg_goal),
+        habit_improvement=average_improvement,
+    )
+    management = [
+        {
+            "id": u.id,
+            "full_name": u.full_name,
+            "email": u.email,
+            "role": u.role,
+            "is_active": u.is_active,
+        }
+        for u in sorted(users, key=lambda u: u.full_name.lower())
+    ][:500]
+
     return {
         "range": {"start": rng.start_date.isoformat(), "end": rng.end_date.isoformat(), "days": rng.days},
         "platform": {
@@ -1032,5 +1198,18 @@ def admin_analytics(
             [e for e in rec_events if _utc(e.created_at) >= rng.start],
             [e for e in rec_events if _utc(e.created_at) < rng.start],
         ) or NO_RECOMMENDATION_ENGAGEMENT,
+        "sleep": (
+            {
+                "available": True,
+                "users_with_sleep_logs": len(sleep_adherence_values),
+                "average_adherence_percent": _avg(sleep_adherence_values, 1),
+                "average_duration_minutes": avg_sleep_minutes,
+            }
+            if sleep_adherence_values
+            else NO_SLEEP_DATA
+        ),
+        "sleep_trend": sleep_trend,
+        "guidance": guidance,
+        "management": management,
         "system": request_snapshot,
     }

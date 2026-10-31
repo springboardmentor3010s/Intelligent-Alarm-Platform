@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     db_port: int = 5432
     db_name: str = "cognitive_alarm_db"
     db_user: str = "postgres"
-    db_password: str
+    db_password: str = "Tanmaya@190306"
 
     # Authentication configuration.
     # ADMIN_JWT_SECRET signs every access token (user, coach and admin).

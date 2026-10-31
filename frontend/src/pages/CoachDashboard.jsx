@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "../App.css";
 import { apiFetch, downloadFile } from "../api";
-import BarList from "../components/BarList";
 import {
   Empty,
   ErrorBox,
@@ -11,6 +10,12 @@ import {
   pct,
   titleCase,
 } from "../components/ui";
+import {
+  BarBlock,
+  CATEGORY_LABEL,
+  ChartCard as SharedChartCard,
+  LineBlock,
+} from "../components/charts";
 
 import {
   ResponsiveContainer,
@@ -154,6 +159,29 @@ function WellnessCharts({ data }) {
           seconds: numeric(user.average_response_seconds),
         }))
         .filter((user) => user.seconds !== null),
+    [users]
+  );
+
+  const sleepTrend = useMemo(
+    () =>
+      (data.sleep_trend || []).map((day) => ({
+        date: day.date.slice(5),
+        minutes: numeric(day.average_duration_minutes),
+        onSchedule: numeric(day.on_schedule_percent),
+      })),
+    [data]
+  );
+
+  const hasSleepTrend = sleepTrend.some((day) => day.minutes !== null);
+
+  const improvementData = useMemo(
+    () =>
+      users
+        .map((user) => ({
+          name: user.full_name,
+          change: numeric(user.habit_improvement),
+        }))
+        .filter((user) => user.change !== null),
     [users]
   );
 
@@ -416,8 +444,208 @@ function WellnessCharts({ data }) {
             <NoChartData message="Sleep charts will appear when sleep logs are recorded." />
           )}
         </ChartCard>
+
+        <ChartCard
+          title="Sleep Trend"
+          description="Average nightly sleep duration (minutes) across monitored users."
+        >
+          {hasSleepTrend ? (
+            <LineBlock
+              data={sleepTrend}
+              xKey="date"
+              yUnit="m"
+              lines={[{ key: "minutes", name: "Avg sleep (min)", color: "#06b6d4" }]}
+              tooltipFormatter={(value) => [`${value} min`, "Avg sleep"]}
+            />
+          ) : (
+            <NoChartData message="Sleep trend will appear when users log their sleep." />
+          )}
+        </ChartCard>
+
+        <ChartCard
+          title="Progress Monitoring"
+          description="Habit-score change versus the previous period, per user."
+        >
+          {improvementData.length ? (
+            <BarBlock
+              data={improvementData}
+              bars={[{ key: "change", name: "Habit change", color: "#8b5cf6" }]}
+              tooltipFormatter={(value) => [
+                `${value > 0 ? "+" : ""}${value}`,
+                "Habit change",
+              ]}
+            />
+          ) : (
+            <NoChartData message="Progress appears once users have two periods of activity." />
+          )}
+        </ChartCard>
       </div>
     </>
+  );
+}
+
+// Detailed, charted progress view for a single monitored user.
+function UserDetailPanel({ detail, onClose }) {
+  const componentData = useMemo(
+    () =>
+      Object.entries(detail.habit.components || {})
+        .filter(([, value]) => value !== null && value !== undefined)
+        .map(([key, value]) => ({ name: titleCase(key), score: numeric(value) }))
+        .filter((row) => row.score !== null),
+    [detail]
+  );
+
+  const weeklyData = useMemo(
+    () =>
+      (detail.trends?.weekly || [])
+        .slice(-8)
+        .map((week) => ({
+          label: (week.week_start || week.date || week.period || "").slice(5),
+          rate: numeric(week.wake_success_rate_percent),
+        }))
+        .filter((row) => row.rate !== null),
+    [detail]
+  );
+
+  const typeData = useMemo(
+    () =>
+      (detail.challenge_breakdown?.by_type || [])
+        .map((type) => ({
+          name: titleCase(type.name),
+          accuracy: numeric(type.accuracy_percent),
+        }))
+        .filter((row) => row.accuracy !== null),
+    [detail]
+  );
+
+  const sleepTrend = useMemo(
+    () =>
+      (detail.sleep?.available ? detail.sleep.trend || [] : [])
+        .map((night) => ({
+          date: (night.date || "").slice(5),
+          minutes: numeric(night.duration_minutes),
+        }))
+        .filter((night) => night.minutes !== null),
+    [detail]
+  );
+
+  return (
+    <section className="alarms-card">
+      <div className="card-header">
+        <div>
+          <h2>{detail.user.full_name}</h2>
+          <p>
+            Habit score{" "}
+            {detail.habit.score == null ? "—" : pct(detail.habit.score)} ·{" "}
+            {detail.wake_up.attempts} wake-up attempts
+          </p>
+        </div>
+
+        <button className="small-button" onClick={onClose}>
+          Close
+        </button>
+      </div>
+
+      <div className="wellness-chart-grid">
+        <SharedChartCard
+          title="Habit Score Components"
+          description="Each weighted component of this user's habit score (out of 100)."
+        >
+          <BarBlock
+            data={componentData}
+            yDomain={[0, 100]}
+            bars={[{ key: "score", name: "Score", color: "#6366f1" }]}
+          />
+        </SharedChartCard>
+
+        <SharedChartCard
+          title="Weekly Wake-up Success"
+          description="Wake-up verification success rate per week."
+        >
+          <LineBlock
+            data={weeklyData}
+            xKey="label"
+            yDomain={[0, 100]}
+            yUnit="%"
+            lines={[{ key: "rate", name: "Success rate", color: "#14b8a6" }]}
+            tooltipFormatter={(value) => [`${value}%`, "Success rate"]}
+          />
+        </SharedChartCard>
+
+        <SharedChartCard
+          title="Challenge Accuracy by Type"
+          description="Cognitive challenge accuracy for this user, by type."
+        >
+          <BarBlock
+            data={typeData}
+            yDomain={[0, 100]}
+            yUnit="%"
+            bars={[{ key: "accuracy", name: "Accuracy", color: "#f59e0b" }]}
+            tooltipFormatter={(value) => [`${value}%`, "Accuracy"]}
+          />
+        </SharedChartCard>
+
+        <SharedChartCard
+          title="Sleep Duration Trend"
+          description="Nightly sleep duration (minutes) for this user."
+        >
+          {sleepTrend.length ? (
+            <LineBlock
+              data={sleepTrend}
+              xKey="date"
+              yUnit="m"
+              lines={[{ key: "minutes", name: "Sleep (min)", color: "#06b6d4" }]}
+              tooltipFormatter={(value) => [`${value} min`, "Sleep"]}
+            />
+          ) : (
+            <p className="muted-line">No sleep logs recorded for this user in the period.</p>
+          )}
+        </SharedChartCard>
+      </div>
+
+      <div className="two-column">
+        <div>
+          <h3 className="sub-heading">Sleep</h3>
+
+          {detail.sleep.available ? (
+            <p className="muted-line">
+              Average {minutesLabel(detail.sleep.average_duration_minutes)} of{" "}
+              {minutesLabel(detail.sleep.goal_minutes)} goal · on schedule{" "}
+              {detail.sleep.adherence_percent ?? "—"}%
+            </p>
+          ) : (
+            <p className="muted-line">{detail.sleep.reason}</p>
+          )}
+
+          <h3 className="sub-heading">Snoozing</h3>
+
+          <p className="muted-line">
+            {detail.snooze.available
+              ? `${detail.snooze.snoozes} snoozes over ${detail.snooze.alarms_triggered} alarms.`
+              : detail.snooze.reason}
+          </p>
+        </div>
+
+        <div>
+          <h3 className="sub-heading">Recommendations</h3>
+
+          {detail.recommendations.length ? (
+            <ul className="reason-list">
+              {detail.recommendations.map((recommendation) => (
+                <li key={recommendation.id}>
+                  <strong>{recommendation.title}</strong>
+                  {recommendation.detail && <p>{recommendation.detail}</p>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="muted-line">
+              No recommendations are available for this period.
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -654,6 +882,36 @@ function CoachDashboard() {
       <section className="alarms-card">
         <div className="card-header">
           <div>
+            <h2>Recommendations</h2>
+            <p>
+              Sleep improvement, wake-up optimization, habit and productivity
+              guidance generated from the recorded activity above.
+            </p>
+          </div>
+        </div>
+
+        {(data.guidance || []).length ? (
+          <ul className="reason-list">
+            {data.guidance.map((item) => (
+              <li key={item.id}>
+                <span className={`badge-category badge-${item.category}`}>
+                  {CATEGORY_LABEL[item.category] || "General"}
+                </span>{" "}
+                <strong>{item.title}</strong>
+                {item.detail && <p>{item.detail}</p>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Empty title="No recommendations">
+            Recommendations appear as users record activity.
+          </Empty>
+        )}
+      </section>
+
+      <section className="alarms-card">
+        <div className="card-header">
+          <div>
             <h2>People</h2>
             <p>{data.habit_adherence_note}</p>
           </div>
@@ -774,104 +1032,7 @@ function CoachDashboard() {
       )}
 
       {detail && (
-        <section className="alarms-card">
-          <div className="card-header">
-            <div>
-              <h2>{detail.user.full_name}</h2>
-              <p>
-                Habit score{" "}
-                {detail.habit.score == null
-                  ? "—"
-                  : pct(detail.habit.score)}{" "}
-                · {detail.wake_up.attempts} wake-up attempts
-              </p>
-            </div>
-
-            <button
-              className="small-button"
-              onClick={() => setDetail(null)}
-            >
-              Close
-            </button>
-          </div>
-
-          <div className="two-column">
-            <div>
-              <h3 className="sub-heading">Habit Score Components</h3>
-
-              <BarList
-                rows={Object.entries(detail.habit.components)
-                  .filter(([, value]) => value !== null)
-                  .map(([key, value]) => ({
-                    label: titleCase(key),
-                    value,
-                  }))}
-              />
-
-              <h3 className="sub-heading">Wake-up Progress</h3>
-
-              <BarList
-                rows={detail.trends.weekly
-                  .slice(-8)
-                  .filter(
-                    (week) =>
-                      week.wake_success_rate_percent !== null &&
-                      week.wake_success_rate_percent !== undefined
-                  )
-                  .map((week) => ({
-                    label:
-                      week.week_start || week.date || week.period,
-                    value: week.wake_success_rate_percent,
-                  }))}
-              />
-            </div>
-
-            <div>
-              <h3 className="sub-heading">Sleep</h3>
-
-              {detail.sleep.available ? (
-                <p className="muted-line">
-                  Average{" "}
-                  {minutesLabel(
-                    detail.sleep.average_duration_minutes
-                  )}{" "}
-                  of {minutesLabel(detail.sleep.goal_minutes)} goal ·
-                  on schedule{" "}
-                  {detail.sleep.adherence_percent ?? "—"}%
-                </p>
-              ) : (
-                <p className="muted-line">{detail.sleep.reason}</p>
-              )}
-
-              <h3 className="sub-heading">Snoozing</h3>
-
-              <p className="muted-line">
-                {detail.snooze.available
-                  ? `${detail.snooze.snoozes} snoozes over ${detail.snooze.alarms_triggered} alarms.`
-                  : detail.snooze.reason}
-              </p>
-
-              <h3 className="sub-heading">Recommendations</h3>
-
-              {detail.recommendations.length ? (
-                <ul className="reason-list">
-                  {detail.recommendations.map((recommendation) => (
-                    <li key={recommendation.id}>
-                      <strong>{recommendation.title}</strong>
-                      {recommendation.detail && (
-                        <p>{recommendation.detail}</p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="muted-line">
-                  No recommendations are available for this period.
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
+        <UserDetailPanel detail={detail} onClose={() => setDetail(null)} />
       )}
     </div>
   );
